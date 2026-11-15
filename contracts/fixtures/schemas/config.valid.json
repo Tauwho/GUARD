@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "mode": "B2",
+  "ablate": {
+    "freshness": true
+  },
+  "params": {
+    "t_lease_ms": 250,
+    "v_max": 1.2
+  }
+}

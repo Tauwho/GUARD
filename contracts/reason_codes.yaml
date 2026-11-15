@@ -1,0 +1,253 @@
+# GUARD reason codes (C10), contracts v1.0
+# Rules:
+# - Every code is a stable string plus a number inside its group range.
+# - Numbers are never reused or renumbered. Retired codes stay here with `retired: true`.
+# - This file generates core/include/guard/reason_codes.hpp and docs/reason-codes.md (A-2).
+version: 1
+groups:
+  authorized:   {range: [100, 199], meaning: "Proposal authorized; a lease was issued"}
+  rejected:     {range: [200, 299], meaning: "Proposal rejected by a checker or the gate"}
+  unverifiable: {range: [300, 399], meaning: "Proposal could not be verified; treated as rejected"}
+  revoked:      {range: [400, 499], meaning: "Active lease revoked by the supervisor re-check"}
+  gate:         {range: [500, 599], meaning: "Gate events and lease handling results"}
+  sim:          {range: [600, 699], meaning: "Ground-truth events recorded by the sim"}
+codes:
+  OK_AUTHORIZED:
+    number: 100
+    group: authorized
+    meaning: "All 11 checkers passed and the gate accepted the lease"
+    emitted_by: supervisor
+    operator_hint: "Normal operation"
+
+  REJ_SCHEMA:
+    number: 200
+    group: rejected
+    meaning: "Proposal has a bad version or size, a NaN/Inf value, or a field outside its schema range (checker 1)"
+    emitted_by: supervisor
+    operator_hint: "Planner build does not match contracts v1.0; check its encoder"
+  REJ_RATE_LIMIT:
+    number: 201
+    group: rejected
+    meaning: "More than 50 proposals per second from one planner (checker 2)"
+    emitted_by: supervisor
+    operator_hint: "Planner is flooding; expected in F8"
+  REJ_SEQ_REPLAY:
+    number: 202
+    group: rejected
+    meaning: "Proposal seq is not greater than the last seq from this planner (checker 3)"
+    emitted_by: supervisor
+    operator_hint: "Replayed or reordered proposal; check planner restarts"
+  REJ_UNKNOWN_OBSERVATION:
+    number: 203
+    group: rejected
+    meaning: "based_on.obs_id is not in the supervisor's 64-entry history (checker 4)"
+    emitted_by: supervisor
+    operator_hint: "Planner cites an observation the supervisor never saw or has aged out"
+  REJ_PROVENANCE_MISMATCH:
+    number: 204
+    group: rejected
+    meaning: "based_on.obs_stamp_ns or obs_seq differs from what the supervisor recorded for obs_id (checker 4)"
+    emitted_by: supervisor
+    operator_hint: "Planner provenance is inconsistent; possible forged or corrupted proposal"
+  REJ_STALE_OBSERVATION:
+    number: 205
+    group: rejected
+    meaning: "now - recorded stamp of obs_id > max_obs_age (200 ms) (checker 5)"
+    emitted_by: supervisor
+    operator_hint: "Planner is lagging; expected in F1"
+  REJ_SUPERSEDED_OBSERVATION:
+    number: 206
+    group: rejected
+    meaning: "More than K = 2 newer observations exist than the one cited (checker 6)"
+    emitted_by: supervisor
+    operator_hint: "Planner decided on an outdated view of the world"
+  REJ_MAP_VERSION:
+    number: 207
+    group: rejected
+    meaning: "based_on.map_version differs from the current map version (checker 7)"
+    emitted_by: supervisor
+    operator_hint: "Map changed (for example a zone activated); planner must re-plan; expected in F6"
+  REJ_SPEED_ENVELOPE:
+    number: 208
+    group: rejected
+    meaning: "abs(v_cmd) > v_max or abs(w_cmd) > w_max (checker 9)"
+    emitted_by: supervisor
+    operator_hint: "Planner asked for more speed than the envelope allows"
+  REJ_ACCEL_ENVELOPE:
+    number: 209
+    group: rejected
+    meaning: "Implied acceleration from the current measured speed exceeds a_max (checker 9)"
+    emitted_by: supervisor
+    operator_hint: "Planner asked for a speed change that is too abrupt"
+  REJ_RESTRICTED_ZONE:
+    number: 210
+    group: rejected
+    meaning: "Swept footprint over the lease horizon enters an active restricted zone (checker 10)"
+    emitted_by: supervisor
+    operator_hint: "Path crosses an active zone; expected in F6"
+  REJ_STOPPING_DISTANCE:
+    number: 211
+    group: rejected
+    meaning: "Free distance along the commanded arc is less than d_req (checker 11)"
+    emitted_by: supervisor
+    operator_hint: "Too fast for the space ahead; expected in F5"
+  REJ_GATE_NOT_READY:
+    number: 212
+    group: rejected
+    meaning: "All checkers passed but the gate refused the lease (not READY or MOVING, or a lease error)"
+    emitted_by: supervisor
+    operator_hint: "Gate is latched or stopping; run `guardctl status`, then `guardctl recover` if appropriate"
+
+  UNV_SENSOR_STALE:
+    number: 300
+    group: unverifiable
+    meaning: "Supervisor's own latest observation is older than 150 ms, or sensor_ok is false (checker 8)"
+    emitted_by: supervisor
+    operator_hint: "Supervisor observation feed stalled; expected in F4"
+  UNV_CHECK_BUDGET:
+    number: 301
+    group: unverifiable
+    meaning: "Checker pipeline exceeded its time budget for this proposal"
+    emitted_by: supervisor
+    operator_hint: "Supervisor is starved or overloaded; check priorities and load"
+  UNV_INTERNAL:
+    number: 302
+    group: unverifiable
+    meaning: "A checker hit an internal error (for example a bound exceeded)"
+    emitted_by: supervisor
+    operator_hint: "Supervisor bug; capture slog2 output and open a bug issue"
+
+  REVOKE_SENSOR_HEALTH:
+    number: 400
+    group: revoked
+    meaning: "Re-check of the active lease failed checker 8 (sensor health)"
+    emitted_by: supervisor
+    operator_hint: "Supervisor lost a fresh view while moving; robot stops and latches SENSOR_LOST"
+  REVOKE_ENVELOPE:
+    number: 401
+    group: revoked
+    meaning: "Re-check of the active lease failed checker 9 (speed or acceleration envelope)"
+    emitted_by: supervisor
+    operator_hint: "Measured motion left the envelope; inspect plant and parameters"
+  REVOKE_RESTRICTED_ZONE:
+    number: 402
+    group: revoked
+    meaning: "Re-check of the active lease failed checker 10 (zone activated ahead)"
+    emitted_by: supervisor
+    operator_hint: "A zone became active on the current path; expected in F6"
+  REVOKE_STOPPING_DISTANCE:
+    number: 403
+    group: revoked
+    meaning: "Re-check of the active lease failed checker 11 (obstacle now too close)"
+    emitted_by: supervisor
+    operator_hint: "Someone stepped into the path; expected in F1 and F5"
+  REVOKE_UNVERIFIABLE:
+    number: 404
+    group: revoked
+    meaning: "Three consecutive UNVERIFIABLE re-check results while MOVING"
+    emitted_by: supervisor
+    operator_hint: "Supervisor cannot verify motion; check its feed and load"
+
+  GATE_LEASE_ACCEPTED:
+    number: 500
+    group: gate
+    meaning: "Gate accepted a valid lease (REF-FSM R4 or R5)"
+    emitted_by: gate
+    operator_hint: "Normal operation"
+  GATE_EPOCH_STALE:
+    number: 501
+    group: gate
+    meaning: "Lease epoch is lower than the current epoch (R11)"
+    emitted_by: gate
+    operator_hint: "A paused or zombie supervisor tried to act; expected in F7"
+  GATE_LEASE_REPLAY:
+    number: 502
+    group: gate
+    meaning: "Lease lease_seq is not greater than the last seen (R12)"
+    emitted_by: gate
+    operator_hint: "Replayed lease; check the supervisor sequence after restarts"
+  GATE_LEASE_EXPIRED_ON_ARRIVAL:
+    number: 503
+    group: gate
+    meaning: "Lease arrived at or after its expires_ns (R13)"
+    emitted_by: gate
+    operator_hint: "Supervisor-to-gate path is too slow; expected under F2 load"
+  GATE_NOT_READY:
+    number: 504
+    group: gate
+    meaning: "Lease or recover arrived in a mode that does not accept it (R14)"
+    emitted_by: gate
+    operator_hint: "Gate is LATCHED, STOPPING or STOPPED; wait or recover"
+  GATE_UNAUTHORIZED_CLIENT:
+    number: 505
+    group: gate
+    meaning: "Caller uid is not allowed for this gate command"
+    emitted_by: gate
+    operator_hint: "A process other than the supervisor or operator tried to command the gate"
+  GATE_LEASE_EXPIRED:
+    number: 506
+    group: gate
+    meaning: "Active lease expired; gate entered STOPPING (R6)"
+    emitted_by: gate
+    operator_hint: "No renewal arrived in time; expected in F2 and F3"
+  GATE_REVOKED:
+    number: 507
+    group: gate
+    meaning: "Supervisor revoked the active lease; gate entered STOPPING (R7)"
+    emitted_by: gate
+    operator_hint: "See the 4xx code that caused the revoke"
+  GATE_SUPERVISOR_LOST:
+    number: 508
+    group: gate
+    meaning: "Registered supervisor connection closed; STOPPING and latch (R9)"
+    emitted_by: gate
+    operator_hint: "Supervisor died; restart it, then `guardctl recover`; expected in F3"
+  GATE_EPOCH_CHANGED:
+    number: 509
+    group: gate
+    meaning: "A new supervisor registered while MOVING; STOPPING and latch (R8)"
+    emitted_by: gate
+    operator_hint: "Supervisor restarted or replaced; recover after checking; expected in F7"
+  GATE_MOTOR_TIMEOUT:
+    number: 510
+    group: gate
+    meaning: "Motor devctl timed out; STOPPING and latch (R10)"
+    emitted_by: gate
+    operator_hint: "Sim is not answering; check guard-sim"
+  GATE_STANDSTILL:
+    number: 511
+    group: gate
+    meaning: "Measured standstill confirmed; STOPPING to STOPPED (R16)"
+    emitted_by: gate
+    operator_hint: "Robot has stopped"
+  GATE_RECOVERED:
+    number: 512
+    group: gate
+    meaning: "RECOVER accepted with all conditions met; LATCHED to READY (R2)"
+    emitted_by: gate
+    operator_hint: "Gate is ready for new leases"
+  GATE_RECOVERY_UNMET:
+    number: 513
+    group: gate
+    meaning: "RECOVER refused; see recovery_unmet_mask (R3)"
+    emitted_by: gate
+    operator_hint: "Fix the unmet conditions shown by `guardctl status`, then retry"
+
+  SIM_ACTUATOR_WATCHDOG:
+    number: 600
+    group: sim
+    meaning: "No valid MotorCmd for 50 ms; sim braked on its own"
+    emitted_by: sim
+    operator_hint: "Gate died or hung; the last stop layer acted"
+  SIM_ZONE_BREACH:
+    number: 601
+    group: sim
+    meaning: "Robot footprint entered an active restricted zone (ground truth)"
+    emitted_by: sim
+    operator_hint: "Counts as a violation in eval"
+  SIM_CONTACT:
+    number: 602
+    group: sim
+    meaning: "Robot footprint touched an obstacle (ground truth)"
+    emitted_by: sim
+    operator_hint: "Counts as a violation in eval"

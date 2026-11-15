@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Tauwho/GUARD/contracts/telemetry.schema.json",
+  "title": "GUARD telemetry event (C8)",
+  "description": "One JSON object per line (JSONL). Emitted by guard-bridge on TCP 7700 and by the host harness guard-replay. Same schema on both. Best effort: dropped events are reported by a 'drop' event.",
+  "type": "object",
+  "required": ["v", "t_ns", "src", "seq", "kind", "payload"],
+  "additionalProperties": false,
+  "properties": {
+    "v": {"const": 1, "description": "Schema version"},
+    "t_ns": {"type": "integer", "minimum": 0, "description": "CLOCK_MONOTONIC ns on the target, or virtual ns in the harness"},
+    "src": {"enum": ["sim", "gate", "supervisor", "planner", "bridge", "harness"]},
+    "seq": {"type": "integer", "minimum": 0, "description": "Per-src sequence number; gaps mean drops"},
+    "run_id": {"type": "string", "maxLength": 64, "description": "Optional scenario run id: <scenario>-<mode>-<seed>"},
+    "kind": {"enum": ["observation", "proposal", "decision", "lease", "revoke", "gate_transition", "motor_cmd", "status", "fault", "sim_event", "drop", "run_start", "run_end"]},
+    "payload": {"type": "object"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"kind": {"const": "decision"}}},
+      "then": {"properties": {"payload": {"$ref": "#/$defs/decision"}}}
+    },
+    {
+      "if": {"properties": {"kind": {"const": "gate_transition"}}},
+      "then": {"properties": {"payload": {"$ref": "#/$defs/gate_transition"}}}
+    },
+    {
+      "if": {"properties": {"kind": {"const": "motor_cmd"}}},
+      "then": {"properties": {"payload": {"$ref": "#/$defs/motor_cmd"}}}
+    },
+    {
+      "if": {"properties": {"kind": {"const": "observation"}}},
+      "then": {"properties": {"payload": {"$ref": "#/$defs/observation"}}}
+    },
+    {
+      "if": {"properties": {"kind": {"const": "fault"}}},
+      "then": {"properties": {"payload": {"$ref": "#/$defs/fault"}}}
+    },
+    {
+      "if": {"properties": {"kind": {"const": "sim_event"}}},
+      "then": {"properties": {"payload": {"$ref": "#/$defs/sim_event"}}}
+    },
+    {
+      "if": {"properties": {"kind": {"const": "drop"}}},
+      "then": {"properties": {"payload": {"$ref": "#/$defs/drop"}}}
+    }
+  ],
+  "$defs": {
+    "reason": {"type": "string", "pattern": "^(OK|REJ|UNV|REVOKE|GATE|SIM)_[A-Z_]+$"},
+    "gate_mode": {"enum": ["INIT", "LATCHED", "READY", "MOVING", "STOPPING", "STOPPED"]},
+    "decision": {
+      "type": "object",
+      "required": ["proposal_id", "planner_id", "verdict", "primary_reason", "reasons"],
+      "additionalProperties": false,
+      "properties": {
+        "proposal_id": {"type": "integer", "minimum": 0},
+        "planner_id": {"type": "integer", "minimum": 1},
+        "verdict": {"enum": ["AUTHORIZED", "REJECTED", "UNVERIFIABLE"]},
+        "primary_reason": {"$ref": "#/$defs/reason"},
+        "reasons": {"type": "array", "items": {"$ref": "#/$defs/reason"}, "maxItems": 11},
+        "lease_id": {"type": "integer", "minimum": 0},
+        "epoch": {"type": "integer", "minimum": 0},
+        "expires_ns": {"type": "integer", "minimum": 0},
+        "v_cmd": {"type": "number", "minimum": -1.5, "maximum": 1.5},
+        "w_cmd": {"type": "number", "minimum": -1.5, "maximum": 1.5}
+      }
+    },
+    "gate_transition": {
+      "type": "object",
+      "required": ["from", "to", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "from": {"$ref": "#/$defs/gate_mode"},
+        "to": {"$ref": "#/$defs/gate_mode"},
+        "reason": {"$ref": "#/$defs/reason"},
+        "fsm_row": {"type": "string", "pattern": "^R([1-9]|1[0-8])$"},
+        "epoch": {"type": "integer", "minimum": 0},
+        "lease_id": {"type": "integer", "minimum": 0},
+        "latch_cause": {"enum": ["NONE", "BOOT", "SUPERVISOR_LOST", "EPOCH_CHANGED", "ZONE_BREACH", "SENSOR_LOST", "MOTOR_TIMEOUT", "INTERNAL"]},
+        "unmet_mask": {"type": "integer", "minimum": 0, "maximum": 31}
+      }
+    },
+    "motor_cmd": {
+      "type": "object",
+      "required": ["cmd_seq", "v", "w", "gate_mode"],
+      "additionalProperties": false,
+      "properties": {
+        "cmd_seq": {"type": "integer", "minimum": 1},
+        "v": {"type": "number", "minimum": -1.2, "maximum": 1.2},
+        "w": {"type": "number", "minimum": -1.0, "maximum": 1.0},
+        "gate_mode": {"$ref": "#/$defs/gate_mode"}
+      }
+    },
+    "observation": {
+      "type": "object",
+      "required": ["obs_id", "seq", "feed", "x", "y", "theta", "v_meas", "w_meas", "map_version", "sensor_ok"],
+      "additionalProperties": false,
+      "properties": {
+        "obs_id": {"type": "integer", "minimum": 1},
+        "seq": {"type": "integer", "minimum": 1},
+        "feed": {"enum": ["supervisor", "planner"]},
+        "x": {"type": "number", "minimum": -100, "maximum": 100},
+        "y": {"type": "number", "minimum": -100, "maximum": 100},
+        "theta": {"type": "number", "minimum": -3.1416, "maximum": 3.1416},
+        "v_meas": {"type": "number", "minimum": -1.5, "maximum": 1.5},
+        "w_meas": {"type": "number", "minimum": -1.5, "maximum": 1.5},
+        "map_version": {"type": "integer", "minimum": 1},
+        "sensor_ok": {"type": "boolean"},
+        "obstacles": {
+          "type": "array", "maxItems": 16,
+          "items": {
+            "type": "object", "required": ["x", "y", "r"], "additionalProperties": false,
+            "properties": {
+              "x": {"type": "number", "minimum": -100, "maximum": 100},
+              "y": {"type": "number", "minimum": -100, "maximum": 100},
+              "r": {"type": "number", "minimum": 0.05, "maximum": 2.0}
+            }
+          }
+        }
+      }
+    },
+    "fault": {
+      "type": "object",
+      "required": ["fault", "phase"],
+      "additionalProperties": false,
+      "properties": {
+        "fault": {"enum": ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"]},
+        "phase": {"enum": ["start", "end"]},
+        "detail": {"type": "string", "maxLength": 200}
+      }
+    },
+    "sim_event": {
+      "type": "object",
+      "required": ["code"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {"enum": ["SIM_ACTUATOR_WATCHDOG", "SIM_ZONE_BREACH", "SIM_CONTACT"]},
+        "zone": {"type": "string", "maxLength": 32},
+        "obstacle": {"type": "string", "maxLength": 32},
+        "margin_m": {"type": "number"}
+      }
+    },
+    "drop": {
+      "type": "object",
+      "required": ["ring", "dropped"],
+      "additionalProperties": false,
+      "properties": {
+        "ring": {"enum": ["sim", "gate", "supervisor", "planner"]},
+        "dropped": {"type": "integer", "minimum": 1}
+      }
+    }
+  }
+}

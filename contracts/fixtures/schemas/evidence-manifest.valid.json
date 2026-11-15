@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "sha": "1efeed6000000000000000000000000000000000",
+  "date": "2026-11-18T20:00:00+08:00",
+  "topic": "setup-po",
+  "runner_role": "po",
+  "host_os": "Windows 11 + WSL2 Ubuntu 24.04",
+  "sdp_version": "8.0.0",
+  "qcc_version": "cc: targets available in /qnx800/host/...",
+  "image_id": "qsti-x86_64-qemu",
+  "files": [
+    "transcript.txt",
+    "uname.txt",
+    "binaries.txt"
+  ]
+}
