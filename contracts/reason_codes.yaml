@@ -46,7 +46,7 @@ codes:
   REJ_PROVENANCE_MISMATCH:
     number: 204
     group: rejected
-    meaning: "based_on.obs_stamp_ns or obs_seq differs from what the supervisor recorded for obs_id (checker 4)"
+    meaning: "based_on.obs_stamp_ns differs from the stamp the supervisor recorded for obs_id (checker 4)"
     emitted_by: supervisor
     operator_hint: "Planner provenance is inconsistent; possible forged or corrupted proposal"
   REJ_STALE_OBSERVATION:

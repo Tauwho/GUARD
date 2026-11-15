@@ -164,7 +164,7 @@ For `__DIOTF`, the caller passes a buffer of `max(in, out)` bytes. The server wr
 | 20 | `lease_req_ms` | u32 | ms | 50-1000. The supervisor grants `min(lease_req_ms, T_lease)` |
 | 24 | `seq` | u64 | - | ≥ 1, strictly increasing per `planner_id` |
 | 32 | `based_on.obs_id` | u64 | - | ≥ 1; must be in the supervisor history (64) |
-| 40 | `based_on.obs_seq` | u64 | - | ≥ 1 |
+| 40 | `based_on.obs_seq` | u64 | - | ≥ 1. The `seq` the planner saw on its own feed. Logged for diagnosis only; checker 4 does not compare it |
 | 48 | `based_on.obs_stamp_ns` | i64 | ns | ≥ 0; must equal the recorded stamp of `obs_id` |
 | 56 | `based_on.map_version` | u32 | - | ≥ 1 |
 | 60 | `reserved0` | u32 | - | 0 |
@@ -370,8 +370,8 @@ count.<CODE>=<n>
 | Offset | Field | Type | Units | Range |
 |---|---|---|---|---|
 | 0 | header | 8 B | - | type `0x0001`, size 464 |
-| 8 | `obs_id` | u64 | - | ≥ 1, unique across feeds |
-| 16 | `seq` | u64 | - | ≥ 1, +1 per observation on this feed |
+| 8 | `obs_id` | u64 | - | ≥ 1. Identifies one world sample. The sim publishes each sample on **both** feeds with the same `obs_id`, `stamp_ns` and world fields |
+| 16 | `seq` | u64 | - | ≥ 1, +1 per observation delivered on this feed. Used only to spot gaps on one feed; never compared across feeds |
 | 24 | `stamp_ns` | i64 | ns | ≥ 0, time the sim sampled the world |
 | 32 | `x` | f64 | m | -100 to 100 (map frame) |
 | 40 | `y` | f64 | m | -100 to 100 |
@@ -386,6 +386,8 @@ count.<CODE>=<n>
 | 80 | `obstacles[16]` | 16 × 24 B | - | Entries `0 .. obstacle_count-1` are valid; the rest are zero |
 
 Each obstacle entry (24 bytes): `x` f64 (m, -100 to 100) at +0, `y` f64 (m, -100 to 100) at +8, `r` f64 (m, 0.05 to 2.0) at +16.
+
+**Feeds and faults.** Both feeds carry the same samples. Fault F1 delays delivery on the planner feed: same `obs_id` and `stamp_ns`, later arrival. Fault F4 pauses delivery on the supervisor feed: samples published during the pause are skipped on that feed, not queued. The supervisor records `obs_id` -> `stamp_ns` for the last 64 samples it received (checkers 4-6).
 
 ---
 
