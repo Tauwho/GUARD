@@ -19,22 +19,22 @@ All entries were accepted on 2026-11-15. Full write-ups go in `docs/adr/` (issue
 
 | ADR | Decision | Rejected alternative | Why |
 |---|---|---|---|
-| 0001 | A separate gate process owns the only actuator path | Supervisor writes the motor directly | Fails safe when the supervisor dies; isolation can be demonstrated |
-| 0002 | Expiring leases with epoch + sequence fencing | Heartbeat watchdog | Liveness is not correctness; leases bound authority in time; epochs stop zombie supervisors |
-| 0003 | Provenance freshness against a supervisor-owned observation history | Message age (ROS 2 lifespan) | A message can be new while the decision behind it is old |
-| 0004 | Portable core with time injected; QNX layer only wires IPC and timers | Logic inside QNX handlers | Deterministic host CI; AGENTS.md rule 2 |
-| 0005 | Native message passing, pulses and resource managers on target; TCP only to the host | POSIX mqueue or sockets everywhere | Priority inheritance and bounded IPC; Qnet is removed in 8.0 |
-| 0006 | Priority map; default priority inheritance on the proposal channel | `_NTO_CHF_FIXED_PRIORITY` | Starving the planner path makes leases lapse, which fails safe |
-| 0007 | Plant simulator runs on the target; host harness uses virtual time | Simulator on the host | One clock domain; reproducible CI |
-| 0008 | Telemetry through shared-memory rings; read-only bridge and dashboard | Telemetry over IPC from the critical path | The critical path never blocks |
-| 0009 | No QNX SDP in CI; evidence-commit protocol | Self-hosted runner with QNX | Licence §4.2.6, §4.6(b), §4.6(l) |
-| 0010 | Binary authorize / reject | Clamp to a safe speed | Simpler and explainable |
-| 0011 | Publish functional metrics only | Publish latency numbers | Licence §4.6(i) |
-| 0012 | Compile-time checker registry; all checkers run; first failure is the primary reason | `dlopen` plugins; fail-fast | Determinism, explainability, bounded cost |
-| 0013 | uid-based authorization in P0; secpol in P1 (P0 if spike S4 passes) | secpol only | Risk that the spike fails on QSTI |
-| 0014 | Simulation only | Hardware | Licence §4.2.5; no hardware; $0 budget |
-| 0015 | Single-threaded gate dispatch | Thread pool | Deterministic ordering; bounded handlers |
-| 0016 | MIT licence | Apache-2.0 | Simplest; codelab can reuse code |
+| [0001](docs/adr/0001-separate-gate-process.md) | A separate gate process owns the only actuator path | Supervisor writes the motor directly | Fails safe when the supervisor dies; isolation can be demonstrated |
+| [0002](docs/adr/0002-expiring-leases-epoch-fencing.md) | Expiring leases with epoch + sequence fencing | Heartbeat watchdog | Liveness is not correctness; leases bound authority in time; epochs stop zombie supervisors |
+| [0003](docs/adr/0003-provenance-freshness.md) | Provenance freshness against a supervisor-owned observation history | Message age (ROS 2 lifespan) | A message can be new while the decision behind it is old |
+| [0004](docs/adr/0004-portable-core-time-injected.md) | Portable core with time injected; QNX layer only wires IPC and timers | Logic inside QNX handlers | Deterministic host CI; AGENTS.md rule 2 |
+| [0005](docs/adr/0005-native-ipc-resource-managers.md) | Native message passing, pulses and resource managers on target; TCP only to the host | POSIX mqueue or sockets everywhere | Priority inheritance and bounded IPC; Qnet is removed in 8.0 |
+| [0006](docs/adr/0006-priority-map-inheritance.md) | Priority map; default priority inheritance on the proposal channel | `_NTO_CHF_FIXED_PRIORITY` | Starving the planner path makes leases lapse, which fails safe |
+| [0007](docs/adr/0007-sim-on-target-virtual-time-host.md) | Plant simulator runs on the target; host harness uses virtual time | Simulator on the host | One clock domain; reproducible CI |
+| [0008](docs/adr/0008-shm-ring-telemetry.md) | Telemetry through shared-memory rings; read-only bridge and dashboard | Telemetry over IPC from the critical path | The critical path never blocks |
+| [0009](docs/adr/0009-no-qnx-in-ci.md) | No QNX SDP in CI; evidence-commit protocol | Self-hosted runner with QNX | Licence §4.2.6, §4.6(b), §4.6(l) |
+| [0010](docs/adr/0010-binary-authorize-reject.md) | Binary authorize / reject | Clamp to a safe speed | Simpler and explainable |
+| [0011](docs/adr/0011-functional-metrics-only.md) | Publish functional metrics only | Publish latency numbers | Licence §4.6(i) |
+| [0012](docs/adr/0012-compile-time-checker-registry.md) | Compile-time checker registry; all checkers run; first failure is the primary reason | `dlopen` plugins; fail-fast | Determinism, explainability, bounded cost |
+| [0013](docs/adr/0013-uid-authz-p0-secpol-p1.md) | uid-based authorization in P0; secpol in P1 (P0 if spike S4 passes) | secpol only | Risk that the spike fails on QSTI |
+| [0014](docs/adr/0014-simulation-only.md) | Simulation only | Hardware | Licence §4.2.5; no hardware; $0 budget |
+| [0015](docs/adr/0015-single-threaded-gate.md) | Single-threaded gate dispatch | Thread pool | Deterministic ordering; bounded handlers |
+| [0016](docs/adr/0016-mit-licence.md) | MIT licence | Apache-2.0 | Simplest; codelab can reuse code |
 
 ## Clarification log
 Questions Q1–Q8 are in issue PO-1.
