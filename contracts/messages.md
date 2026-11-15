@@ -250,6 +250,8 @@ No input. Each successful call starts a **new epoch** (`epoch = previous + 1`). 
 
 `devctl` returns `EOK` whenever a `LeaseAck` was written, including refusals. The refusal is in `reason`. Gate checks run in the REF-FSM order R11, R12, R13, R14.
 
+**Ablation `expiry` (C12 `ablate.expiry: true`, B2 only).** The wire format does not change: the supervisor still fills `expires_ns` within its range. The gate ignores `expires_ns` for R6 and R13, so a lease holds until it is replaced or revoked. Eval-only; never used in the demo.
+
 ### 3.3 `DCMD_GUARD_REVOKE`: `Revoke` (type `0x0013`, 24 bytes)
 
 | Offset | Field | Type | Units | Range |
