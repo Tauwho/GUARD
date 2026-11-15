@@ -262,6 +262,8 @@ No input. Each successful call starts a **new epoch** (`epoch = previous + 1`). 
 
 A revoke of a lease that is not active returns `EOK` and changes nothing.
 
+**Latching revokes.** While MOVING, a revoke with reason `REVOKE_SENSOR_HEALTH` (400) or `REVOKE_UNVERIFIABLE` (404) sends the gate to STOPPING **and latches `SENSOR_LOST`** (REF-FSM R7 plus latch). Every other 4xx reason follows R7 with no latch, so the gate returns to READY after standstill.
+
 ### 3.4 Baseline modes B0 and B1: `DCMD_GUARD_PASSTHRU`
 
 Status: **approved by the PO on 15 Nov 2026; needs agreement from A (A-10) and B (B-5) before the freeze.**

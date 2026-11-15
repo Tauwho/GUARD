@@ -16,5 +16,6 @@ Initial contracts. Frozen when the PR for #3 merges with approval from @phatdat2
 - Observation identity: one `obs_id` per world sample, shared by both feeds; provenance (checker 4) compares `obs_id` and `obs_stamp_ns` only (review fix, 16 Nov).
 - Baselines B0/B1: planner -> gate pass-through (`DCMD_GUARD_PASSTHRU`, `PassthruCmd` 0x0014) and codes 514-515; PO-approved 15 Nov, pending A/B agreement.
 - Telemetry: gate_transition.fsm_row also accepts P1-P5 (B0/B1 rows, review fix, 16 Nov).
+- Gate: revokes 400 and 404 latch SENSOR_LOST; other revokes do not (review fix, 16 Nov; matches F4).
 
 After the freeze, every change needs a `decision` issue, an ADR, the `contract-change` label, a new version entry here, and approval from both @phatdat220707 and @baofrovn.

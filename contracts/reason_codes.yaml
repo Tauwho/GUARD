@@ -146,7 +146,7 @@ codes:
     group: revoked
     meaning: "Three consecutive UNVERIFIABLE re-check results while MOVING"
     emitted_by: supervisor
-    operator_hint: "Supervisor cannot verify motion; check its feed and load"
+    operator_hint: "Supervisor cannot verify motion; robot stops and latches SENSOR_LOST; check its feed and load"
 
   GATE_LEASE_ACCEPTED:
     number: 500
