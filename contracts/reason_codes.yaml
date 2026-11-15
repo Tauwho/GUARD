@@ -233,6 +233,18 @@ codes:
     emitted_by: gate
     operator_hint: "Fix the unmet conditions shown by `guardctl status`, then retry"
 
+  GATE_PASSTHRU_ACCEPTED:
+    number: 514
+    group: gate
+    meaning: "Baseline B0/B1: gate accepted a planner pass-through command (messages.md 3.4, P2)"
+    emitted_by: gate
+    operator_hint: "Baseline run; GUARD checks are off"
+  GATE_HEARTBEAT_LOST:
+    number: 515
+    group: gate
+    meaning: "Baseline B1: no planner command for heartbeat_timeout_ms; STOPPING (messages.md 3.4, P3)"
+    emitted_by: gate
+    operator_hint: "Expected in B1 when the planner stalls longer than the heartbeat timeout"
   SIM_ACTUATOR_WATCHDOG:
     number: 600
     group: sim

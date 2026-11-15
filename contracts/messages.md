@@ -42,6 +42,7 @@ Header size: **8 bytes**.
 | `0x0011` | `Lease` | C2 | 80 |
 | `0x0012` | `LeaseAck` | C2 | 24 |
 | `0x0013` | `Revoke` | C2 | 24 |
+| `0x0014` | `PassthruCmd` | C2 (B0/B1 only) | 40 |
 | `0x0020` | `RecoverRequest` | C3 | 16 |
 | `0x0021` | `RecoverReply` | C3 | 24 |
 | `0x0030` | `MotorCmd` | C5 | 48 |
@@ -133,6 +134,7 @@ All commands use class `_DCMD_MISC` from `<devctl.h>`. Numbers are built with th
 | `DCMD_GUARD_LEASE` | `__DIOTF(_DCMD_MISC, 0xA1, guard_lease_t)` | `0xA1` | in: `Lease` (80); out: `LeaseAck` (24) in the same buffer | C2 |
 | `DCMD_GUARD_REVOKE` | `__DIOT(_DCMD_MISC, 0xA2, guard_revoke_t)` | `0xA2` | in: `Revoke` (24) | C2 |
 | `DCMD_GUARD_RECOVER` | `__DIOTF(_DCMD_MISC, 0xA3, guard_recover_t)` | `0xA3` | in: `RecoverRequest` (16); out: `RecoverReply` (24); buffer 24 | C3 |
+| `DCMD_GUARD_PASSTHRU` | `__DIOT(_DCMD_MISC, 0xA4, guard_passthru_t)` | `0xA4` | in: `PassthruCmd` (40) | C2 (B0/B1) |
 | `DCMD_SIM_MOTOR` | `__DIOT(_DCMD_MISC, 0xB0, guard_motor_cmd_t)` | `0xB0` | in: `MotorCmd` (48) | C5 |
 | `DCMD_SIM_WORLD_LOAD` | `__DIOT(_DCMD_MISC, 0xB1, guard_world_load_t)` | `0xB1` | in: `WorldLoad` (120) | C7 |
 | `DCMD_SIM_WORLD_INJECT` | `__DIOT(_DCMD_MISC, 0xB2, guard_world_inject_t)` | `0xB2` | in: `WorldInject` (24) | C7 |
@@ -259,6 +261,41 @@ No input. Each successful call starts a **new epoch** (`epoch = previous + 1`). 
 | 22 | `reserved0` | u16 | - | 0 |
 
 A revoke of a lease that is not active returns `EOK` and changes nothing.
+
+### 3.4 Baseline modes B0 and B1: `DCMD_GUARD_PASSTHRU`
+
+Status: **approved by the PO on 15 Nov 2026; needs agreement from A (A-10) and B (B-5) before the freeze.**
+
+In B0 and B1 the planner commands the gate directly, so these runs show what happens **without** GUARD.
+
+| Item | Value |
+|---|---|
+| Purpose | Baseline runs only: the planner's command goes straight to the gate, unchecked |
+| Sender -> receiver | `guard-planner` -> `guard-gate` |
+| Mechanism | `open("/dev/guard/gate", O_RDWR)`, then `devctl(DCMD_GUARD_PASSTHRU)` once per planning cycle (20 Hz) |
+| Timeout | Client `TimerTimeout` of **5 ms**. On `ETIMEDOUT` the planner sends its next command in the next cycle |
+| Allowed callers | uid `guard_plan` (1104) or root, **only while the gate runs in mode B0 or B1** (config C12 `mode`). In B2 the gate returns `EPERM` and counts `GATE_UNAUTHORIZED_CLIENT` |
+| Supervisor | Runs, so that F3 and F7 can be injected, but takes no part: it does not register with the gate, and the planner sends it no proposals. In B0 and B1 the gate returns `EPERM` to `DCMD_GUARD_REGISTER`, `DCMD_GUARD_LEASE` and `DCMD_GUARD_REVOKE` |
+
+`PassthruCmd` (type `0x0014`, 40 bytes):
+
+| Offset | Field | Type | Units | Range |
+|---|---|---|---|---|
+| 0 | header | 8 B | - | type `0x0014`, size 40 |
+| 8 | `cmd_seq` | u64 | - | ≥ 1, strictly increasing; otherwise `EINVAL` |
+| 16 | `v` | f64 | m/s | -1.2 to 1.2; otherwise `EINVAL` |
+| 24 | `w` | f64 | rad/s | -1.0 to 1.0; otherwise `EINVAL` |
+| 32 | `stamp_ns` | i64 | ns | ≥ 0, the planner's send time |
+
+Gate behaviour in B0 and B1. These rows replace REF-FSM rows R1-R14 for these modes. R15, R16 and R18 still apply, and `MotorCmd` is still sent every tick.
+
+| Row | From | Event | To | Emits |
+|---|---|---|---|---|
+| P1 | INIT | start | READY (no BOOT latch) | - |
+| P2 | READY or MOVING | valid `PassthruCmd` | MOVING; it becomes the held command | `GATE_PASSTHRU_ACCEPTED` |
+| P3 | MOVING | B1 only: no valid `PassthruCmd` for `heartbeat_timeout_ms` (C12, default 500) | STOPPING | `GATE_HEARTBEAT_LOST` |
+| P4 | MOVING | B0 only: no new command | MOVING; the held command repeats every tick | - |
+| P5 | STOPPING or STOPPED | valid `PassthruCmd` | unchanged; `EOK`, command dropped | `GATE_NOT_READY` |
 
 ---
 
