@@ -13,6 +13,7 @@
 | D7 | 2026-11-15 | Framing: hospital logistics |
 | D8 | 2026-11-15 | Schedule: P0 complete Wed 9 Dec (the exam window ends 4 Dec). Code freeze Thu 10 Dec. File Sun 13 Dec |
 | D9 | 2026-11-15 | Each CODEOWNERS path has a primary and a secondary owner, so authors never need to self-approve |
+| D10 | 2026-11-15 | Anyone who needs the PO or a teammate asks in the relevant issue or PR with an @-mention. No DMs or private messages for project work (AGENTS.md hard rule 5) |
 
 ## ADR index
 All entries were accepted on 2026-11-15. Full write-ups go in `docs/adr/` (issue PO-5).
