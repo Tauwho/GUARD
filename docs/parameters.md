@@ -71,5 +71,3 @@ d_req = v_pk * t_r + v_pk^2 / (2 * a_brake) + margin + r_robot
 ## Standards context
 
 GUARD claims no compliance with any standard (see [limits.md](limits.md)). Stop states are named by analogy only: STOPPING is like stop category 1 / SS1 in IEC 60204-1, and STOPPED is like SOS. The parameters above were not derived from ISO 3691-4 or any other standard; any match is a coincidence.
-
-Content from cited sources was rephrased for compliance with licensing restrictions.
