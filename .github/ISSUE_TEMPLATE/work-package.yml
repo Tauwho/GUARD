@@ -1,0 +1,94 @@
+# managed-by: guard-bootstrap v1
+name: Work package
+description: A unit of work owned by one stream (PO, A or B). Read AGENTS.md first.
+title: "[WP-ID] "
+labels: ["status:ready"]
+body:
+  - type: input
+    id: wp_id
+    attributes:
+      label: "Work package ID"
+      placeholder: "e.g. A-14"
+    validations:
+      required: true
+  - type: dropdown
+    id: stream
+    attributes:
+      label: "Stream"
+      options: ["PO", "A", "B"]
+    validations:
+      required: true
+  - type: dropdown
+    id: tier
+    attributes:
+      label: "Tier"
+      options: ["P0", "P1", "P2"]
+    validations:
+      required: true
+  - type: dropdown
+    id: qnx_path
+    attributes:
+      label: "Touches the QNX path (core/, qnx/, image/, cmake/, contracts/)?"
+      options: ["yes", "no"]
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: "Goal"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: "Context"
+      description: "Why, related ADRs and reference blocks"
+  - type: textarea
+    id: scope_in
+    attributes:
+      label: "Scope \u2014 in"
+    validations:
+      required: true
+  - type: textarea
+    id: scope_out
+    attributes:
+      label: "Scope \u2014 out"
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: "Dependencies"
+      description: "Blocked by / Blocks / Contracts used"
+  - type: textarea
+    id: deliverables
+    attributes:
+      label: "Deliverables"
+      description: "Exact paths"
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: "Acceptance criteria"
+      description: "Checklist of testable criteria"
+    validations:
+      required: true
+  - type: textarea
+    id: test_plan
+    attributes:
+      label: "Test plan"
+      description: "Host / Target"
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: "Evidence"
+      description: "Topic name, or N/A"
+  - type: textarea
+    id: fallback
+    attributes:
+      label: "Fallback"
+  - type: textarea
+    id: agent_notes
+    attributes:
+      label: "Notes for AI agents"

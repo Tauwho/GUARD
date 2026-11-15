@@ -1,0 +1,49 @@
+# managed-by: guard-bootstrap v1
+# Build output
+build/
+out/
+cmake-build-*/
+*.o
+*.a
+*.so
+*.exe
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+# Editors
+.vscode/
+.idea/
+*.swp
+# --- QNX SDP, licences and images: NEVER commit (AGENTS.md rule 1) ---
+qnxsdp-env.sh
+qnxsdp-env.bat
+qnx800/
+**/qnx800/
+.qnx/
+*.lic
+*.ifs
+*.qcow2
+*.vmdk
+*.vdi
+*.img
+*.iso
+*.ova
+*.ovf
+image/out/
+image/output/
+local/
+# Traces and core dumps (commit text summaries instead)
+*.kev
+*.core
+# Credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+id_rsa*
+id_ed25519*

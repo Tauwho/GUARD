@@ -1,0 +1,72 @@
+<!-- managed-by: guard-bootstrap v1 -->
+# DECISIONS
+
+## Decision log
+| ID | Date | Decision |
+|---|---|---|
+| D1 | 2026-11-15 | Team: 3 people, SGT, Windows 11 + WSL2 or Ubuntu hosts, about 10 h/week each outside exams (assumption) |
+| D2 | 2026-11-15 | Target: QSTI x86_64 on QEMU only. No Raspberry Pi 5 |
+| D3 | 2026-11-15 | Repository: Tauwho/GUARD. PO has admin |
+| D4 | 2026-11-15 | Eligibility confirmed by all members. PO is the Devpost Representative |
+| D5 | 2026-11-15 | Public metrics are functional only until BlackBerry gives written approval (licence §4.6(i)) |
+| D6 | 2026-11-15 | Planner: rule-based + fault modes in P0. Local LLM route advisor (Ollama) in P1 |
+| D7 | 2026-11-15 | Framing: hospital logistics |
+| D8 | 2026-11-15 | Schedule: P0 complete Wed 9 Dec (the exam window ends 4 Dec). Code freeze Thu 10 Dec. File Sun 13 Dec |
+| D9 | 2026-11-15 | Each CODEOWNERS path has a primary and a secondary owner, so authors never need to self-approve |
+
+## ADR index
+All entries were accepted on 2026-11-15. Full write-ups go in `docs/adr/` (issue PO-5).
+
+| ADR | Decision | Rejected alternative | Why |
+|---|---|---|---|
+| 0001 | A separate gate process owns the only actuator path | Supervisor writes the motor directly | Fails safe when the supervisor dies; isolation can be demonstrated |
+| 0002 | Expiring leases with epoch + sequence fencing | Heartbeat watchdog | Liveness is not correctness; leases bound authority in time; epochs stop zombie supervisors |
+| 0003 | Provenance freshness against a supervisor-owned observation history | Message age (ROS 2 lifespan) | A message can be new while the decision behind it is old |
+| 0004 | Portable core with time injected; QNX layer only wires IPC and timers | Logic inside QNX handlers | Deterministic host CI; AGENTS.md rule 2 |
+| 0005 | Native message passing, pulses and resource managers on target; TCP only to the host | POSIX mqueue or sockets everywhere | Priority inheritance and bounded IPC; Qnet is removed in 8.0 |
+| 0006 | Priority map; default priority inheritance on the proposal channel | `_NTO_CHF_FIXED_PRIORITY` | Starving the planner path makes leases lapse, which fails safe |
+| 0007 | Plant simulator runs on the target; host harness uses virtual time | Simulator on the host | One clock domain; reproducible CI |
+| 0008 | Telemetry through shared-memory rings; read-only bridge and dashboard | Telemetry over IPC from the critical path | The critical path never blocks |
+| 0009 | No QNX SDP in CI; evidence-commit protocol | Self-hosted runner with QNX | Licence §4.2.6, §4.6(b), §4.6(l) |
+| 0010 | Binary authorize / reject | Clamp to a safe speed | Simpler and explainable |
+| 0011 | Publish functional metrics only | Publish latency numbers | Licence §4.6(i) |
+| 0012 | Compile-time checker registry; all checkers run; first failure is the primary reason | `dlopen` plugins; fail-fast | Determinism, explainability, bounded cost |
+| 0013 | uid-based authorization in P0; secpol in P1 (P0 if spike S4 passes) | secpol only | Risk that the spike fails on QSTI |
+| 0014 | Simulation only | Hardware | Licence §4.2.5; no hardware; $0 budget |
+| 0015 | Single-threaded gate dispatch | Thread pool | Deterministic ordering; bounded handlers |
+| 0016 | MIT licence | Apache-2.0 | Simplest; codelab can reuse code |
+
+## Clarification log
+Questions Q1–Q8 are in issue PO-1.
+
+| Q | Topic | Sent | Answer | Plan impact |
+|---|---|---|---|---|
+| Q1 | Bonus stacking | — | — | — |
+| Q2 | QEMU as "the device" | — | — | — |
+| Q3 | AI assistants | — | — | — |
+| Q4 | AI Creativity scoring | — | — | — |
+| Q5 | Licence §4.6(i) benchmarks | — | — | — |
+| Q6 | Licence §4.2.5 high-risk | — | — | — |
+| Q7 | Codelab PR / hosting | — | — | — |
+| Q8 | QNX marks in the video | — | — | — |
+
+## Spike log
+| Spike | Question | Owner | Due | Result | Decision |
+|---|---|---|---|---|---|
+| S1 | QSTI boot + `qcc` hello on each host | all | 18 Nov | — | — |
+| S2 | CMake QNX toolchain + core tests on target | B | 19 Nov | — | — |
+| S3 | resmgr delayed reply, OCB close on death, mutex priority inheritance | B | 21 Nov | — | — |
+| S4 | secpol denial errno; abilities across `setuid` | B | 22 Nov | — | — |
+| S5 | Instrumented `procnto` for tracelogger | B | 7 Dec | — | — |
+| S6 | Host ↔ target TCP 7700 | B | 19 Nov | — | — |
+| S7 | Ollama Qwen2.5-3B latency | A | 7 Dec | — | — |
+| S8 | `mkqnximage` snippet with GUARD binaries | B | 26 Nov | — | — |
+
+## Contract log
+| Version | Date | Change | Approved by |
+|---|---|---|---|
+| v1.0 | (pending, 20 Nov) | Initial freeze | — |
+
+## Sync log
+| Date | Decisions | Owner |
+|---|---|---|

@@ -1,0 +1,20 @@
+# managed-by: guard-bootstrap v1
+*                                   @dngvmnh @phatdat220707 @baofrovn
+/contracts/                         @dngvmnh @phatdat220707 @baofrovn
+/core/                              @phatdat220707 @baofrovn
+/host/                              @phatdat220707 @baofrovn
+/eval/                              @phatdat220707 @baofrovn
+/dashboard/                         @phatdat220707 @baofrovn
+/qnx/                               @baofrovn @phatdat220707
+/image/                             @baofrovn @phatdat220707
+/cmake/                             @baofrovn @phatdat220707
+/tools/                             @baofrovn @phatdat220707
+/evidence/                          @baofrovn @phatdat220707
+/scenarios/                         @dngvmnh @phatdat220707
+/docs/                              @dngvmnh @phatdat220707 @baofrovn
+/README.md                          @dngvmnh @phatdat220707 @baofrovn
+/DECISIONS.md                       @dngvmnh @phatdat220707 @baofrovn
+/AGENTS.md                          @dngvmnh @phatdat220707 @baofrovn
+/CONTRIBUTING.md                    @dngvmnh @phatdat220707 @baofrovn
+/codelab/                           @dngvmnh @baofrovn
+/.github/                           @dngvmnh @phatdat220707

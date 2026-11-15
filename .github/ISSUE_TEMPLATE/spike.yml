@@ -1,0 +1,33 @@
+# managed-by: guard-bootstrap v1
+name: Spike
+description: Time-boxed investigation whose output is a decision.
+title: "[S-?] "
+labels: ["type:spike"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: "Question"
+    validations:
+      required: true
+  - type: input
+    id: timebox_h
+    attributes:
+      label: "Timebox (hours)"
+  - type: textarea
+    id: options_considered
+    attributes:
+      label: "Options considered"
+  - type: textarea
+    id: method
+    attributes:
+      label: "Method"
+  - type: textarea
+    id: evidence
+    attributes:
+      label: "Evidence"
+      description: "Evidence bundle path, or N/A"
+  - type: input
+    id: decision_needed_by
+    attributes:
+      label: "Decision needed by (SGT date)"

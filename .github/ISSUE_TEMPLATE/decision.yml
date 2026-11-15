@@ -1,0 +1,39 @@
+# managed-by: guard-bootstrap v1
+name: Decision (ADR proposal)
+description: Propose a decision. The PO accepts or rejects it; accepted ones become docs/adr/NNNN-*.md.
+title: "decision: "
+labels: ["type:decision"]
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: "Context"
+    validations:
+      required: true
+  - type: textarea
+    id: decision_proposed
+    attributes:
+      label: "Decision proposed"
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Alternatives considered"
+    validations:
+      required: true
+  - type: textarea
+    id: consequences
+    attributes:
+      label: "Consequences"
+  - type: dropdown
+    id: affects_contracts
+    attributes:
+      label: "Affects a frozen contract?"
+      options: ["yes", "no"]
+    validations:
+      required: true
+  - type: input
+    id: decide_by
+    attributes:
+      label: "Decide by (SGT date)"

@@ -1,0 +1,8 @@
+# managed-by: guard-bootstrap v1
+* text=auto eol=lf
+*.bat eol=crlf
+*.ps1 eol=crlf
+*.png binary
+*.jpg binary
+*.gif binary
+*.mp4 binary
