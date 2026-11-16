@@ -9,8 +9,19 @@ This file is binding for every contributor and every AI agent acting for one. If
    - `core/` contains no `sys/neutrino.h`, `sys/iofunc.h`, `sys/dispatch.h`, `Msg*`, `resmgr_*`, `slog2*`, clock reads or file I/O. Time is always passed in.
    - `qnx/` only wires IPC, timers, resource managers and privileges to `core/`.
 3. **Keep all safety claims within the stated limits** (README "Limits"). Never write: "is safe", "guarantee(s)", "certified", "compliant", "prevents collisions", "hard real-time", "faster than Linux". The only exception is negated text placed after a `<!-- claims-ok: negated -->` marker. The marker exempts everything from that line to the next Markdown heading.
-4. **Every change that affects the QNX path must attach target evidence.** The QNX path is `core/`, `qnx/`, `image/`, `cmake/` and `contracts/`. Follow `evidence/README.md`.
-5. **Need someone? Ask in the issue, with an @-mention. Never by DM.** Requests, questions, blockers and decisions for the PO or anyone else go in the relevant GitHub issue or PR, and must @-mention the person. Private messages, DMs and chat apps are not used for project work. If no issue fits, open one first. Anything raised in a DM is not tracked until it is copied into the issue.
+4. **Every change that affects the QNX path must attach target evidence.** The QNX path is `core/`, `qnx/`, `image/`, `cmake/` and `contracts/`. Follow `evidence/README.md`. Under D26, stream B owns all target evidence, including `core-on-target` for `core/` changes, captured from `main`.
+5. **Never ask, never wait (D26).** Decide, log it in `docs/decisions/<stream>.md`, continue. See §1a.
+
+## 1a. Zero-handoff rules (D26). These override anything below that asks you to ask, wait, review or @-mention
+
+1. **Do not ask humans questions and do not request review.** Make a decision, log it in `docs/decisions/<your stream>.md` with a one-line reason, and continue.
+2. **Own your files.** Change only paths `OWNERSHIP.yaml` gives your stream. Branch names start with your prefix (`a/`, `b/`, `po/`). The `ownership` check rejects anything else.
+3. **Contracts are frozen** at `contracts-v1.2`. Need more? Adapter on your side, or an additive file in `contracts/ext/` (see its README). Never edit another stream's file to make yours work.
+4. **Main is always green.** Merge your own PR when `make check` passes and the required checks are green. Base new work on the newest `green-*` tag if `main` is red; if the red path is yours, fixing it comes first.
+5. **Done means evidence.** A milestone is done when its acceptance command passes; paste the command and its last lines into `progress/<your stream>.md`.
+6. **Blocked?** Try three genuinely different approaches, timeboxed (30-60 min each). Then use a mock, a simpler design, or descope per `SCOPE.yaml`. Log it and continue. Never wait.
+7. **Self-review, not peer review.** Before merging, run an adversarial review of your diff in a fresh context or sub-agent with your brief's checklist, then fix what it finds.
+8. **Hard rules 1-4 still apply** (no QNX SDP files, images, licences or credentials; portable core stays free of QNX calls; claims within Limits; QNX-path target evidence belongs to stream B).
 
 ## 2. Licence constraints (QNX non-commercial licence)
 - **Personal licences.** Each person uses their own free licence, on at most 2 machines they own or control. Never share keys.
