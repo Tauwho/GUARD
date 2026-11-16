@@ -3,7 +3,7 @@
 Brief: [BRIEF-P.md](../docs/streams/BRIEF-P.md). Resume from this file after any restart. Live scope: `python tools/scope_gate.py --stream P`.
 
 ## Now
-- P0 closed; P1 README generator next (`tools/build_readme.py`, markers, `--check`).
+- P0 and P1 closed; P2 (demo script, storyboard and command check) next.
 
 ## Done (with evidence: command + last lines, commit or run link)
 
@@ -41,6 +41,47 @@ RESULT: GREEN
   still SHOULD work, not started).
 - Self-review: the audit was the adversarial review for these eight PRs; each
   fix carries a test that failed before it.
+
+### P1 — README generator (2026-11-16)
+
+`README.md` now has three generated blocks, each rendered from a source already on
+`main`; `--check` fails if any of them is stale.
+
+| Block | Source | What it renders |
+|---|---|---|
+| `gen:quickstart` | first shell block of `host/`, `dashboard/`, `image/README.md` | the three run paths (host replay, dashboard relay, on target) |
+| `gen:results` | `docs/results/host-linux.json` | per-scenario Runs / B2 mismatches / baseline mismatches / ablation differences |
+| `gen:evidence-map` | `evidence/*/manifest.json` | one row per bundle; target bundles labelled "behaviour only" |
+
+Evidence:
+
+```
+$ python tools/build_readme.py --check
+build_readme: PASS (README blocks match their sources on main)
+
+$ python tools/check_readme_links.py
+readme-links: PASS
+
+$ python -m pytest tools/tests/test_build_readme.py -q
+7 passed in 0.13s
+
+$ python tools/check.py --fast
+PASS policy ... PASS contract-compat ... PASS ownership ... PASS doc-links
+PASS brief-sync ... PASS ruff ... PASS pytest (23s)
+RESULT: GREEN
+```
+
+- README blocks stay byte-identical after `python tools/build_readme.py` (the
+  `--check` gate is the same render).
+- Results source: host-evaluation run
+  [43876818251](https://github.com/Tauwho/GUARD/actions/runs/43876818251) at commit
+  `4f1a18d`; Linux host harness, 1 repeat per scenario/config, B2 mismatches 0 in
+  every scenario. Simulation only, labelled as such in the block.
+- `python tools/scope_gate.py --stream P` shows P1 DONE.
+- `--check` and `check_readme_links.py` never touch the network; only `--fetch`
+  calls `gh`.
+- **Outstanding:** the nightly `fresh-clone-and-tag` job still needs a run on this
+  merge commit before P1's second half (fresh-clone nightly green) is evidenced.
 
 ## Next
 - P1: `tools/build_readme.py` (`<!-- gen:evidence-map -->`,

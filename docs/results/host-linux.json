@@ -1,0 +1,62 @@
+{
+  "run_id": 43876818251,
+  "run_url": "https://github.com/Tauwho/GUARD/actions/runs/43876818251",
+  "commit": "4f1a18d1e8ad651a18fb61b17d0a2f69e42ae07a",
+  "repeats": 1,
+  "scenarios": {
+    "F0": {
+      "runs": 7,
+      "b2_mismatches": 0,
+      "baseline_mismatches": 0,
+      "ablation_differences": 0
+    },
+    "F1": {
+      "runs": 7,
+      "b2_mismatches": 0,
+      "baseline_mismatches": 2,
+      "ablation_differences": 1
+    },
+    "F2": {
+      "runs": 7,
+      "b2_mismatches": 0,
+      "baseline_mismatches": 0,
+      "ablation_differences": 1
+    },
+    "F3": {
+      "runs": 7,
+      "b2_mismatches": 0,
+      "baseline_mismatches": 0,
+      "ablation_differences": 0
+    },
+    "F4": {
+      "runs": 7,
+      "b2_mismatches": 0,
+      "baseline_mismatches": 0,
+      "ablation_differences": 0
+    },
+    "F5": {
+      "runs": 7,
+      "b2_mismatches": 0,
+      "baseline_mismatches": 0,
+      "ablation_differences": 1
+    },
+    "F6": {
+      "runs": 7,
+      "b2_mismatches": 0,
+      "baseline_mismatches": 0,
+      "ablation_differences": 1
+    },
+    "F7": {
+      "runs": 7,
+      "b2_mismatches": 0,
+      "baseline_mismatches": 0,
+      "ablation_differences": 1
+    },
+    "F8": {
+      "runs": 7,
+      "b2_mismatches": 0,
+      "baseline_mismatches": 0,
+      "ablation_differences": 0
+    }
+  }
+}
