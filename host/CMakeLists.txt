@@ -1,0 +1,2 @@
+add_library(guard_host INTERFACE)
+target_link_libraries(guard_host INTERFACE guard_core)
