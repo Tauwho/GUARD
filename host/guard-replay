@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import runpy
 import subprocess
 import sys
 import tempfile
@@ -12,6 +13,7 @@ import jsonschema
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
+C8Validator = runpy.run_path(str(ROOT / "host/telemetry_validation.py"))["C8Validator"]
 
 
 def load_yaml(path):
@@ -133,7 +135,7 @@ def main(argv=None):
         command.extend(["--seed", str(seed), "--out", str(args.out.resolve())])
         subprocess.run(command, check=True, timeout=30)
     events = [json.loads(line) for line in args.out.read_text(encoding="utf-8").splitlines()]
-    validator = jsonschema.Draft202012Validator(
+    validator = C8Validator(
         json.loads((ROOT / "contracts/telemetry.schema.json").read_text())
     )
     for event in events:

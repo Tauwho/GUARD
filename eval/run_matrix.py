@@ -16,7 +16,7 @@ from metrics import API, measure
 
 ROOT = Path(__file__).resolve().parents[1]
 MODES = ("B0", "B1", "B2", "B2-freshness", "B2-stopping", "B2-expiry", "B2-epoch")
-VALIDATOR = jsonschema.Draft202012Validator(
+VALIDATOR = API["C8Validator"](
     json.loads((ROOT / "contracts/telemetry.schema.json").read_text())
 )
 MEASURED = {}

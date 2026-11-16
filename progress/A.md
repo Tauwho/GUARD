@@ -56,3 +56,15 @@ A6: done (host acceptance)
 - `python tools/check.py`: RESULT: GREEN (out/d26-a6-final.txt; Git Bash selected before Windows WSL alias).
 - self-review: 0 blocker, 0 should, 0 nit after restricting fallback to ModelUnavailableError; recording write failures do not fall back.
 - Bundled fixture is synthetic-test; real 1.5B evidence remains private under out/s7-1p5b. A9 second-laptop evidence is not claimed.
+
+
+A7: in progress; seeded host trials
+- `ctest --preset host-debug`: 2/2 passed; seed 42 deterministic and 43 changes trace body.
+- `python -m pytest eval/tests/test_matrix.py -q`: 3 passed, including F1 physical poses differ and repeated seed bytes match.
+- Three-seed matrix: 189 executions, 0 execution/schema errors; 27/27 B2 match, 23 visible control/ablation differences (out/d26-seeded-smoke/results.json).
+- Fresh-context review: report interpretation corrected to match seed_variation; no replay blockers.
+- Validation dispatch optimization is being checked before full 50-seed Linux run; no statistical-independence claim.
+
+- C8 dispatcher: 4 differential tests pass, including unsupported root/reference contexts falling back to full schema; 63-case producer matrix has 0 errors and all B2 pass.
+- `python tools/check.py`: RESULT: GREEN (out/d26-a7-check.txt); post-review rerun RESULT: GREEN (out/d26-a7-final.txt).
+- self-review: 0 blocker/should after report wording and resolver-context fallback fixes.

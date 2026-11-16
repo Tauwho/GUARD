@@ -22,7 +22,7 @@ SCHEMA = json.loads((ROOT / "contracts/telemetry.schema.json").read_text())
 
 def validate_trace(path, scenario, mode, seed=None):
     events = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
-    validator = jsonschema.Draft202012Validator(SCHEMA)
+    validator = API["C8Validator"](SCHEMA)
     for event in events:
         validator.validate(event)
     if not events or events[0]["kind"] != "run_start" or events[-1]["kind"] != "run_end":
