@@ -3,6 +3,7 @@
 #include "guard/reason_codes.hpp"
 #include "guard/route.hpp"
 #include "guard/scenario.hpp"
+#include "guard/supervisor.hpp"
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -67,8 +68,11 @@ int main(int argc, char **argv) {
         ++current.seq;
         current.stamp_ns = route.created_ns;
         current.map_version = world.scene().map_version;
-        const auto reason =
-            guard::check_route(route, source, current, world.scene(), {}, route.created_ns);
+        guard::Supervisor supervisor;
+        if (!supervisor.observe(source, source.stamp_ns) ||
+            !supervisor.observe(current, current.stamp_ns))
+            throw std::runtime_error("cannot retain route provenance");
+        const auto reason = supervisor.admit_route(route, world.scene(), route.created_ns);
         std::cout << "{\"source\":\"" << origin
                   << "\",\"source_map_version\":" << source.map_version
                   << ",\"current_map_version\":" << current.map_version

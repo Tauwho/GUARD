@@ -85,7 +85,8 @@ std::uint16_t check_route(const RouteProposal &route, const Observation &source,
         return code(Reason::REJ_UNKNOWN_OBSERVATION);
     if (route.observation_stamp_ns != source.stamp_ns || !source.sensor_ok)
         return code(Reason::REJ_PROVENANCE_MISMATCH);
-    if (now < source.stamp_ns || now - source.stamp_ns > milliseconds(config.route_max_age_ms))
+    if (current.stamp_ns < source.stamp_ns ||
+        current.stamp_ns - source.stamp_ns > milliseconds(config.route_max_age_ms))
         return code(Reason::REJ_STALE_OBSERVATION);
     if (route.map_version != source.map_version || route.map_version != current.map_version ||
         route.map_version != scene.map_version)
