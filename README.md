@@ -9,10 +9,16 @@ distance and restricted zones, then grants a short, epoch-fenced lease. A
 separate gate process uses its own timer to stop the robot when the lease
 expires, even if the supervisor has died.
 
+Today the checks, lease rules and gate state machine run in a portable C++17
+core under a deterministic host harness; the QNX processes that wire it to
+message passing, timers and resource managers land with Stream B (planned
+B2-B5) and run in QEMU, not on hardware.
+
 Why QNX: the gate runs as an independent resource-manager process with its own
 timer and message path, so the component that stops the robot does not share a
-fate with the component that authorises it. The supervisor, gate, planner and
-simulator are separate processes; only the planner is treated as untrusted.
+fate with the component that authorises it. In the design the supervisor, gate,
+planner and simulator are separate processes; only the planner is treated as
+untrusted.
 
 > **Status:** in development for the QNX Global Hackathon 2026 (Robotics &
 > Medical). Internal code freeze 10 Dec 2026, submission 15 Dec 2026.
