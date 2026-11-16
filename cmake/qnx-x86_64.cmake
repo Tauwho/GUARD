@@ -28,6 +28,10 @@ set(CMAKE_C_COMPILER_TARGET gcc_ntox86_64)
 set(CMAKE_CXX_COMPILER "${QNX_HOST}/usr/bin/q++${guard_exe}")
 set(CMAKE_CXX_COMPILER_TARGET gcc_ntox86_64)
 
+# SDP 8.0 uses libc++ (std::__2). doctest's own forward declarations of std types do not
+# match it, so make doctest include the real standard headers instead.
+set(CMAKE_CXX_FLAGS_INIT "-DDOCTEST_CONFIG_USE_STD_HEADERS")
+
 # Find target libraries and headers only in the SDP target tree; host programs on the host.
 set(CMAKE_FIND_ROOT_PATH "${QNX_TARGET}")
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)

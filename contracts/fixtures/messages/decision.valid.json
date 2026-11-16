@@ -1,0 +1,17 @@
+{
+  "message": "decision",
+  "type": "0x0003",
+  "size": 56,
+  "valid": true,
+  "fields": {
+    "proposal_id": 7,
+    "verdict": 1,
+    "primary_reason": 100,
+    "epoch": 1,
+    "reasons_mask": 0,
+    "lease_id": 42,
+    "expires_ns": 5320000000,
+    "decided_ns": 5070000000
+  },
+  "hex": "47440300010038000700000000000000010064000100000000000000000000002a0000000000000000c2183d01000000800f322e01000000"
+}

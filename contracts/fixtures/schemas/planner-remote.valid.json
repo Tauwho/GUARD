@@ -1,0 +1,23 @@
+{
+  "v": 1,
+  "type": "route",
+  "req_id": 5,
+  "route_id": 2,
+  "based_on": {
+    "obs_id": 101,
+    "map_version": 1,
+    "stamp_ns": 5050000000
+  },
+  "waypoints": [
+    [
+      4.0,
+      1.5
+    ],
+    [
+      12.0,
+      1.5
+    ]
+  ],
+  "created_ns": 5900000000,
+  "rationale": "avoid MRI zone"
+}

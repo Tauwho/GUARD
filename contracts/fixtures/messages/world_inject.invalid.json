@@ -1,0 +1,14 @@
+{
+  "message": "world_inject",
+  "type": "0x0041",
+  "size": 24,
+  "valid": false,
+  "expect_error": "EINVAL",
+  "why": "fault is 3 (F3 is a process fault, not a sim fault)",
+  "fields": {
+    "fault": 3,
+    "duration_ms": 1000,
+    "param": 0
+  },
+  "hex": "474441000100180003000000e80300000000000000000000"
+}

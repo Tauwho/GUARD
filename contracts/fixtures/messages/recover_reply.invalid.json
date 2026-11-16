@@ -1,0 +1,15 @@
+{
+  "message": "recover_reply",
+  "type": "0x0021",
+  "size": 24,
+  "valid": false,
+  "expect_error": "EBADMSG",
+  "why": "magic is 0x0000",
+  "fields": {
+    "request_id": 1,
+    "reason": 513,
+    "gate_mode": 1,
+    "unmet_mask": 4
+  },
+  "hex": "000021000100180001000000000000000102010004000000"
+}
