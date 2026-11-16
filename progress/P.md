@@ -3,7 +3,7 @@
 Brief: [BRIEF-P.md](../docs/streams/BRIEF-P.md). Resume from this file after any restart. Live scope: `python tools/scope_gate.py --stream P`.
 
 ## Now
-- P0, P1, P2, P5 and P6 closed; P4 package gate next, then P3 (10 Dec) and P4 video (13 Dec).
+- P0, P1, P2, P5 and P6 closed; package gate on main. Left: P3 tag (10 Dec), P4 video + captions (13 Dec).
 
 ## Done (with evidence: command + last lines, commit or run link)
 
@@ -176,6 +176,18 @@ $ python tools/check.py --fast
 RESULT: GREEN
 ```
 
+### P4 (part) — package gate (2026-11-16)
+
+`tools/check_package.py` (`make package-check` runs it after `make check` and the
+fresh-clone demo) checks: README current, links, no TBD, Results block cites the
+Linux run, a YouTube/Vimeo video URL, `docs/video/duration.txt` under 3:00,
+`captions.srt` strictly parsed and within the video, demo commands, architecture
+SVG labels, submission draft with a video URL, tag `v1.0-rc1`, no tracked QNX-logo
+image. 9 tests. Fresh-context review: 2 blockers (captions failed open on a
+malformed cue; the video length itself was unchecked) and 9 shoulds, fixed.
+Current state: FAIL on readme-video, video-duration, captions, submission (video
+URL) and release-tag, which P3 (10 Dec) and the recording (13 Dec) produce.
+
 ## Next
 - P5 (architecture SVG + Limits), then P6, P3 (10 Dec), P4 (13 Dec).
 - Mon 7 Dec: if B5 is not DONE, switch DEMO step 4 to the host fallback by hand.
@@ -187,6 +199,9 @@ RESULT: GREEN
 - (P1: README/video structure of strong hackathon entries goes here.)
 
 ## Known issues
+- SCOPE.yaml P4's grep check `(?i)video` on README already matches "Video and GIF:
+  planned (P4)"; SCOPE.yaml is frozen, so P4's real gate is its other check,
+  `python tools/check_package.py` (video URL, duration, captions).
 - **Stream B has not started:** B0 is OPEN, so every downstream B row is OPEN
   and B1's evidence correctly does not cover the core yet. P renders
   `planned (<id>)` and never waits.
