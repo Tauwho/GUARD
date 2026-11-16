@@ -3,6 +3,7 @@
 Brief: `docs/streams/BRIEF-A.md`. Resume from this file after any restart. Live scope: `python tools/scope_gate.py --stream A`.
 
 ## Now
+- A4: continuous Linux matrix, explicit B2 gate, unmeasured margin handling and isolated fresh-clone CI.
 - A1/A2: verify existing fixes against frozen v1.2, add passthrough refusal regression.
 - Run full tools/check.py and F5/F6 acceptance commands.
 - Fresh-context adversarial review, fix findings, self-merge on green CI.
@@ -24,3 +25,7 @@ A2: done 25fc74b
 - A3 target runner local/SSH, A4 continuous Linux matrix, A5 dashboard bridge resilience.
 
 ## Known issues
+
+A4: local checks passed; Linux main artifact pending (not yet done).
+- `python tools/check.py`: RESULT: GREEN (out/d26-a4-check.txt).
+- run_start.ablate is already emitted under frozen v1.2; preserve it.

@@ -19,6 +19,8 @@ int main() {
             std::cerr << text.substr(text.size() > 4000 ? text.size() - 4000 : 0);
             throw std::runtime_error("nominal goal or deterministic output failed");
         }
+        if (result.margin_measured || first.str().find("min_margin_m") != std::string::npos)
+            throw std::runtime_error("empty world must not publish a synthetic margin");
         map.goal = {38, 0, 0};
         scenario.duration = 20;
         scenario.fault_count = 1;

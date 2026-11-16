@@ -1,7 +1,7 @@
-name: host-functional-evaluation
+name: host-evaluation
 on:
   push:
-    branches: [a/135-linux-evaluation]
+    branches: [main, a/135-linux-evaluation]
   workflow_dispatch:
     inputs:
       seeds:
@@ -27,11 +27,11 @@ jobs:
       - run: cmake --preset host-debug
       - run: cmake --build --preset host-debug --parallel 2
       - run: ctest --preset host-debug
-      - name: Execute functional matrix (mismatches fail this step)
+      - name: Execute matrix (errors and B2 regressions fail; controls remain visible)
         id: matrix
         env:
           MATRIX_SEEDS: ${{ inputs.seeds || '1' }}
-        run: python eval/run_matrix.py --seeds "$MATRIX_SEEDS" --jobs 2 --out out/linux-matrix
+        run: python eval/run_matrix.py --seeds "$MATRIX_SEEDS" --gate-b2 --jobs 2 --out out/linux-matrix
       - name: Render report, including failed hypotheses
         if: always()
         run: |
@@ -43,9 +43,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: host-linux-functional-${{ github.sha }}
+          name: host-evaluation-${{ github.sha }}
           path: |
             out/linux-matrix/results.json
             out/linux-report/
-          retention-days: 7
+          retention-days: 90
           if-no-files-found: warn

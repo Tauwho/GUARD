@@ -5,6 +5,7 @@
 namespace guard::host {
 struct ReplayResult {
     bool goal = false;
+    bool margin_measured = false;
     std::uint64_t contacts = 0, zone_breaches = 0, proposals = 0, rejected = 0;
     std::uint64_t authorized = 0, unverifiable = 0, latches = 0;
     std::uint64_t passthrough_commands = 0, passthrough_dropped = 0;

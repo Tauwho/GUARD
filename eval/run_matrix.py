@@ -80,8 +80,21 @@ def run_case(case):
     return record
 
 
+def failed_gate(records, b2_only=False):
+    if not records or (b2_only and not any(r["mode"] == "B2" for r in records)):
+        return True
+    return any(
+        "error" in r or (r["mismatches"] and (not b2_only or r["mode"] == "B2")) for r in records
+    )
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--gate-b2",
+        action="store_true",
+        help="fail errors/B2 regressions; retain control/ablation mismatches in report",
+    )
     parser.add_argument("--seeds", type=int, default=50)
     parser.add_argument("--jobs", type=int, default=4)
     parser.add_argument("--modes", nargs="+", choices=MODES, default=list(MODES))
@@ -168,7 +181,7 @@ def main(argv=None):
         ),
         flush=True,
     )
-    return 1 if mismatched else 0
+    return 1 if failed_gate(records, args.gate_b2) else 0
 
 
 if __name__ == "__main__":
