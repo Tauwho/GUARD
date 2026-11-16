@@ -1,6 +1,6 @@
 # contracts CHANGELOG
 
-## v1.1 -- proposed (#89, ADR 0017)
+## v1.1 -- frozen 2026-11-16 (#89, ADR 0017)
 
 No wire format change: same messages, sizes, `devctl` numbers and reason codes.
 

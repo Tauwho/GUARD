@@ -47,7 +47,7 @@ All entries were accepted on 2026-11-15. Full write-ups go in `docs/adr/` (issue
 | [0014](docs/adr/0014-simulation-only.md) | Simulation only | Hardware | Licence §4.2.5; no hardware; $0 budget |
 | [0015](docs/adr/0015-single-threaded-gate.md) | Single-threaded gate dispatch | Thread pool | Deterministic ordering; bounded handlers |
 | [0016](docs/adr/0016-mit-licence.md) | MIT licence | Apache-2.0 | Simplest; codelab can reuse code |
-| [0017](docs/adr/0017-lease-ack-on-resmgr-channel.md) | **Proposed (#89).** Gate replies `LeaseAck` in the same handler; `ETIMEDOUT` means not received; a late ack is binding | Defer the reply and `MsgError(ETIMEDOUT)` on unblock | Spike S3: resmgr channels keep a reply-blocked client waiting, so the v1.0 `ESRCH` path never happens |
+| [0017](docs/adr/0017-lease-ack-on-resmgr-channel.md) | **Accepted 2026-11-16 (#89).** Gate replies `LeaseAck` in the same handler; `ETIMEDOUT` means not received; a late ack is binding | Defer the reply and `MsgError(ETIMEDOUT)` on unblock | Spike S3: resmgr channels keep a reply-blocked client waiting, so the v1.0 `ESRCH` path never happens |
 
 ## Clarification log
 Questions Q1–Q8 are in issue PO-1.
@@ -79,6 +79,7 @@ Questions Q1–Q8 are in issue PO-1.
 | Version | Date | Change | Approved by |
 |---|---|---|---|
 | v1.0 | 2026-11-16 | Initial freeze at 5aac574 (tag `contracts-v1.0`); CONTRACT-Q answers D17; B's checklist defaults kept (D16) | -- (reviews optional, D12) |
+| v1.1 | 2026-11-16 | C2 LeaseAck delivery on a resmgr channel (ADR 0017, #89); no wire-format change | -- (reviews optional, D12) |
 
 ## Sync log
 Not used: there is no weekly sync call (D15).

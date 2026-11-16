@@ -1,6 +1,6 @@
 # ADR-0017: LeaseAck delivery on a resmgr channel
 
-- **Status:** Proposed
+- **Status:** Accepted, 2026-11-16 (PO, #89)
 - **Date:** 2026-11-16
 - **Deciders:** @dngvmnh (PO), with @phatdat220707 and @baofrovn
 - **Issue:** #89
