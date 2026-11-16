@@ -36,6 +36,18 @@ def stages(fast):
     yield "pytest", [PY, "-m", "pytest", "-q"]
 
 
+FORMAT_TOOL_MISSING = 3  # tools/check_format.py exit code; it already fails in CI
+
+
+def stage_status(name, returncode):
+    """PASS, FAIL, or SKIPPED (only the format stage, only when clang-format is absent)."""
+    if returncode == 0:
+        return "PASS"
+    if name == "format" and returncode == FORMAT_TOOL_MISSING:
+        return "SKIPPED"
+    return "FAIL"
+
+
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -58,9 +70,11 @@ def main():
             continue
         started = time.monotonic()
         done = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
-        status = "PASS" if done.returncode == 0 else "FAIL"
+        status = stage_status(name, done.returncode)
         print(f"{status} {name} ({time.monotonic() - started:.0f}s): {' '.join(command)}")
-        if done.returncode:
+        if status == "SKIPPED":
+            print("    " + (done.stdout + done.stderr).strip())
+        elif done.returncode:
             failed.append(name)
             tail = (done.stdout + done.stderr).strip().splitlines()[-25:]
             print("\n".join("    " + line for line in tail))
