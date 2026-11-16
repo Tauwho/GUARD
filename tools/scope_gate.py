@@ -8,6 +8,10 @@ python tools/scope_gate.py --check-core-evidence
     exit 0 if a core-on-target bundle covers the core on main
 Never fails the build; it is a report. Agents read it to self-descope
 (DROPPED = stop working on it).
+
+A check is file/grep/cmd (pass/fail) or `evidence: manual` (returns None).
+An item with manual evidence is MANUAL and never counts as DONE; the summary
+counts it separately. A progress file alone is never a done-check (audit fix 3).
 """
 
 import argparse
@@ -54,13 +58,18 @@ def execute(command, timeout=600):
 
 def run(command):
     # A cmd check may itself call tools/check.py, which calls this script again.
-    # Inside a cmd check, nested scope_gate runs skip cmd checks, so it cannot recurse.
+    # Inside a cmd check, nested scope_gate runs cannot evaluate cmd checks: report
+    # them as unknown (None -> MANUAL), never as a failure. `--report` outside
+    # check.py runs them for real.
     if os.environ.get("GUARD_SCOPE_GATE_ACTIVE"):
-        return False
+        return None
     return execute(command).returncode == 0
 
 
 def check(spec):
+    """True pass, False fail, None manual (cannot be machine-verified here)."""
+    if spec.get("evidence") == "manual":
+        return None
     if "file" in spec:
         return bool(glob.glob(str(ROOT / spec["file"])))
     if "grep" in spec:
@@ -72,6 +81,37 @@ def check(spec):
     if "cmd" in spec:
         return run(spec["cmd"])
     return False
+
+
+def item_state(item, now, dates):
+    """DONE / MANUAL / OPEN / AT-RISK / DROPPED for one item (pure)."""
+    results = [check(spec) for spec in item.get("checks", [])]
+    failed = any(result is False for result in results)
+    manual = item.get("evidence") == "manual" or any(result is None for result in results)
+    done = not failed and not manual and all(result is True for result in results)
+    due = dates[item["due"]]
+    if done:
+        return "DONE", due
+    if manual and not failed:
+        return "MANUAL", due
+    if item["tier"] == "SHOULD" and now > dates["cut_1"]:
+        return "DROPPED", due
+    if item["tier"] == "STRETCH" and now > dates["cut_2"]:
+        return "DROPPED", due
+    if item["tier"] == "MUST" and now > due:
+        return "AT-RISK", due
+    return "OPEN", due
+
+
+def summarize(rows):
+    """Rows of (item, state, due) -> one line per stream, MANUAL counted separately."""
+    for stream in ("A", "B", "P"):
+        mine = [row for row in rows if row[0]["owner"] == stream]
+        counts = {
+            state: sum(1 for row in mine if row[1] == state)
+            for state in ("DONE", "OPEN", "AT-RISK", "MANUAL", "DROPPED")
+        }
+        print(f"scope {stream}: " + ", ".join(f"{k} {v}" for k, v in counts.items()))
 
 
 def core_evidence():
@@ -120,26 +160,10 @@ def main():
     for item in scope["items"]:
         if args.stream and item["owner"] != args.stream:
             continue
-        done = all(check(spec) for spec in item["checks"])
-        due = dates[item["due"]]
-        if done:
-            state = "DONE"
-        elif item["tier"] == "SHOULD" and now > dates["cut_1"]:
-            state = "DROPPED"
-        elif item["tier"] == "STRETCH" and now > dates["cut_2"]:
-            state = "DROPPED"
-        elif item["tier"] == "MUST" and now > due:
-            state = "AT-RISK"
-        else:
-            state = "OPEN"
+        state, due = item_state(item, now, dates)
         rows.append((item, state, due))
     if args.summary:
-        for stream in ("A", "B", "P"):
-            mine = [r for r in rows if r[0]["owner"] == stream]
-            counts = {
-                s: sum(1 for r in mine if r[1] == s) for s in ("DONE", "OPEN", "AT-RISK", "DROPPED")
-            }
-            print(f"scope {stream}: " + ", ".join(f"{k} {v}" for k, v in counts.items()))
+        summarize(rows)
         return 0
     print(f"Scope gate {now:%a %d %b %H:%M} SGT\n")
     print("| ID | Tier | Owner | Due | State | Item |\n|---|---|---|---|---|---|")
