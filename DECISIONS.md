@@ -74,7 +74,7 @@ Questions Q1–Q8 are in issue PO-1.
 ## Contract log
 | Version | Date | Change | Approved by |
 |---|---|---|---|
-| v1.0 | (pending, 20 Nov) | Initial freeze | — |
+| v1.0 | 2026-11-16 | Initial freeze at 5aac574 (tag `contracts-v1.0`); CONTRACT-Q answers D17; B's checklist defaults kept (D16) | -- (reviews optional, D12) |
 
 ## Sync log
 Not used: there is no weekly sync call (D15).
