@@ -154,9 +154,10 @@ def main(argv=None):
         "v": 1,
         "source": "host",
         "platform": platform.system(),
-        "seed_variation": False,
+        "seed_variation": True,
         "limitations": [
-            "Seeds label deterministic repeats; no randomized perturbations.",
+            "Seeds vary staff event times within 100 ms and planner cadence by 0..5 ms; "
+            "reference seed/flood cadence unchanged.",
             "Ablations compare with the B2 reference, not an ablation-specific hypothesis.",
             "No target numeric results or QNX timings are included.",
             "Recovery trials are not implemented.",

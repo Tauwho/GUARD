@@ -12,6 +12,22 @@
 
 namespace guard::host {
 namespace {
+// SplitMix reference: Sebastiano Vigna, public domain (prng.di.unimi.it/splitmix.c).
+std::uint64_t trial_next(std::uint64_t &state) {
+    auto value = (state += UINT64_C(0x9e3779b97f4a7c15));
+    value = (value ^ (value >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
+    value = (value ^ (value >> 27)) * UINT64_C(0x94d049bb133111eb);
+    return value ^ (value >> 31);
+}
+ScenarioSpec varied_world(ScenarioSpec scenario, std::uint64_t seed) {
+    if (seed == scenario.seed)
+        return scenario; // Keep the shared reference trial unchanged.
+    auto state = seed ^ scenario.seed;
+    const auto offset_ms = static_cast<int>(trial_next(state) % 201) - 100;
+    for (std::size_t i = 0; i < std::min(scenario.obstacle_count, scenario.obstacles.size()); ++i)
+        scenario.obstacles[i].at = std::max(0.0, scenario.obstacles[i].at + offset_ms / 1000.0);
+    return scenario;
+}
 const char *mode_name(GateMode mode) {
     const char *names[] = {"INIT", "LATCHED", "READY", "MOVING", "STOPPING", "STOPPED"};
     return names[static_cast<unsigned>(mode)];
@@ -41,7 +57,9 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
         scenario.duration > 600 || scenario.rate_hz == 0 || 1000 % config.obs_rate_hz ||
         1000 % config.t_tick_ms)
         throw std::runtime_error("invalid replay configuration");
-    World world(map, scenario);
+    World world(map, varied_world(scenario, seed));
+    std::uint64_t trial_state = seed ^ scenario.seed;
+    std::int64_t next_trial_proposal = 0;
     Plant plant(config, map.start);
     Planner planner(map, config);
     Supervisor supervisor(config);
@@ -202,7 +220,11 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                 options.rate_hz = fault->rate_hz;
             }
             Proposal proposal;
-            if (!boot && planner.propose(now, options, proposal)) {
+            if (!boot && (options.rate_hz > 50 || ms >= next_trial_proposal) &&
+                planner.propose(now, options, proposal)) {
+                if (seed != scenario.seed && options.rate_hz <= 50)
+                    next_trial_proposal = ms + (1000 + options.rate_hz - 1) / options.rate_hz +
+                                          static_cast<std::int64_t>(trial_next(trial_state) % 6);
                 if (!guarded) {
                     ++result.passthrough_commands;
                     PassthruCmd command;
