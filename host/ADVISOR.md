@@ -22,8 +22,18 @@ tests are not evidence of an actual LLM run. QNX connection wiring belongs to #4
 
 ## Live model and clock status
 
-Live Ollama calls remain pending the C9 `created_ns` clock-domain answer in #3 and
-actual local model execution. No live response or target demo is claimed. The route
+The C9 clock question was answered in #3: creation time is the source observation
+stamp plus host elapsed computation time, never an absolute host clock reading.
+The adapter implements that rule and can record actual calls for later replay:
+
+```sh
+python host/llm_advisor.py --ollama --model qwen2.5:3b --record out/advisor-recording.jsonl
+```
+
+This requires an already-running local Ollama service with the model installed.
+Requests must include a goal. Calls are bounded to 30 seconds and two model threads.
+Actual local model execution has not yet been verified; mock tests verify protocol,
+time/provenance and schema handling only. No live model result or target demo is claimed. The route
 checker treats creation time as opaque metadata and derives age from its own source
 observation. The recorded service never synthesizes a new creation time.
 
