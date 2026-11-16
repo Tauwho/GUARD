@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Tauwho/GUARD/contracts/planner-remote.schema.json",
+  "title": "GUARD remote planner link (C9) - RESERVED FOR P1",
+  "description": "Reserved for P1 (A-12, B-12d). JSONL over TCP 7701 between guard-planner (remote backend) and the host LLM advisor. Not implemented in P0. The host may be slow: staleness is enforced by the supervisor, not by this link.",
+  "oneOf": [
+    {"$ref": "#/$defs/request"},
+    {"$ref": "#/$defs/proposal_response"},
+    {"$ref": "#/$defs/route_response"}
+  ],
+  "$defs": {
+    "based_on": {
+      "type": "object", "required": ["obs_id", "map_version", "stamp_ns"], "additionalProperties": false,
+      "properties": {
+        "obs_id": {"type": "integer", "minimum": 1},
+        "map_version": {"type": "integer", "minimum": 1},
+        "stamp_ns": {"type": "integer", "minimum": 0}
+      }
+    },
+    "request": {
+      "type": "object", "required": ["v", "type", "req_id", "obs"], "additionalProperties": false,
+      "properties": {
+        "v": {"const": 1},
+        "type": {"const": "obs_request"},
+        "req_id": {"type": "integer", "minimum": 1},
+        "obs": {
+          "type": "object", "required": ["obs_id", "stamp_ns", "x", "y", "theta", "map_version"], "additionalProperties": true,
+          "description": "Same fields as the telemetry observation payload",
+          "properties": {
+            "obs_id": {"type": "integer", "minimum": 1},
+            "stamp_ns": {"type": "integer", "minimum": 0},
+            "x": {"type": "number"}, "y": {"type": "number"}, "theta": {"type": "number"},
+            "map_version": {"type": "integer", "minimum": 1}
+          }
+        },
+        "goal": {"type": "array", "prefixItems": [{"type": "number"}, {"type": "number"}], "minItems": 2, "maxItems": 2}
+      }
+    },
+    "proposal_response": {
+      "type": "object", "required": ["v", "type", "req_id", "based_on", "v_cmd", "w_cmd", "created_ns"], "additionalProperties": false,
+      "properties": {
+        "v": {"const": 1},
+        "type": {"const": "proposal"},
+        "req_id": {"type": "integer", "minimum": 1},
+        "based_on": {"$ref": "#/$defs/based_on"},
+        "v_cmd": {"type": "number", "minimum": -1.5, "maximum": 1.5},
+        "w_cmd": {"type": "number", "minimum": -1.5, "maximum": 1.5},
+        "created_ns": {"type": "integer", "minimum": 0}
+      }
+    },
+    "route_response": {
+      "type": "object", "required": ["v", "type", "req_id", "route_id", "based_on", "waypoints", "created_ns"], "additionalProperties": false,
+      "properties": {
+        "v": {"const": 1},
+        "type": {"const": "route"},
+        "req_id": {"type": "integer", "minimum": 1},
+        "route_id": {"type": "integer", "minimum": 1},
+        "based_on": {"$ref": "#/$defs/based_on"},
+        "waypoints": {
+          "type": "array", "minItems": 1, "maxItems": 16,
+          "items": {"type": "array", "prefixItems": [{"type": "number", "minimum": -100, "maximum": 100}, {"type": "number", "minimum": -100, "maximum": 100}], "minItems": 2, "maxItems": 2}
+        },
+        "created_ns": {"type": "integer", "minimum": 0},
+        "rationale": {"type": "string", "maxLength": 500}
+      }
+    }
+  }
+}
