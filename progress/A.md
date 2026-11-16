@@ -3,6 +3,7 @@
 Brief: `docs/streams/BRIEF-A.md`. Resume from this file after any restart. Live scope: `python tools/scope_gate.py --stream A`.
 
 ## Now
+- A3: implement local/SSH C14 runner, validate real F0/F3, review cleanup/deadline behavior.
 - A1/A2: verify existing fixes against frozen v1.2, add passthrough refusal regression.
 - Run full tools/check.py and F5/F6 acceptance commands.
 - Fresh-context adversarial review, fix findings, self-merge on green CI.
@@ -24,3 +25,11 @@ A2: done 25fc74b
 - A3 target runner local/SSH, A4 continuous Linux matrix, A5 dashboard bridge resilience.
 
 ## Known issues
+
+
+A3: done (local acceptance)
+- `python -m pytest eval/tests/test_target_runner.py -q`: 11 passed, including actual core F0/F3.
+- `python tools/check.py`: RESULT: GREEN after all review refinements (out/d26-a3-final.txt).
+- Local C14 command log includes load/start/process inject/stop; SSH transport has bounded capture and BatchMode auth.
+- Fresh-context review: fixed top-level duration, requested seed/multiple-run validation, out-of-duration injection and stop-after-refused-load findings. Validate optional frozen C8 run_id when supplied; enforce shared injection deadline.
+- SSH hardware not claimed: tests use local core and transport mocks. Target execution belongs to B.
