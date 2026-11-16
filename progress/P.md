@@ -3,7 +3,7 @@
 Brief: [BRIEF-P.md](../docs/streams/BRIEF-P.md). Resume from this file after any restart. Live scope: `python tools/scope_gate.py --stream P`.
 
 ## Now
-- P0, P1 and P2 closed; P5 in review.
+- P0, P1, P2 and P5 closed; P6 draft next, then P3 (10 Dec) and P4 (13 Dec).
 
 ## Done (with evidence: command + last lines, commit or run link)
 
