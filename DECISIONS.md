@@ -71,7 +71,7 @@ Questions Q1–Q8 are in issue PO-1.
 | S4 | secpol denial errno; abilities across `setuid` | B | 22 Nov | — | — |
 | S5 | Instrumented `procnto` for tracelogger | B | 7 Dec | Yes. QSTI boots `procnto-smp-instr`; a 2 s `tracelogger -s 2` run decodes to `KER_CALL`, `KER_EXIT`, `THREAD`, `INT` and `PROCESS` events. The default image has no `traceprinter` (copied from the SDP), and `/tmp` is the 64 MiB `/data` partition, so traces must stay short or go elsewhere. Evidence `spike/s5:evidence/20261116-ae4410c-spike-s5/` | B-12c (#48) is GO: ship `traceprinter` in the image or decode on the host |
 | S6 | Host ↔ target TCP 7700 | B | 19 Nov | Yes. Target `10.10.10.2` on bridge `br0` sent 1000 JSON lines to host `10.10.10.1:7700`; all 1000 arrived in order. `nc` is not on the default image, so `spike/s6/s6.c` (needs `-lsocket`) sent them. Evidence `spike/s6:evidence/20261116-a915ee1-spike-s6/` | Bridge streams C8 over TCP 7700; no file + `scp` fallback needed |
-| S7 | Ollama Qwen2.5-3B latency | A | 7 Dec | — | — |
+| S7 | Ollama Qwen2.5-3B latency | A | 7 Dec | Dat host CPU tested 16 Nov with local Ollama. Original prompt missed the goal; short prompt plus endpoint validation produced goal-reaching routes. Actual retained responses reject on changed map or stale source in the host core. Median/p95 remain internal under local `out/s7*/`; other laptops are pending | Recommend keeping recorded-response fallback for the D22 advisor; live mode requires warmup and can still exceed route age. Reproduce with `host/benchmark_advisor.py`; no target result claimed (#27, #29) |
 | S8 | `mkqnximage` snippet with GUARD binaries | B | 26 Nov | — | — |
 
 ## Contract log
