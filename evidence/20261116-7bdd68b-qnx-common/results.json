@@ -1,0 +1,23 @@
+{
+  "binary": "guard_qnx_common_tests",
+  "status": "SUCCESS",
+  "test_cases": [
+    "bounded send: ETIMEDOUT while send-blocked",
+    "bounded send: reply-blocked timeout ends via the server's unblock answer",
+    "connect_self reaches the process's own channel",
+    "named server and bounded send: round trip",
+    "open_named fails for an unknown name",
+    "set_fifo rejects priorities outside 1..63",
+    "set_fifo sets SCHED_FIFO and the priority"
+  ],
+  "test_cases_count": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0
+  },
+  "assertions_count": {
+    "total": 29,
+    "passed": 29,
+    "failed": 0
+  }
+}

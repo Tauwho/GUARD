@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "sha": "6913b85f1bad0f1c2108114f112e196f0a71ae11",
+  "date": "2026-11-16T08:02:07Z",
+  "topic": "image-layout",
+  "runner_role": "b",
+  "host_os": "Ubuntu 24.04.5 LTS on WSL2 (Windows 11)",
+  "sdp_version": "8.0.0",
+  "qcc_version": "Toolchain:  12.2.0\tVersion:  gcc_ntox86_64",
+  "image_id": "image/build-image.sh --test (user-mode net); 8.0.0 2026/10/30-09:10:05EDT x86pc",
+  "contracts": "contracts-v1.1",
+  "files": [
+    "transcript.txt",
+    "uname.txt",
+    "pidin.txt",
+    "binaries.txt",
+    "slog2.txt",
+    "results.json"
+  ],
+  "notes": "image/run-demo.sh --test from this sha in a clean copy: builds the image, boots QEMU user-mode with KVM, checks users, guard-hog and the start log. Home path shown as ~. Run by the agent on @baofrovn's machine at their request."
+}
