@@ -3,8 +3,9 @@
 
 CI:    python <base copy of this file> --root . --base origin/main --policy-from-base
            --head-ref "$HEAD_REF" --labels "$PR_LABELS" --title "$PR_TITLE"
-Local: python tools/check_ownership.py --base origin/main --local
-       (uses the current branch name)
+Local: PR_LABELS=phase0-override python tools/check_ownership.py --base origin/main --local
+       (uses the current branch name; PR_LABELS/PR_TITLE are read from the environment,
+       so a phase0-override branch passes locally exactly as it does in CI)
 
 D27 tooling-fix: any stream may fix a defect in P's tooling while P is away. The PR
 title starts with `tooling-fix:`, every changed path is a non-frozen P file matching
@@ -14,6 +15,7 @@ base branch's copy of this script with the base branch's OWNERSHIP.yaml
 """
 
 import argparse
+import os
 import re
 import subprocess
 import sys
@@ -116,8 +118,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", default="origin/main")
     parser.add_argument("--head-ref", default="")
-    parser.add_argument("--labels", default="")
-    parser.add_argument("--title", default="")
+    parser.add_argument("--labels", default=os.environ.get("PR_LABELS", ""))
+    parser.add_argument("--title", default=os.environ.get("PR_TITLE", ""))
     parser.add_argument("--local", action="store_true")
     parser.add_argument("--root", default=str(ROOT), help="repository to check")
     parser.add_argument(

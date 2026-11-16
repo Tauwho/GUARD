@@ -18,13 +18,23 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PY = sys.executable
+# In CI the required `ownership` job runs the base-branch gate with the PR title and
+# labels (D27). A local `--local` run on a PR checkout cannot see either, so it would
+# false-red a phase0-override PR. Skip it there; the required job is authoritative.
+CI_OWNERSHIP = "ci-ownership-job"
+IN_CI_PR = os.environ.get("GITHUB_ACTIONS") == "true" and os.environ.get(
+    "GITHUB_EVENT_NAME"
+) in ("pull_request", "merge_group")
 
 
 def stages(fast):
     yield "format", [PY, "tools/check_format.py"]
     yield "policy", [PY, "tools/check_policy.py", "all"]
     yield "contract-compat", [PY, "tools/check_contract_compat.py", "--base", "contracts-v1.2"]
-    yield "ownership", [PY, "tools/check_ownership.py", "--base", "origin/main", "--local"]
+    if IN_CI_PR:
+        yield "ownership", CI_OWNERSHIP
+    else:
+        yield "ownership", [PY, "tools/check_ownership.py", "--base", "origin/main", "--local"]
     yield "doc-links", [PY, "tools/check_doc_links.py"]
     if not fast:
         if not shutil.which("cmake"):
@@ -65,6 +75,9 @@ def main():
         capture_output=True,
     )
     for name, command in stages(args.fast or args.skip_build):
+        if command == CI_OWNERSHIP:
+            print(f"SKIPPED {name}: the required `ownership` job runs the base-branch gate")
+            continue
         if command is None:
             print(f"FAIL {name}: cmake not found (install cmake >= 3.24 or use --fast)")
             failed.append(name)
