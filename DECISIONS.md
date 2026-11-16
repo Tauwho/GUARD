@@ -73,7 +73,7 @@ Questions Q1–Q8 are in issue PO-1.
 | S5 | Instrumented `procnto` for tracelogger | B | 7 Dec | Yes. QSTI boots `procnto-smp-instr`; a 2 s `tracelogger -s 2` run decodes to `KER_CALL`, `KER_EXIT`, `THREAD`, `INT` and `PROCESS` events. The default image has no `traceprinter` (copied from the SDP), and `/tmp` is the 64 MiB `/data` partition, so traces must stay short or go elsewhere. Evidence `spike/s5:evidence/20261116-ae4410c-spike-s5/` | B-12c (#48) is GO: ship `traceprinter` in the image or decode on the host |
 | S6 | Host ↔ target TCP 7700 | B | 19 Nov | Yes. Target `10.10.10.2` on bridge `br0` sent 1000 JSON lines to host `10.10.10.1:7700`; all 1000 arrived in order. `nc` is not on the default image, so `spike/s6/s6.c` (needs `-lsocket`) sent them. Evidence `spike/s6:evidence/20261116-a915ee1-spike-s6/` | Bridge streams C8 over TCP 7700; no file + `scp` fallback needed |
 | S7 | Ollama Qwen2.5-3B latency | A | 7 Dec | — | — |
-| S8 | `mkqnximage` snippet with GUARD binaries | B | 26 Nov | — | — |
+| S8 | `mkqnximage` snippet with GUARD binaries | B | 26 Nov | `--extra-dirs=<dir>` with `snippets/system_files.guard` (adds files to `/system`) and `snippets/post_start.guard` (runs at the end of `post_startup.sh`) works on QSTI. The same files named `*.custom` in an extra dir are overwritten by the local placeholders. `ifs_start` runs before `/system` is mounted. SDP 8.0 macros are `START_P` / `STARTU_P(type,uid)` and only take effect with `--secpol`; `on -u <uid>:<uid>` sets a uid without it. Evidence `spike/s8:evidence/20261116-1d7c171-spike-s8/` | B-9 (#43): `--extra-dirs=image/mkqnximage` with `*.guard` snippets; processes start as root and drop privileges themselves |
 
 ## Contract log
 | Version | Date | Change | Approved by |
