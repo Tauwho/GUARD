@@ -10,12 +10,13 @@ The PR reviews on 16 Nov found three places where the contracts left behaviour u
 2. **Checker 9 (C1).** REF-CHECKERS says "implied acceleration > `a_max`", but not over which interval. #98 uses one observation period, and #108 / #109 showed that a command exactly on the limit flips between pass and fail through floating-point rounding.
 3. **Scenarios (C11).** When a map's zone activation windows and a scenario's `zones:` events disagree, nothing says which wins. #107 lets scenario events override the map for the rest of the run.
 
-The `messages.md` header also still says "v1.0 draft".
+The `messages.md` header also still says "v1.0 draft". A fourth gap came as a `CONTRACT-Q:` from @phatdat220707 on #3: C9 `created_ns` had no clock domain.
 
 ## Decision
 - **C8:** define `run_start` (`scenario`, `mode`, `seed`; optional `ablate`, `contracts`, `runner`) and `run_end` (`final_state`, `contacts`, `zone_breaches`, `proposals`, `authorized`, `rejected`, `unverifiable`, `latches`; optional `min_margin_m`, `sim_duration_ns`). Stream rules: per `run_id`, `run_start` is first and `run_end` is last; `t_ns` never decreases; `seq` per `src` increases by 1, and a gap means dropped events. All values are functional (D11).
 - **C1 checker 9:** `v_0` is the supervisor's own latest `v_meas`; `dt = 1 / obs_rate_hz` (default 50 ms). Fail with `REJ_ACCEL_ENVELOPE` if `abs(v_cmd - v_0) > a_max * dt + 1e-9`. The active-lease re-check uses the same `dt`.
 - **C11:** the map schedule applies until the scenario's first `zones:` event for that zone; after that, scenario events alone decide the zone's state for the rest of the run.
+- **C9 (P1):** `created_ns` in a route or proposal response is `based_on.stamp_ns` plus the host's elapsed compute time, so it stays in the target clock domain and is never compared with a host clock (ADR 0007). Route age (`route_max_age_ms`, C12) is enforced from the supervisor-owned stamp of `based_on.obs_id`.
 - **Header:** `messages.md` names the version in force.
 
 No wire-format change: same binary messages, sizes, `devctl` numbers and reason codes. The telemetry change only narrows two payloads that were previously unconstrained.

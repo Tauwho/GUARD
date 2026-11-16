@@ -7,6 +7,7 @@ No binary wire-format change: same messages, sizes, `devctl` numbers and reason 
 - C8 telemetry: `run_start` and `run_end` payloads defined; stream rules (`run_start` first, `run_end` last per `run_id`; `t_ns` never decreases; `seq` per `src` +1, gap = drop).
 - C1 checker 9: implied acceleration uses `dt = 1 / obs_rate_hz` and `v_0` = the supervisor's latest `v_meas`; fail if `abs(v_cmd - v_0) > a_max * dt + 1e-9`. The active-lease re-check uses the same `dt`.
 - C11 scenarios: the first scenario `zones:` event for a zone overrides the map's activation windows for the rest of the run.
+- C9 remote planner (P1): `created_ns` is in the target clock domain: `based_on.stamp_ns` + host compute time, never a host clock reading (ADR 0007). Route age is enforced from the supervisor-owned stamp of `based_on.obs_id` (CONTRACT-Q from @phatdat220707 on #3).
 - `messages.md` header names the version in force.
 
 ## v1.1 -- frozen 2026-11-16 (#89, ADR 0017)
