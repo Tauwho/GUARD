@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "sha": "fe2feacf9e18f614214a16d9a3fb1dfa774cf583",
+  "date": "2026-11-16T06:58:19Z",
+  "topic": "spike-s4",
+  "runner_role": "b",
+  "host_os": "Ubuntu 24.04.5 LTS on WSL2 (Windows)",
+  "sdp_version": "8.0.0",
+  "qcc_version": "Toolchain:  12.2.0\tVersion:  gcc_ntox86_64",
+  "image_id": "mkqnximage qemu x86_64 QSTI: develop, secure+policy, plain; 8.0.0 2026/10/30-09:10:05EDT",
+  "contracts": "contracts-v1.1",
+  "files": [
+    "transcript.txt",
+    "uname.txt",
+    "pidin.txt",
+    "binaries.txt",
+    "slog2.txt",
+    "results.json"
+  ],
+  "notes": "Q1/Q2 from secpol/run_secpol.sh (develop image records the policy, secure image enforces it). Q3/Q4 from s4_ability and s4_uid on the plain image; uname/pidin/slog2 are from that last image. Home path shown as ~. Run by the agent on @baofrovn's machine at their request."
+}

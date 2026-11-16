@@ -1,0 +1,74 @@
+Script started on 2026-11-16 01:57:33-05:00 [COMMAND="bash ~/guard-ev/s4/all.sh" <not executed on terminal>]
+######## Q1 Q2: secpol (spike/s4/secpol/run_secpol.sh)
+######## stage A: --secpol=develop
+S4 develop image boots: yes
+client uid=0: connect+send ok (errno 0)
+idle: uid=0
+policy lines: 486
+367:# === Rules for type s4cli_t ============
+368-allow s4cli_t self:ability {
+369-    prot_exec
+370-    map_fixed
+371-};
+372-
+373:# === Rules for type s4ok_t ============
+374-allow s4ok_t self:ability {
+375-    prot_exec
+376-    map_fixed
+377-    channel_connect:s4srv_t
+378-};
+379-
+380:# === Rules for type s4srv_t ============
+381-allow_attach s4srv_t {
+382-    /dev/name/local/s4uid
+383-};
+384-allow s4srv_t self:ability {
+385-    prot_exec
+386-    map_fixed
+s4cli_t has a connect rule to s4srv_t: no
+######## stage B: --secpol=secure --policy=s4.pol
+Q1 --secpol=secure with the custom policy builds and boots: yes
+policy id:a20ebeb4 (immutable)
+  376852 system/bin/s4_uid                                                                
+== s4ok_t (has a connect rule)
+client uid=0: connect+send ok (errno 0)
+== s4cli_t (no connect rule)
+client uid=0: connect+send Operation not permitted (errno 1)
+Q2 key: the s4cli_t line above shows the errno of a denied connect
+######## Q3 Q4: plain image (no secpol)
+SSH OK
+qemu running
+QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+A root: deny+lock nonroot PUBLIC_CHANNEL         EOK                      as-expected
+A root: public channel still ok                  EOK                      as-expected
+A setuid(1104)                                   EOK                      as-expected
+A after setuid: public channel (deny kept?)      Operation not permitted  as-expected
+A after setuid: private channel                  EOK                      as-expected
+A after setuid: re-allow locked ability          EOK                      UNEXPECTED
+A after re-allow: public channel (lock held?)    Operation not permitted  as-expected
+A after setuid: widen SETUID                     Operation not permitted  as-expected
+A after setuid: setuid(0)                        Operation not permitted  as-expected
+B setuid(1104), no abilities set                 EOK                      as-expected
+B after setuid: public channel                   EOK                      as-expected
+C root: create public channel                    EOK                      as-expected
+C setuid(1104)                                   EOK                      as-expected
+C after setuid: deny+lock PUBLIC_CHANNEL         EOK                      as-expected
+C after lock: new public channel                 Operation not permitted  as-expected
+C after lock: re-allow it                        EOK                      UNEXPECTED
+C after re-allow: public channel (lock held?)    Operation not permitted  as-expected
+C channel made as root still usable              EOK                      as-expected
+D root: deny nonroot PUBLIC_CHANNEL              EOK                      as-expected
+D root: lock it (separate call)                  EOK                      as-expected
+D setuid(1104)                                   EOK                      as-expected
+D after setuid: re-allow locked ability          EOK                      UNEXPECTED
+D after re-allow: public channel (lock held?)    Operation not permitted  as-expected
+setuid           uid=1101  server saw ruid=1101  euid=1101  match
+setuid           uid=1103  server saw ruid=1103  euid=1103  match
+setuid           uid=1102  server saw ruid=1102  euid=1102  match
+setuid           uid=1104  server saw ruid=1104  euid=1104  match
+setuid           uid=1106  server saw ruid=1106  euid=1106  match
+setuid           uid=1105  server saw ruid=1105  euid=1105  match
+seteuid          uid=1104  server saw ruid=0     euid=1104  match
+Q4 ConnectClientInfo uid matches every client: yes
+
+Script done on 2026-11-16 01:58:18-05:00 [COMMAND_EXIT_CODE="0"]
