@@ -16,6 +16,7 @@ add_library(guard_core STATIC core/src/codec/validation.cpp core/src/config/conf
                core/src/plant/geometry.cpp core/src/plant/plant.cpp core/src/fsm/gate_fsm.cpp
                core/src/safety/stopping.cpp core/src/safety/supervisor.cpp core/src/safety/recheck.cpp
                core/src/scenario/map.cpp core/src/scenario/scenario.cpp core/src/scenario/world.cpp
+               core/src/planner/planner.cpp
                "${GUARD_GENERATED}/reason_codes.hpp")
 target_compile_features(guard_core PUBLIC cxx_std_17)
 target_include_directories(guard_core PUBLIC "${PROJECT_SOURCE_DIR}/core/include"
@@ -46,7 +47,7 @@ if(BUILD_TESTING)
                  core/tests/plant_geometry.cpp core/tests/plant_dynamics.cpp core/tests/gate_fsm_rows.cpp
                  core/tests/gate_fsm_integration.cpp core/tests/supervisor_checks.cpp
                  core/tests/supervisor_recheck.cpp core/tests/contracts_config.cpp core/tests/contracts_scenario.cpp
-                 core/tests/scenario_world.cpp
+                 core/tests/scenario_world.cpp core/tests/planner.cpp
                  "${GUARD_GENERATED}/contracts_fixtures.cpp" "${GUARD_GENERATED}/loaders_fixtures.cpp")
   target_link_libraries(guard_core_tests PRIVATE guard_core doctest::doctest)
   add_test(NAME guard_core_smoke COMMAND guard_core_tests)
