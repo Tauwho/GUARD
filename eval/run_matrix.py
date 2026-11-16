@@ -16,6 +16,22 @@ from metrics import API, measure
 
 ROOT = Path(__file__).resolve().parents[1]
 MODES = ("B0", "B1", "B2", "B2-freshness", "B2-stopping", "B2-expiry", "B2-epoch")
+VALIDATOR = jsonschema.Draft202012Validator(
+    json.loads((ROOT / "contracts/telemetry.schema.json").read_text())
+)
+MEASURED = {}
+
+
+def validated_measurement(lines):
+    # Every run executes. Only validation/measurement of byte-identical bodies is reused.
+    VALIDATOR.validate(json.loads(lines[0]))
+    digest = hashlib.sha256("\n".join(lines[1:]).encode()).hexdigest()
+    if digest not in MEASURED:
+        events = [json.loads(line) for line in lines]
+        for event in events:
+            VALIDATOR.validate(event)
+        MEASURED[digest] = measure(events)
+    return MEASURED[digest], digest
 
 
 def run_case(case):
@@ -47,19 +63,19 @@ def run_case(case):
         if execution.returncode:
             raise ValueError(execution.stderr.strip() or f"exit {execution.returncode}")
         lines = trace.read_text(encoding="utf-8").splitlines()
-        events = [json.loads(line) for line in lines]
-        validator = jsonschema.Draft202012Validator(
-            json.loads((ROOT / "contracts/telemetry.schema.json").read_text())
-        )
-        for event in events:
-            validator.validate(event)
-        summary = measure(events)
+        summary, digest = validated_measurement(lines)
         record.update(
             summary=summary,
             mismatches=API["mismatches"](scenario["expected"][record["reference"]], summary),
-            trajectory_sha256=hashlib.sha256("\n".join(lines[1:]).encode()).hexdigest(),
+            trajectory_sha256=digest,
         )
-    except (ValueError, OSError, subprocess.SubprocessError, jsonschema.ValidationError) as error:
+    except (
+        ValueError,
+        OSError,
+        IndexError,
+        subprocess.SubprocessError,
+        jsonschema.ValidationError,
+    ) as error:
         record.update(error=str(error), mismatches=["execution or telemetry validation failed"])
     return record
 
