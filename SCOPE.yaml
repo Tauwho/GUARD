@@ -8,12 +8,14 @@
 # evidence: manual (reported MANUAL, never DONE; a progress file is never a done-check).
 version: 1
 dates:
+  phase0: 2026-11-17T23:59
   cp1: 2026-11-22T23:59
   cp2: 2026-11-29T23:59
   cut_1: 2026-12-04T23:59      # SHOULD items not DONE and with no branch activity are DROPPED
   cut_2: 2026-12-07T23:59      # every STRETCH item not DONE is DROPPED
   feature_freeze: 2026-12-09T23:59
   code_freeze: 2026-12-10T18:00
+  package_done: 2026-12-13T23:59
   hard_stop: 2026-12-15T18:00
 items:
   # ---------------- Stream A (host vertical) ----------------
@@ -38,6 +40,8 @@ items:
      title: "Live Ollama advisor path verified with recorded fallback on timeout on a second laptop",
      note: "Manual: second laptop; recorded fallback on timeout."}
   # ---------------- Stream B (target vertical) ----------------
+  - {id: B0, tier: MUST, owner: B, due: phase0, title: "image/target-check.sh builds, boots, runs and captures an evidence bundle",
+     checks: [{cmd: "bash image/target-check.sh --help"}]}
   - {id: B1, tier: MUST, owner: B, due: cp1, title: "core-on-target evidence from main after A's core landed",
      checks: [{cmd: "python tools/scope_gate.py --check-core-evidence"}]}
   - {id: B2, tier: MUST, owner: B, due: cp1, title: "guard-gate process on target (resmgr /dev/guard/gate, C2/C3/C4/C5) with evidence",
@@ -57,11 +61,13 @@ items:
   - {id: B10, tier: STRETCH, owner: B, due: cut_2, title: "SLM ordered start + restart into LATCHED (#47)", checks: [{file: "evidence/*-slm/manifest.json"}]}
   - {id: B11, tier: STRETCH, owner: B, due: cut_2, title: "tracelogger timeline (#48)", checks: [{file: "evidence/*-tracelogger/manifest.json"}]}
   # ---------------- Stream P (package vertical) ----------------
+  - {id: P0, tier: MUST, owner: P, due: phase0, title: "Phase 0 merged: zero-handoff process, ownership, scope and verification harness on main",
+     checks: [{file: "OWNERSHIP.yaml"}, {file: "SCOPE.yaml"}, {file: "tools/scope_gate.py"}, {file: "docs/streams/BRIEF-P.md"}]}
   - {id: P1, tier: MUST, owner: P, due: cp1, title: "README generator (Evidence Map, Results, quick start from main) + fresh-clone nightly green",
      checks: [{file: "tools/build_readme.py"}, {cmd: "python tools/build_readme.py --check"}]}
   - {id: P2, tier: MUST, owner: P, due: cp2, title: "Demo script and storyboard whose every command exists on main",
      checks: [{file: "demo/DEMO.md"}, {cmd: "python tools/check_demo_commands.py"}]}
   - {id: P3, tier: MUST, owner: P, due: code_freeze, title: "v1.0-rc1 tag on a green, fresh-clone-passing commit", checks: [{cmd: "git rev-parse -q --verify refs/tags/v1.0-rc1"}]}
-  - {id: P4, tier: MUST, owner: P, due: hard_stop, title: "Video under 3:00 linked in README; make package-check passes",
+  - {id: P4, tier: MUST, owner: P, due: package_done, title: "Video under 3:00 linked in README; make package-check passes",
      checks: [{cmd: "python tools/check_package.py"}, {grep: {file: "README.md", re: "(?i)video"}}]}
   - {id: P5, tier: SHOULD, owner: P, due: cut_1, title: "Architecture diagram + Limits page final", checks: [{file: "docs/architecture.svg"}]}

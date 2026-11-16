@@ -145,6 +145,7 @@ Balance (remaining effort estimate, hours):
 | policy | `python tools/check_policy.py all` (core-portable, no-qnx-files, claims-lint, schemas, evidence) | P (existing) |
 | contract compat | `python tools/check_contract_compat.py --base contracts-v1.2` | P |
 | ownership | `python tools/check_ownership.py --base origin/main` (CI; local run uses the current branch prefix) | P |
+| brief sync | `python tools/check_brief_sync.py` (brief milestone ids, tiers and dates match `SCOPE.yaml`; `tools/sync_briefs.py` rewrites the Due/Tier cells) | P |
 | host build + tests | `cmake --preset host-debug && cmake --build --preset host-debug && ctest --preset host-debug` | A |
 | Python | `python -m ruff check . && python -m pytest` | A |
 | scope report | `python tools/scope_gate.py` (report only, never fails the build) | P |

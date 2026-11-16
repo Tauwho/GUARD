@@ -25,17 +25,19 @@ If you need more than the contracts give: adapter in your code, or an additive f
 
 ## 4. Milestones (each done only when its acceptance command passes; paste the command and its last lines into `progress/A.md`)
 
+<!-- gen:milestones-A -->
 | ID | Due (SGT) | Tier | Work | Acceptance check |
 |---|---|---|---|---|
 | A1 | Sun 22 Nov | MUST | Fix the two open core findings. (a) `core/src/fsm/gate_fsm.cpp`: a refused lease (expired on arrival, NOT_READY) must not consume `lease_seq` (messages.md 3.2 step 1: a refusal changes nothing); same for `PassthruCmd.cmd_seq`. (b) `core/src/safety/recheck.cpp`: the active-lease re-check uses the lease's own length (`expires_ns - issued_ns`) and only checker 9's speed bounds, not the acceleration bound | New doctest cases for both pass: `ctest --preset host-debug` and `python tools/check.py` GREEN; line `A1: done <sha>` in `progress/A.md` |
 | A2 | Sun 22 Nov | MUST | Planner: aggressive mode keeps the `a_max` ramp and, after `REJ_STOPPING_DISTANCE`, retries at nominal speed (F5); shortcut mode cites the map version it planned with (F6, expects `REJ_MAP_VERSION`) | `python host/guard-replay --scenario scenarios/F5.yaml --mode B2 --out out/F5.jsonl` and the same for F6 exit 0; `A2: done` |
 | A3 | Sun 22 Nov | MUST | `eval/target_runner.py`: drives a scenario through `guardctl scenario load/start/stop` + `inject` (C14), collects C8 JSONL, validates it, applies the scenario expectations. `--target local` uses `host/guard-replay`; `--target ssh:<alias>` runs `guardctl` over ssh and reads the bridge (port-forwarded 7700) | `python -m pytest eval/tests/test_target_runner.py` passes in local mode for F0 and F3 |
-| A4 | Sun 29 Nov | MUST | Linux matrix: 9 scenarios x 7 modes x seeds on `ubuntu` CI on every push to `main`, artifact kept 90 days, report labelled "host (Linux) harness"; margin sentinel fixed (`null` when unmeasured); ablation runs emit `run_start.ablate` | A green `host-evaluation` run on main; `A4: done <actions run URL>` |
+| A4 | Sun 29 Nov | MUST | Linux matrix: 9 scenarios x 7 modes x seeds on `ubuntu` CI on every push to `main`, artifact kept 90 days, report labelled "host (Linux) harness"; margin sentinel fixed (`null` when unmeasured); ablation runs emit `run_start.ablate` | A green `host-evaluation` run on main; artifact URL in `progress/A.md` (MANUAL in `scope_gate`) |
 | A5 | Sun 29 Nov | MUST | Dashboard final: replay + live (`--bridge`), lease bar, stopping arc from the proposal's source pose, reason feed; relay survives a bad bridge line (count it as a drop); headless smoke test | `python -m pytest eval/tests/test_dashboard_relay.py`; `A5: done` |
 | A6 | Fri 4 Dec | SHOULD | LLM route advisor demo on host, recorded responses as default, docs say Qwen2.5-1.5B (D23), route checked by `guard::check_route`, route never authorizes motion | `python host/llm_advisor.py --help`; recorded demo test passes; `A6: done` |
-| A7 | Fri 4 Dec | SHOULD | Seeds perturb world and planner (staff start offset, planner jitter) so seeds are independent trials; else the report keeps "deterministic repeats" | Two seeds of F1 give different trajectory hashes; `A7: done` |
-| A8 | Mon 7 Dec | STRETCH | Hypothesis property tests for codecs and the gate FSM (#28) | `python -m pytest -k hypothesis` |
-| A9 | Mon 7 Dec | STRETCH | Live Ollama path verified with recorded fallback on timeout | `A9: done` |
+| A7 | Fri 4 Dec | SHOULD | Seeds perturb world and planner (staff start offset, planner jitter) so seeds are independent trials; else the report keeps "deterministic repeats" | Two seeds of F1 give different trajectory hashes, or the report states deterministic repeats (MANUAL) |
+| A8 | Mon 7 Dec | STRETCH | Hypothesis property tests for codecs and the gate FSM (#28) | `python -m pytest eval/tests -q -k hypothesis` |
+| A9 | Mon 7 Dec | STRETCH | Live Ollama path verified with recorded fallback on timeout | Second-laptop evidence (MANUAL) |
+<!-- gen:milestones-A-end -->
 
 Check the live state any time with `python tools/scope_gate.py --stream A`. After **Fri 4 Dec 23:59** unfinished SHOULD items are DROPPED; after **Mon 7 Dec 23:59** STRETCH items are DROPPED. Stop working on DROPPED items.
 
