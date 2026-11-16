@@ -304,13 +304,13 @@ Every CI job runs on the host on `ubuntu-24.04`. The QNX SDP is never used.
 - The README quick start works from a clean clone.
 - The video uses P0 features only.
 
-**P1, ranked** (chosen only at CK-M3, from slack):
+**P1, ranked** (chosen only at CK-M3, from slack; the LLM advisor is rank 2 under assumption A4, see Q4 in the DECISIONS.md clarification log):
 
 | Rank | Item | Hours |
 |---|---|---|
 | 1 | secpol (B-12a) | 4 |
-| 2 | SLM (B-12b) | 2 |
-| 3 | LLM advisor (A-12 + B-12d) | 6 |
+| 2 | LLM advisor (A-12 + B-12d) | 6 |
+| 3 | SLM (B-12b) | 2 |
 | 4 | Codelab (PO-9 + B-12e) | 7 |
 | 5 | tracelogger (B-12c) | 2 |
 | 6 | Hypothesis (A-13) | 3 |
@@ -354,4 +354,4 @@ All times SGT.
 - "hard real-time"
 - "faster than Linux"
 
-**Preferred wording:** "rejects stale or unverifiable motion in simulation", "measured in QEMU".
+**Preferred wording:** "rejects stale or unverifiable motion in simulation", "shown on the QNX target", "measured in the host (Linux) harness". Nothing measured on QNX is published (A5, D11).
