@@ -1,6 +1,6 @@
-# GUARD wire messages, C1-C7 (contracts v1.0)
+# GUARD wire messages, C1-C7 (contracts v1.2)
 
-Status: **v1.0 draft**, frozen when the PR for #3 merges (target Fri 20 Nov 2026 23:59 SGT).
+Status: **v1.2** (ADR 0018, tag `contracts-v1.2`), the final freeze (D26). v1.0 was frozen on 16 Nov 2026 (tag `contracts-v1.0`), v1.1 on 16 Nov 2026 (ADR 0017, tag `contracts-v1.1`). See `CHANGELOG.md`.
 Source of truth for both streams. If this file and `docs/architecture.md` disagree, this file wins after the freeze.
 
 ## 1. Common rules
@@ -196,6 +196,8 @@ Values outside the schema bounds give `REJ_SCHEMA`. Values inside the schema bou
 - If any checker is UNVERIFIABLE, `verdict = 3` and the primary reason is the first 3xx code.
 - If checks pass but the gate refuses the lease, `verdict = 2` with `REJ_GATE_NOT_READY`.
 - If checking exceeds its budget, `verdict = 3` with `UNV_CHECK_BUDGET`.
+
+**Checker 9, implied acceleration (v1.2).** `v_0` is `v_meas` from the supervisor's own latest observation, and `dt = 1 / obs_rate_hz` (C12, default 20 Hz, so 50 ms). The proposal fails with `REJ_ACCEL_ENVELOPE` if `v_cmd - v_0 > a_max * dt + 1e-9`. Only a speed *increase* is bounded: a `v_cmd` below `v_0` never fails this check, because slowing down is always allowed and the gate and plant limit braking to `a_brake` (D17); checker 10 still uses the measured `v_0` for stopping distance. The `1e-9` m/s tolerance stops a command that sits exactly on the limit from being rejected by floating-point rounding. The active-lease re-check (checkers 8-11) applies only the speed part of checker 9 (`v_cmd`, `w_cmd` and `v_0` bounds), not the acceleration part: the gate ramps toward an installed target, so a lease still being reached is not a new proposal.
 
 ---
 

@@ -126,7 +126,7 @@ codes:
   REVOKE_ENVELOPE:
     number: 401
     group: revoked
-    meaning: "Re-check of the active lease failed checker 9 (speed or acceleration envelope)"
+    meaning: "Re-check of the active lease failed checker 9 speed bounds (v1.2: the acceleration bound applies only at authorization)"
     emitted_by: supervisor
     operator_hint: "Measured motion left the envelope; inspect plant and parameters"
   REVOKE_RESTRICTED_ZONE:

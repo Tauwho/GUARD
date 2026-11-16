@@ -1,5 +1,15 @@
 # contracts CHANGELOG
 
+## v1.2 -- frozen 2026-11-16 (#125, ADR 0018)
+
+No binary wire-format change: same messages, sizes, `devctl` numbers and reason codes.
+
+- C8 telemetry: `run_start` and `run_end` payloads defined; stream rules (`run_start` first, `run_end` last per `run_id`; `t_ns` never decreases; `seq` per `src` +1, gap = drop). `run_end` proposal counters cover C1 proposals only and are 0 in B0/B1; pass-through counts go in a `status` event (from @phatdat220707 on PR #127).
+- C1 checker 9: implied acceleration uses `dt = 1 / obs_rate_hz` and `v_0` = the supervisor's latest `v_meas`; fail if `v_cmd - v_0 > a_max * dt + 1e-9` (speed increase only; braking is limited by `a_brake`, D17). The active-lease re-check applies only checker 9's speed bounds, not the acceleration bound.
+- C11 scenarios: the first scenario `zones:` event for a zone overrides the map's activation windows for the rest of the run.
+- C9 remote planner (P1): `created_ns` is in the target clock domain: `based_on.stamp_ns` + host compute time, never a host clock reading (ADR 0007). Route age is enforced from the supervisor-owned stamp of `based_on.obs_id` (CONTRACT-Q from @phatdat220707 on #3).
+- `messages.md` header names the version in force.
+
 ## v1.1 -- frozen 2026-11-16 (#89, ADR 0017)
 
 No wire format change: same messages, sizes, `devctl` numbers and reason codes.

@@ -15,7 +15,7 @@ def test_duplicate_body_reuses_measurement_but_changed_invalid_data_fails(monkey
         "src": "harness",
         "seq": 0,
         "kind": "run_start",
-        "payload": {"seed": 1},
+        "payload": {"scenario": "F0", "mode": "B2", "seed": 1},
     }
     end = {
         "v": 1,
@@ -28,6 +28,9 @@ def test_duplicate_body_reuses_measurement_but_changed_invalid_data_fails(monkey
             "zone_breaches": 0,
             "proposals": 1,
             "rejected": 0,
+            "authorized": 1,
+            "unverifiable": 0,
+            "latches": 0,
             "final_state": "GOAL",
         },
     }

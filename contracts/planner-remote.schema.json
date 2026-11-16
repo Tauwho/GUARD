@@ -45,7 +45,7 @@
         "based_on": {"$ref": "#/$defs/based_on"},
         "v_cmd": {"type": "number", "minimum": -1.5, "maximum": 1.5},
         "w_cmd": {"type": "number", "minimum": -1.5, "maximum": 1.5},
-        "created_ns": {"type": "integer", "minimum": 0}
+        "created_ns": {"type": "integer", "minimum": 0, "description": "Target clock (v1.2): based_on.stamp_ns plus the host's elapsed compute time for this response. Never a host clock reading (ADR 0007). Route age is enforced from the supervisor-owned stamp of based_on.obs_id, not from this field."}
       }
     },
     "route_response": {
@@ -60,7 +60,7 @@
           "type": "array", "minItems": 1, "maxItems": 16,
           "items": {"type": "array", "prefixItems": [{"type": "number", "minimum": -100, "maximum": 100}, {"type": "number", "minimum": -100, "maximum": 100}], "minItems": 2, "maxItems": 2}
         },
-        "created_ns": {"type": "integer", "minimum": 0},
+        "created_ns": {"type": "integer", "minimum": 0, "description": "Target clock (v1.2): based_on.stamp_ns plus the host's elapsed compute time for this response. Never a host clock reading (ADR 0007). Route age is enforced from the supervisor-owned stamp of based_on.obs_id, not from this field."},
         "rationale": {"type": "string", "maxLength": 500}
       }
     }
