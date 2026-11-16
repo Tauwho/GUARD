@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "sha": "1efeed6",
+  "date": "2026-11-18",
+  "topic": "Setup PO",
+  "runner_role": "pm",
+  "host_os": "",
+  "sdp_version": "7.1",
+  "qcc_version": "x",
+  "image_id": "x",
+  "files": [
+    "licence.lic"
+  ]
+}

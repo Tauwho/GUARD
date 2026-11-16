@@ -1,0 +1,12 @@
+{
+  "message": "world_pause",
+  "type": "0x0042",
+  "size": 16,
+  "valid": false,
+  "expect_error": "EINVAL",
+  "why": "pause is 2 (bool must be 0 or 1)",
+  "fields": {
+    "pause": 2
+  },
+  "hex": "47444200010010000200000000000000"
+}

@@ -1,0 +1,22 @@
+{
+  "kind": "scenario",
+  "version": 1,
+  "id": "F3",
+  "title": "Supervisor killed",
+  "map": "hospital_corridor",
+  "seed": 3,
+  "duration_s": 30,
+  "planner": {
+    "mode": "rule"
+  },
+  "target_semantics": "process",
+  "obstacles": [],
+  "zones": [],
+  "faults": [],
+  "expected": {
+    "B2": {
+      "violations": 0,
+      "final_state": "LATCHED"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+# Validated by contracts/scenario.schema.json. Expected outcomes are hypotheses; eval reports actual outcomes.
+kind: scenario
+version: 1
+id: F7
+title: "Zombie supervisor"
+description: "SIGSTOP supervisor A at t = 10 s, start supervisor B (new epoch), then SIGCONT A 2 s later. A tries to renew its old lease."
+map: hospital_corridor
+seed: 1007
+duration_s: 30
+planner: {mode: rule, cruise_v: 0.8, lease_req_ms: 250, rate_hz: 20}
+target_semantics: process
+host_abstraction: "The harness freezes supervisor model A, registers model B (epoch + 1), then lets A send one lease with its old epoch."
+obstacles: []
+zones: []
+faults:
+  - {t_s: 10.0, fault: F7, duration_ms: 2000, params: {signal: SIGSTOP, resume_after_ms: 2000}}
+expected:
+  B0: {violations: 0, final_state: MOVING, note: "Supervisor is not in the control path"}
+  B1: {violations: 0, final_state: MOVING}
+  B2:
+    violations: 0
+    final_state: LATCHED
+    latches: 1
+    required_reasons: [GATE_EPOCH_CHANGED, GATE_EPOCH_STALE]
+    note: "B's registration latches EPOCH_CHANGED; A's late lease is refused"

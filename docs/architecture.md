@@ -68,7 +68,7 @@ All target times are `CLOCK_MONOTONIC` in ns, on a single clock (the sim runs on
 | 2xx | `REJ_SCHEMA`, `REJ_RATE_LIMIT`, `REJ_SEQ_REPLAY`, `REJ_UNKNOWN_OBSERVATION`, `REJ_PROVENANCE_MISMATCH`, `REJ_STALE_OBSERVATION`, `REJ_SUPERSEDED_OBSERVATION`, `REJ_MAP_VERSION`, `REJ_SPEED_ENVELOPE`, `REJ_ACCEL_ENVELOPE`, `REJ_RESTRICTED_ZONE`, `REJ_STOPPING_DISTANCE`, `REJ_GATE_NOT_READY` |
 | 3xx (= reject) | `UNV_SENSOR_STALE`, `UNV_CHECK_BUDGET`, `UNV_INTERNAL` |
 | 4xx | `REVOKE_<checker>` |
-| 5xx | `GATE_LEASE_ACCEPTED`, `GATE_EPOCH_STALE`, `GATE_LEASE_REPLAY`, `GATE_LEASE_EXPIRED_ON_ARRIVAL`, `GATE_NOT_READY`, `GATE_UNAUTHORIZED_CLIENT`, `GATE_LEASE_EXPIRED`, `GATE_REVOKED`, `GATE_SUPERVISOR_LOST`, `GATE_EPOCH_CHANGED`, `GATE_MOTOR_TIMEOUT`, `GATE_STANDSTILL`, `GATE_RECOVERED`, `GATE_RECOVERY_UNMET` |
+| 5xx | `GATE_LEASE_ACCEPTED`, `GATE_EPOCH_STALE`, `GATE_LEASE_REPLAY`, `GATE_LEASE_EXPIRED_ON_ARRIVAL`, `GATE_NOT_READY`, `GATE_UNAUTHORIZED_CLIENT`, `GATE_LEASE_EXPIRED`, `GATE_REVOKED`, `GATE_SUPERVISOR_LOST`, `GATE_EPOCH_CHANGED`, `GATE_MOTOR_TIMEOUT`, `GATE_STANDSTILL`, `GATE_RECOVERED`, `GATE_RECOVERY_UNMET`, `GATE_PASSTHRU_ACCEPTED`, `GATE_HEARTBEAT_LOST`, `GATE_ACK_UNDELIVERED` |
 | 6xx | `SIM_ACTUATOR_WATCHDOG`, `SIM_ZONE_BREACH`, `SIM_CONTACT` |
 
 Every code is a stable string plus a number.
@@ -119,16 +119,18 @@ Defaults are an assumption at hospital-AMR scale. Sources go in `docs/parameters
 | 6 | supersession | More than K newer observations exist | `REJ_SUPERSEDED_OBSERVATION` |
 | 7 | map version | Differs from the current version | `REJ_MAP_VERSION` |
 | 8 | sensor health | Own latest observation > 150 ms old, or `sensor_ok` false | `UNV_SENSOR_STALE` |
-| 9 | envelope | abs(v) > `v_max`, abs(w) > `w_max`, or implied acceleration > `a_max` | `REJ_SPEED_ENVELOPE` / `REJ_ACCEL_ENVELOPE` |
+| 9 | envelope | v < 0 (no reverse motion in v1), v > `v_max`, abs(w) > `w_max`, implied acceleration > `a_max`, or measured `v_0` < −0.02 m/s (moving backward) | `REJ_SPEED_ENVELOPE` / `REJ_ACCEL_ENVELOPE` |
 | 10 | restricted zone | Swept footprint over the lease horizon enters an active zone | `REJ_RESTRICTED_ZONE` |
 | 11 | stopping distance | Free distance along the swept arc < `d_req` | `REJ_STOPPING_DISTANCE` |
 
-**Stopping distance:**
+**Stopping distance** (conservative; answers the CONTRACT-Q on #3):
 - `t_r = T_lease + t_tick + t_act`
-- `v_pk = min(v_cmd, v_0 + a_max·t_r)`
-- `d_req = v_pk·t_r + v_pk²/(2·a_brake) + margin + r_robot`
-- Free distance is measured along the commanded arc, sampled every 5 cm, to the first inflated obstacle or active zone edge.
-- Example: at 1.2 m/s, `d_req` = 1.61 m.
+- `s_0 = abs(v_0)`: the measured speed from the supervisor's latest observation. A lower `v_cmd` cannot take effect instantly, so the model starts from `s_0`.
+- `v_pk = max(s_0, min(v_cmd, s_0 + a_max·t_r))`
+- `d_req = v_pk·t_r + v_pk²/(2·a_brake)`
+- **Clearance convention:** obstacles and active zones are inflated by `r_robot + margin`. `d_free` is the arc length that the robot centre can travel along the commanded arc before it reaches the first inflated obstacle or inflated zone edge, sampled every 5 cm and rounded down. The check fails when `d_free < d_req`.
+- Example: from 1.2 m/s, `d_req` = 1.06 m of free arc. Straight ahead, that is 1.61 m from the robot centre to the obstacle.
+- Slowing down: from `s_0` = 1.2 m/s, a proposal with `v_cmd` = 0.2 m/s still has `v_pk` = 1.2 m/s and `d_req` = 1.06 m. A planner must start slowing while the free distance still covers its current speed.
 - A shorter lease means a smaller `d_req`, so more speed is allowed near hazards.
 
 **Re-check:** on every new observation, re-run checks 8–11 against the active lease. A failure sends `REVOKE_<cause>`. Three consecutive UNVERIFIABLE results while MOVING also revoke.
@@ -159,6 +161,8 @@ Defaults are an assumption at hospital-AMR scale. Sources go in `docs/parameters
 | R16 | STOPPING | standstill confirmed from measured v | STOPPED | `GATE_STANDSTILL` |
 | R17 | STOPPED | latch set | LATCHED | — |
 | R18 | STOPPED | no latch | READY | — |
+
+**Lease delivery rule.** R4 and R5 take effect only after the `LeaseAck` reply is delivered (messages.md 3.2). The gate sends that reply within the same handler call. If the reply fails, the gate discards the lease, keeps its mode and emits `GATE_ACK_UNDELIVERED`. A supervisor timeout only ends the call while it is send-blocked; once the gate has the lease, the supervisor waits for the ack (ADR 0017).
 
 **Recovery conditions.** All must hold; any unmet ones are reported as a bitmask.
 - Standstill confirmed.
@@ -304,13 +308,13 @@ Every CI job runs on the host on `ubuntu-24.04`. The QNX SDP is never used.
 - The README quick start works from a clean clone.
 - The video uses P0 features only.
 
-**P1, ranked** (chosen only at CK-M3, from slack):
+**P1, ranked** (chosen only at CK-M3, from slack; the LLM advisor is rank 2 under assumption A4, see Q4 in the DECISIONS.md clarification log):
 
 | Rank | Item | Hours |
 |---|---|---|
 | 1 | secpol (B-12a) | 4 |
-| 2 | SLM (B-12b) | 2 |
-| 3 | LLM advisor (A-12 + B-12d) | 6 |
+| 2 | LLM advisor (A-12 + B-12d) | 6 |
+| 3 | SLM (B-12b) | 2 |
 | 4 | Codelab (PO-9 + B-12e) | 7 |
 | 5 | tracelogger (B-12c) | 2 |
 | 6 | Hypothesis (A-13) | 3 |
@@ -354,4 +358,4 @@ All times SGT.
 - "hard real-time"
 - "faster than Linux"
 
-**Preferred wording:** "rejects stale or unverifiable motion in simulation", "measured in QEMU".
+**Preferred wording:** "rejects stale or unverifiable motion in simulation", "shown on the QNX target", "measured in the host (Linux) harness". Nothing measured on QNX is published (A5, D11).
