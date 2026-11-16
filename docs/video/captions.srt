@@ -1,0 +1,55 @@
+1
+00:00:00,000 --> 00:00:10,000
+An AI planner can be right about a world that no longer exists.
+In a hospital, that world changes fast.
+
+2
+00:00:10,000 --> 00:00:25,000
+This is GUARD, running on QNX 8.0 in the quick-start target image under QEMU.
+Each part is its own process, with its own priority.
+
+3
+00:00:25,000 --> 00:00:45,000
+The planner only proposes motion. The supervisor checks each proposal
+against its own view of the world. If every check passes, it grants a short lease.
+A separate gate holds that lease and stops the robot when it runs out.
+
+4
+00:00:45,000 --> 00:01:10,000
+Here the MRI zone switches on. The planner still cites the old map,
+so GUARD rejects it and the robot waits.
+A heartbeat-only baseline drives straight into the zone.
+
+5
+00:01:10,000 --> 00:01:30,000
+Now we kill the supervisor. Nothing renews the lease,
+so the gate's own kernel timer stops the robot and latches.
+
+6
+00:01:30,000 --> 00:01:45,000
+A paused supervisor wakes up after it was replaced.
+Its lease carries an old epoch, and the gate refuses it.
+
+7
+00:01:45,000 --> 00:02:00,000
+A busy process starves the checks. Leases lapse, so the robot stops.
+Starving GUARD can only stop motion, never extend it.
+
+8
+00:02:00,000 --> 00:02:15,000
+Near a crossing, a fast proposal fails the stopping-distance check.
+A slower one is authorized.
+
+9
+00:02:15,000 --> 00:02:30,000
+Results from our host (Linux) harness:
+no supervisor, a heartbeat, and GUARD.
+
+10
+00:02:30,000 --> 00:02:45,000
+QNX gives us message passing, timer pulses and resource managers.
+GUARD is a simulation-only research prototype, not for real robots or patients.
+
+11
+00:02:45,000 --> 00:02:50,000
+Stale decisions can't move the robot. Find GUARD on GitHub.
