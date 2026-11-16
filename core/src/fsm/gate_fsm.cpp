@@ -220,7 +220,6 @@ Reason Gate::passthrough(const PassthruCmd &value, std::int64_t now) {
         now < last_tick_ || now < last_passthrough_ || value.stamp_ns > now)
         return Reason::REJ_SCHEMA;
     expire(now);
-    held_.cmd_seq = value.cmd_seq;
     if (status_.mode != GateMode::ready && status_.mode != GateMode::moving) {
         record(Reason::GATE_NOT_READY);
         return Reason::GATE_NOT_READY;
