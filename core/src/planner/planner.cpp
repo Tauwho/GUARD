@@ -17,10 +17,16 @@ bool Planner::observe(const Observation &value) {
         (count_ && (value.obs_id <= history_[(next_ + 63) % 64].obs_id ||
                     value.stamp_ns < history_[(next_ + 63) % 64].stamp_ns)))
         return false;
+    if (!count_)
+        planned_map_version_ = value.map_version;
     history_[next_] = value;
     next_ = (next_ + 1) % history_.size();
     count_ = std::min(count_ + 1, history_.size());
     return true;
+}
+void Planner::decision(const Decision &reply) {
+    if (valid(reply) && reply.proposal_id == previous_.proposal_id)
+        retry_nominal_ = reply.verdict == 2 && reply.primary_reason == 212;
 }
 bool Planner::at_goal() const {
     if (!count_)
@@ -69,6 +75,8 @@ bool Planner::propose(std::int64_t now, const PlannerOptions &options, Proposal 
     proposal.lease_req_ms = options.lease_req_ms;
     proposal.created_ns = now;
     proposal.based_on = {source->obs_id, source->seq, source->stamp_ns, source->map_version, 0};
+    if (options.mode == PlannerMode::shortcut)
+        proposal.based_on.map_version = planned_map_version_;
     const Point position{source->x, source->y};
     Point target{map_.goal.x, map_.goal.y};
     if (options.mode != PlannerMode::shortcut) {
@@ -91,7 +99,9 @@ bool Planner::propose(std::int64_t now, const PlannerOptions &options, Proposal 
         // Independent local yielding rule. It uses only the cited observation.
         const double reaction =
             (config_.t_lease_ms + config_.t_tick_ms + config_.t_act_ms) / 1000.0;
-        for (std::size_t i = 0; i < source->obstacle_count; ++i) {
+        for (std::size_t i = 0; (options.mode != PlannerMode::aggressive || retry_nominal_) &&
+                                i < source->obstacle_count;
+             ++i) {
             const auto &obstacle = source->obstacles[i];
             const double dx = obstacle.x - position.x, dy = obstacle.y - position.y;
             const double ahead = dx * std::cos(source->theta) + dy * std::sin(source->theta);
@@ -110,11 +120,10 @@ bool Planner::propose(std::int64_t now, const PlannerOptions &options, Proposal 
         }
         proposal.v_cmd =
             std::min(desired, std::max(0.0, source->v_meas) + config_.a_max / config_.obs_rate_hz);
-        if (options.mode == PlannerMode::aggressive)
-            proposal.v_cmd = options.cruise_v;
     }
     if (!valid(proposal))
         return false;
+    retry_nominal_ = false;
     ++sequence_;
     last_proposal_ = now;
     previous_ = output = proposal;

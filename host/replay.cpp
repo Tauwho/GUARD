@@ -251,6 +251,15 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                             telemetry.end();
                         }
                     }
+                    Decision feedback;
+                    feedback.proposal_id = proposal.proposal_id;
+                    feedback.verdict = accepted ? 1 : (reason >= 300 && reason < 400 ? 3 : 2);
+                    feedback.primary_reason = static_cast<std::uint16_t>(reason);
+                    feedback.epoch = registration.epoch;
+                    feedback.lease_id = accepted ? active.lease_id : 0;
+                    feedback.expires_ns = accepted ? active.expires_ns : 0;
+                    feedback.decided_ns = now;
+                    planner.decision(feedback);
                     if (accepted)
                         ++result.authorized;
                     else if (reason >= 300 && reason < 400)
