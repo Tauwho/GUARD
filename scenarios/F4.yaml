@@ -1,0 +1,24 @@
+# Validated by contracts/scenario.schema.json. Expected outcomes are hypotheses; eval reports actual outcomes.
+kind: scenario
+version: 1
+id: F4
+title: "Supervisor sensor dropout"
+description: "The supervisor's observation feed pauses for 1 s at t = 14 s. The planner feed keeps running."
+map: hospital_corridor
+seed: 1004
+duration_s: 40
+planner: {mode: rule, cruise_v: 0.8, lease_req_ms: 250, rate_hz: 20}
+target_semantics: model
+obstacles: []
+zones: []
+faults:
+  - {t_s: 14.0, fault: F4, duration_ms: 1000, params: {feed: supervisor}}
+expected:
+  B0: {violations: 0, final_state: MOVING, note: "No one checks the supervisor feed"}
+  B1: {violations: 0, final_state: MOVING}
+  B2:
+    violations: 0
+    final_state: LATCHED
+    latches: 1
+    required_reasons: [UNV_SENSOR_STALE, REVOKE_SENSOR_HEALTH, GATE_REVOKED]
+    note: "Revoke, stop, and latch SENSOR_LOST"

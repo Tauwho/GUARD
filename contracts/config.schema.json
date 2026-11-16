@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Tauwho/GUARD/contracts/config.schema.json",
+  "title": "GUARD run configuration (C12)",
+  "description": "YAML. Read by core on host and target. Omitted parameters take the REF-PARAMS defaults shown here.",
+  "type": "object",
+  "required": ["version", "mode"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {"const": 1},
+    "mode": {"enum": ["B0", "B1", "B2"], "description": "B0 passthrough (holds last command); B1 heartbeat only; B2 GUARD"},
+    "ablate": {
+      "type": "object",
+      "description": "B2 only. true REMOVES that protection.",
+      "additionalProperties": false,
+      "properties": {
+        "freshness": {"type": "boolean", "default": false, "description": "Skip checkers 4-7"},
+        "stopping": {"type": "boolean", "default": false, "description": "Skip checker 11"},
+        "expiry": {"type": "boolean", "default": false, "description": "Leases never expire"},
+        "epoch": {"type": "boolean", "default": false, "description": "Gate skips the epoch check"}
+      }
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "v_max": {"type": "number", "exclusiveMinimum": 0, "maximum": 1.5, "default": 1.2, "description": "m/s"},
+        "w_max": {"type": "number", "exclusiveMinimum": 0, "maximum": 1.5, "default": 1.0, "description": "rad/s"},
+        "a_max": {"type": "number", "exclusiveMinimum": 0, "maximum": 3.0, "default": 0.5, "description": "m/s^2"},
+        "a_brake": {"type": "number", "exclusiveMinimum": 0, "maximum": 5.0, "default": 1.0, "description": "m/s^2"},
+        "t_lease_ms": {"type": "integer", "minimum": 50, "maximum": 1000, "default": 250},
+        "t_tick_ms": {"type": "integer", "minimum": 1, "maximum": 100, "default": 10},
+        "t_act_ms": {"type": "integer", "minimum": 0, "maximum": 200, "default": 20},
+        "margin_m": {"type": "number", "minimum": 0, "maximum": 2.0, "default": 0.20},
+        "r_robot_m": {"type": "number", "exclusiveMinimum": 0, "maximum": 2.0, "default": 0.35},
+        "obs_rate_hz": {"type": "integer", "minimum": 1, "maximum": 100, "default": 20},
+        "max_obs_age_ms": {"type": "integer", "minimum": 10, "maximum": 5000, "default": 200},
+        "supersession_k": {"type": "integer", "minimum": 0, "maximum": 63, "default": 2},
+        "sensor_stale_ms": {"type": "integer", "minimum": 10, "maximum": 5000, "default": 150},
+        "standstill_v": {"type": "number", "minimum": 0, "maximum": 0.5, "default": 0.02, "description": "m/s"},
+        "standstill_ticks": {"type": "integer", "minimum": 1, "maximum": 100, "default": 5},
+        "actuator_watchdog_ms": {"type": "integer", "minimum": 10, "maximum": 1000, "default": 50},
+        "rate_limit_hz": {"type": "integer", "minimum": 1, "maximum": 1000, "default": 50},
+        "obs_history": {"type": "integer", "minimum": 8, "maximum": 64, "default": 64},
+        "unverifiable_revoke_count": {"type": "integer", "minimum": 1, "maximum": 10, "default": 3},
+        "heartbeat_timeout_ms": {"type": "integer", "minimum": 50, "maximum": 5000, "default": 500, "description": "B1 only"},
+        "route_max_age_ms": {"type": "integer", "minimum": 100, "maximum": 60000, "default": 5000, "description": "P1 only"},
+        "sweep_step_m": {"type": "number", "minimum": 0.01, "maximum": 0.5, "default": 0.05}
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_zones": {"const": 32},
+        "max_obstacles": {"const": 16}
+      }
+    }
+  },
+  "if": {"properties": {"mode": {"enum": ["B0", "B1"]}}},
+  "then": {"not": {"required": ["ablate"]}}
+}

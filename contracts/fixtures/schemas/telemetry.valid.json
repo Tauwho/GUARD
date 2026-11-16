@@ -1,0 +1,19 @@
+{
+  "v": 1,
+  "t_ns": 5070000000,
+  "src": "supervisor",
+  "seq": 88,
+  "run_id": "F1-B2-3",
+  "kind": "decision",
+  "payload": {
+    "proposal_id": 7,
+    "planner_id": 1,
+    "verdict": "REJECTED",
+    "primary_reason": "REJ_STALE_OBSERVATION",
+    "reasons": [
+      "REJ_STALE_OBSERVATION",
+      "REJ_SUPERSEDED_OBSERVATION"
+    ],
+    "epoch": 1
+  }
+}

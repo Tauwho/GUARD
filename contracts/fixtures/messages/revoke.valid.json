@@ -1,0 +1,12 @@
+{
+  "message": "revoke",
+  "type": "0x0013",
+  "size": 24,
+  "valid": true,
+  "fields": {
+    "lease_id": 42,
+    "epoch": 1,
+    "reason": 403
+  },
+  "hex": "47441300010018002a000000000000000100000093010000"
+}

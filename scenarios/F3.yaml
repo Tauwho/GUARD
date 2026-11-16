@@ -1,0 +1,26 @@
+# Validated by contracts/scenario.schema.json. Expected outcomes are hypotheses; eval reports actual outcomes.
+kind: scenario
+version: 1
+id: F3
+title: "Supervisor killed"
+description: "kill -9 on guard-supervisor at t = 12 s while the robot is moving."
+map: hospital_corridor
+seed: 1003
+duration_s: 30
+planner: {mode: rule, cruise_v: 0.8, lease_req_ms: 250, rate_hz: 20}
+target_semantics: process
+host_abstraction: "At t = 12 s the harness stops the supervisor model: no more decisions, lease renewals or revokes, and its gate session is closed."
+obstacles: []
+zones: []
+faults:
+  - {t_s: 12.0, fault: F3, params: {signal: SIGKILL}}
+expected:
+  B0: {violations: 0, final_state: MOVING, note: "Supervisor is not in the control path; the run ends while moving"}
+  B1: {violations: 0, final_state: MOVING, note: "Planner heartbeat is still alive"}
+  B2:
+    violations: 0
+    final_state: LATCHED
+    latches: 1
+    max_stop_time_s: 0.26
+    required_reasons: [GATE_SUPERVISOR_LOST, GATE_STANDSTILL]
+    note: "Stop begins within T_lease + one tick (0.26 s), then the gate stays LATCHED until recover"

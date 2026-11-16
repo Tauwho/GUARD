@@ -1,0 +1,25 @@
+# Validated by contracts/scenario.schema.json. Expected outcomes are hypotheses; eval reports actual outcomes.
+kind: scenario
+version: 1
+id: F2
+title: "Delayed authorization (CPU hog)"
+description: "guard-hog runs at priority 32 for 400 ms, above the supervisor (30) and planner (10), below the gate (35). Lease renewals stop arriving."
+map: hospital_corridor
+seed: 1002
+duration_s: 75
+planner: {mode: rule, cruise_v: 0.8, lease_req_ms: 250, rate_hz: 20}
+target_semantics: process
+host_abstraction: "The harness delivers no supervisor decisions and no planner proposals between t = 15.0 s and t = 15.4 s; the gate tick and the sim keep running."
+obstacles: []
+zones: []
+faults:
+  - {t_s: 15.0, fault: F2, duration_ms: 400, params: {hog_prio: 32}}
+expected:
+  B0: {violations: 0, final_state: GOAL, note: "Last command is held through the hog"}
+  B1: {violations: 0, final_state: GOAL, note: "400 ms is below the 500 ms heartbeat timeout"}
+  B2:
+    violations: 0
+    final_state: GOAL
+    latches: 0
+    required_reasons: [GATE_LEASE_EXPIRED, GATE_STANDSTILL]
+    note: "Lease lapses, robot stops, then resumes once renewals return"

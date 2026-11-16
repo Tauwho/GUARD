@@ -8,14 +8,22 @@
 | D2 | 2026-11-15 | Target: QSTI x86_64 on QEMU only. No Raspberry Pi 5 |
 | D3 | 2026-11-15 | Repository: Tauwho/GUARD. PO has admin |
 | D4 | 2026-11-15 | Eligibility confirmed by all members. PO is the Devpost Representative |
-| D5 | 2026-11-15 | Public metrics are functional only until BlackBerry gives written approval (licence §4.6(i)) |
+| D5 | 2026-11-15 | Public metrics are functional only until BlackBerry gives written approval (licence §4.6(i)). Superseded by D11 |
 | D6 | 2026-11-15 | Planner: rule-based + fault modes in P0. Local LLM route advisor (Ollama) in P1 |
 | D7 | 2026-11-15 | Framing: hospital logistics |
 | D8 | 2026-11-15 | Schedule: P0 complete Wed 9 Dec (the exam window ends 4 Dec). Code freeze Thu 10 Dec. File Sun 13 Dec |
-| D9 | 2026-11-15 | Each CODEOWNERS path has a primary and a secondary owner, so authors never need to self-approve |
+| D9 | 2026-11-15 | Each CODEOWNERS path has a primary and a secondary owner, so authors never need to self-approve. The approval part is replaced by D12 |
 | D10 | 2026-11-15 | Anyone who needs the PO or a teammate asks in the relevant issue or PR with an @-mention. No DMs or private messages for project work (AGENTS.md hard rule 5) |
 | D11 | 2026-11-16 | Supersedes D5 under assumption A5 (#2, #62): publish nothing measured on QNX (no timing numbers, no QNX-vs-Linux comparison, no numeric result tables from the target); numeric results come only from the host harness, labelled "host (Linux) harness" |
 | D12 | 2026-11-16 | Reviews are optional: the author merges a PR when it is finished, CI is green and every conversation is resolved. Branch protection on `main` needs 0 approvals. CODEOWNERS stays for ownership and automatic review requests only; this replaces the approval part of D9 |
+| D13 | 2026-11-16 | Required status checks on `main`: the 11 host CI jobs from GitHub Actions (4 builds, format, 5 policy checks, eval). Not strict, so a PR does not have to be re-synced with `main` before merging. Reviews stay optional (D12) |
+| D14 | 2026-11-16 | M0 fallback (PO): PO setup (#1) is deferred until Sat 5 Dec, with the licence request held by the PO. Until then the PO works on the host path only, and target footage for reviews comes from B's own target session (B uses only B's own licence) |
+| D15 | 2026-11-16 | No weekly sync call. The team works asynchronously in issues and PRs (D10); the Sync log below is not used |
+| D16 | 2026-11-16 | Contracts (#56) and scenarios (#57) were merged to `main` early so both streams can build on them. The freeze and the `contracts-v1.0` tag stay at Fri 20 Nov 18:00 SGT, or earlier if A and B both comment "no more CONTRACT-Q" on #3. Until then, contract fixes are normal PRs. B's open checklist items from #56 keep the documented defaults unless B raises a `CONTRACT-Q:` |
+| D17 | 2026-11-16 | CONTRACT-Q answers (#3): a lease takes effect only after its `LeaseAck` is delivered, otherwise it is discarded with `GATE_ACK_UNDELIVERED` (516); the stopping-distance check starts from the measured speed and uses obstacles inflated by `r_robot + margin`; v1 authorizes no reverse motion |
+| D18 | 2026-11-16 | Under D12, a QNX-path PR (`core/`, `qnx/`, `image/`, `cmake/`, `contracts/`) is finished only when its target evidence bundle is committed (AGENTS.md hard rule 4), unless its issue exempts it. #74 merged without it, so #31 was reopened for a follow-up evidence PR |
+| D19 | 2026-11-16 | M0 fallback (A): @phatdat220707's setup evidence (#15) is deferred until Sun 22 Nov. Until then A works on the host path only (core, harness, CI); A-track QNX-path PRs still need target evidence before they are finished (D18) |
+| D20 | 2026-11-16 | M0 fallback (B): @baofrovn's setup evidence (#30) is deferred until Sun 22 Nov. Until then the toolchain work in #31 counts as setup progress; B's QNX-path PRs still need target evidence before they are finished (D18) |
 
 ## ADR index
 All entries were accepted on 2026-11-15. Full write-ups go in `docs/adr/` (issue PO-5).
@@ -58,7 +66,7 @@ Questions Q1–Q8 are in issue PO-1.
 |---|---|---|---|---|---|
 | S1 | QSTI boot + `qcc` hello on each host | all | 18 Nov | — | — |
 | S2 | CMake QNX toolchain + core tests on target | B | 19 Nov | — | — |
-| S3 | resmgr delayed reply, OCB close on death, mutex priority inheritance | B | 21 Nov | — | — |
+| S3 | resmgr delayed reply, OCB close on death, mutex priority inheritance; delayed `LeaseAck` (gate waits 10 ms before `MsgReply`, supervisor `TimerTimeout` 5 ms: expect `ETIMEDOUT`, `MsgReply` fails with `ESRCH`, lease not installed, `GATE_ACK_UNDELIVERED`) | B | 21 Nov | — | — |
 | S4 | secpol denial errno; abilities across `setuid` | B | 22 Nov | — | — |
 | S5 | Instrumented `procnto` for tracelogger | B | 7 Dec | — | — |
 | S6 | Host ↔ target TCP 7700 | B | 19 Nov | — | — |
@@ -68,8 +76,10 @@ Questions Q1–Q8 are in issue PO-1.
 ## Contract log
 | Version | Date | Change | Approved by |
 |---|---|---|---|
-| v1.0 | (pending, 20 Nov) | Initial freeze | — |
+| v1.0 | 2026-11-16 | Initial freeze at 5aac574 (tag `contracts-v1.0`); CONTRACT-Q answers D17; B's checklist defaults kept (D16) | -- (reviews optional, D12) |
 
 ## Sync log
+Not used: there is no weekly sync call (D15).
+
 | Date | Decisions | Owner |
 |---|---|---|

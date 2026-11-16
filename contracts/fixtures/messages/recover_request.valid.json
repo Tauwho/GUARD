@@ -1,0 +1,10 @@
+{
+  "message": "recover_request",
+  "type": "0x0020",
+  "size": 16,
+  "valid": true,
+  "fields": {
+    "request_id": 1
+  },
+  "hex": "47442000010010000100000000000000"
+}
