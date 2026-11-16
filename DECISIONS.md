@@ -25,6 +25,7 @@
 | D19 | 2026-11-16 | M0 fallback (A): @phatdat220707's setup evidence (#15) is deferred until Sun 22 Nov. Until then A works on the host path only (core, harness, CI); A-track QNX-path PRs still need target evidence before they are finished (D18) |
 | D20 | 2026-11-16 | M0 fallback (B): @baofrovn's setup evidence (#30) is deferred until Sun 22 Nov. Until then the toolchain work in #31 counts as setup progress; B's QNX-path PRs still need target evidence before they are finished (D18) |
 | D21 | 2026-11-16 | Evidence SHA rule under squash merges: a bundle's manifest `sha` passes the `evidence` check if it is an ancestor of HEAD **or** the head commit of any PR in this repo (CI fetches `refs/pull/*/head`). Squash merging no longer breaks bundles, and nobody rewrites a manifest after merging. Owner: @baofrovn (`tools/check_policy.py`, `.github/workflows/ci.yml`) |
+| D22 | 2026-11-16 | CK-M3 P1 plan decided early (#13): secpol (#46) rank 1 and LLM advisor (#27, #49) rank 2 are conditional GO (secpol after S4 #34 merges and B's P0 chain starts; the advisor after host F0/F1/F3 pass in #22). SLM, tracelogger, Hypothesis and MkDocs only if slack remains on 7 Dec. Codelab (#10, #50) is NO-GO and moves to P2 (A1, A7). On 7 Dec any conditional item is cut if F0, F1 and F3 lack target evidence |
 
 ## ADR index
 All entries were accepted on 2026-11-15. Full write-ups go in `docs/adr/` (issue PO-5).
