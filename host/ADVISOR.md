@@ -99,3 +99,23 @@ Only timeout/unavailable service errors fall back, and only for an exact recorde
 request. Invalid model output is not hidden. The original response and delay remain
 unchanged; a response whose source expired during the live timeout is still rejected
 by the core. Recorded default mode works without Ollama or a network connection.
+
+
+## Second-laptop reproduction (A9, manual evidence)
+
+No private request file or teammate handoff is needed. On the second physical
+laptop, use its own local Ollama service and pull the D23 model, then run:
+
+```sh
+ollama pull qwen2.5:1.5b-instruct
+python host/benchmark_advisor.py --out out/s7-second-laptop --samples 20
+```
+
+The benchmark defaults to the bundled demo request; `--request <C9-JSON>` remains
+available. The synthetic input task is not an inference result: new outputs are
+recorded as actual Ollama calls. The output directory must be new. Keep timing
+files/internal raw recordings local; retain failed calls, commit and platform
+metadata. Use `--ollama --fallback-recorded <recording.jsonl>` to verify exact
+recorded fallback separately, without freshening provenance. A label or a repeated
+run on the same laptop is not second-device evidence. Until a second physical
+laptop is actually used, A9 remains unverified; this guide does not complete it.

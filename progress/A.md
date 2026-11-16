@@ -78,3 +78,11 @@ A8: done 6ac05ec (#179; actual C++ property CI https://github.com/Tauwho/GUARD/a
 - Headless: 1000 arrivals -> one redraw per frame; pending/history capped at 20000; paused view preserved.
 - self-review: 0 blocker, 0 should, 0 nit after connection-status ordering and UTF-8 fixes.
 - Full integrated `python tools/check.py`: RESULT: GREEN (out/d26-live-bursts-final.txt); no measured rendering-rate claim.
+
+
+## A9 preparation only
+- Benchmark defaults to a committed validated task; custom C9 --request remains compatible. No private input handoff needed.
+- `python -m pytest eval/tests/test_advisor_benchmark.py -q`: 2 passed.
+- `python tools/check.py`: RESULT: GREEN (out/d26-a9-guide-check.txt); self-review 0 blocker/should/nit.
+- host/ADVISOR.md gives second-laptop commands. The synthetic task input is not an inference result; new results still come from actual local model calls.
+- A9 remains MANUAL/unverified until a second physical laptop is actually used; no second-device or timing evidence fabricated.
