@@ -15,7 +15,7 @@ From REF-DEVPOST in issue #8. Status: `ready` = done in the repo now, `planned` 
 | Item | Status | Done by |
 |---|---|---|
 | Video: public, ≤ 3:00, shows the target | planned (#7) | Sat 12 Dec 23:59 |
-| Repo: public, MIT; scripts only, no images; CI green | planned (CI from #16) | Thu 10 Dec |
+| Repo: public, MIT; scripts only, no images; CI green | ready (11 required host CI checks on `main`, D13); re-check on filing day | Sun 13 Dec |
 | Judge paths: QNX (`image/run-demo.sh`) and host-only (`guard-replay` + dashboard replay) | planned (#43, #22, #24) | Wed 9 Dec |
 | Images: diagram, dashboard screenshot, GIF | planned (diagram in README draft #64; screenshot and GIF from #24) | Thu 10 Dec |
 | Built-with: qnx, c++, cmake, python, qemu (+ ollama) | ready (in `description.md`) | Sun 6 Dec |
