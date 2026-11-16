@@ -1,0 +1,15 @@
+# Required status checks on main (mirror of branch protection; owner P).
+# tools/check_main_red.py fails the nightly if any of these is red on the newest main commit.
+build (clang, host-asan)
+build (clang, host-debug)
+build (gcc, host-asan)
+build (gcc, host-debug)
+claims-lint
+core-portable
+eval
+evidence
+format
+no-qnx-files
+schemas
+ownership
+contract-compat
