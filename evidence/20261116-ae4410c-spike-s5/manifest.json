@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "sha": "ae4410c1c28337a26634132178a5d23344dcf66e",
+  "date": "2026-11-16T06:28:20Z",
+  "topic": "spike-s5",
+  "runner_role": "b",
+  "host_os": "Ubuntu 24.04.5 LTS on WSL2 (Windows)",
+  "sdp_version": "8.0.0",
+  "qcc_version": "Toolchain:  12.2.0\tVersion:  gcc_ntox86_64",
+  "image_id": "mkqnximage --type=qemu --arch=x86_64 (QSTI); 8.0.0 2026/10/30-09:10:05EDT x86pc",
+  "contracts": "contracts-v1.0",
+  "files": [
+    "transcript.txt",
+    "uname.txt",
+    "pidin.txt",
+    "slog2.txt",
+    "results.json"
+  ],
+  "notes": "Spike S5 built from spike/s5 at this sha, run as root over ssh on QEMU+KVM. slog2.txt is the last 300 lines. Run by the agent on @baofrovn's machine at their request."
+}

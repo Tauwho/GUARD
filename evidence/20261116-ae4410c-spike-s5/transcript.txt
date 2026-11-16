@@ -1,0 +1,13 @@
+Script started on 2026-11-16 01:28:10-05:00 [COMMAND="ssh -o BatchMode=yes -o ConnectTimeout=5 root@10.10.10.2 'uname -a; sh /tmp/run.sh'" <not executed on terminal>]
+QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+S5 tracelogger present on the image: yes
+S5 kernel: procnto-smp-instr
+tracelogger exit: 0
+KER_CALL  lines: 178348
+KER_EXIT  lines: 178337
+THREAD    lines: 305143
+INT       lines: 1557
+PROCESS   lines: 1344
+S5 kernel events captured: yes
+
+Script done on 2026-11-16 01:28:19-05:00 [COMMAND_EXIT_CODE="0"]

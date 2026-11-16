@@ -1,0 +1,14 @@
+{
+  "spike": "S5",
+  "commit": "ae4410c1c28337a26634132178a5d23344dcf66e",
+  "answer_lines": [
+    "S5 tracelogger present on the image: yes",
+    "S5 kernel: procnto-smp-instr",
+    "KER_CALL  lines: 178348",
+    "KER_EXIT  lines: 178337",
+    "THREAD    lines: 305143",
+    "INT       lines: 1557",
+    "PROCESS   lines: 1344",
+    "S5 kernel events captured: yes"
+  ]
+}
