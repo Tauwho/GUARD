@@ -97,3 +97,57 @@ TEST_CASE("invalid configurations cannot register and enter the internal fault p
     gate.tick(0, 0);
     CHECK(gate.status(0).latch == guard::LatchCause::internal);
 }
+
+TEST_CASE("baseline rejects malformed future and backward commands without installing them") {
+    guard::Config config;
+    config.mode = guard::Mode::heartbeat;
+    guard::Gate gate(config);
+    guard::PassthruCmd value;
+    value.cmd_seq = 1;
+    value.v = 0.4;
+    value.header.version = 2;
+    CHECK(gate.passthrough(value, 0) == guard::Reason::REJ_SCHEMA);
+    value.header.version = 1;
+    CHECK(gate.passthrough(value, -1) == guard::Reason::REJ_SCHEMA);
+    REQUIRE(gate.passthrough(value, 40'000'000) == guard::Reason::GATE_PASSTHRU_ACCEPTED);
+    ++value.cmd_seq;
+    CHECK(gate.passthrough(value, 30'000'000) == guard::Reason::REJ_SCHEMA);
+    value.stamp_ns = 50'000'000;
+    CHECK(gate.passthrough(value, 40'000'000) == guard::Reason::REJ_SCHEMA);
+    gate.tick(50'000'000, 0.4);
+    value.stamp_ns = 0;
+    CHECK(gate.passthrough(value, 40'000'000) == guard::Reason::REJ_SCHEMA);
+    CHECK(gate.tick(60'000'000, 0.4).v == 0.4);
+    config.t_tick_ms = 0;
+    guard::Gate invalid(config);
+    CHECK(invalid.passthrough(value, 0) == guard::Reason::REJ_SCHEMA);
+    config.mode = guard::Mode::guarded;
+    guard::Gate bad_lease(config);
+    CHECK(bad_lease.lease(lease(), 50'000'000).reason == 504);
+}
+
+TEST_CASE("matching lease revokes stop and baseline motor faults recover without a supervisor") {
+    guard::Gate guarded;
+    ready(guarded);
+    REQUIRE(guarded.lease(lease(), 50'000'000).reason == 500);
+    guard::Revoke revoke;
+    revoke.epoch = revoke.lease_id = 1;
+    revoke.reason = 403;
+    REQUIRE(guarded.revoke(revoke));
+    CHECK(guarded.status(50'000'000).mode == guard::GateMode::stopping);
+    guard::Config config;
+    config.mode = guard::Mode::heartbeat;
+    guard::Gate baseline(config);
+    guard::PassthruCmd command;
+    command.cmd_seq = 1;
+    command.v = 0.4;
+    REQUIRE(baseline.passthrough(command, 0) == guard::Reason::GATE_PASSTHRU_ACCEPTED);
+    baseline.tick(0, 0.4);
+    baseline.motor_timeout();
+    for (unsigned i = 1; i <= 7; ++i)
+        baseline.tick(i * 10'000'000, 0);
+    CHECK(baseline.status(70'000'000).mode == guard::GateMode::latched);
+    guard::RecoverRequest request;
+    request.request_id = 1;
+    CHECK(baseline.recover(request, {true, true, true}).reason == 512);
+}
