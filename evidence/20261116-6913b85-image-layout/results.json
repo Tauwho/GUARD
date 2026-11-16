@@ -1,0 +1,12 @@
+{
+  "users_1101_1106": true,
+  "guard_hog_in_system_bin": true,
+  "start_order_log": [
+    "skipped guard-sim (not in image)",
+    "skipped guard-gate (not in image)",
+    "skipped guard-supervisor (not in image)",
+    "skipped guard-planner (not in image)",
+    "skipped guard-bridge (not in image)"
+  ],
+  "post_startup_errors": false
+}

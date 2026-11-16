@@ -1,0 +1,27 @@
+# GUARD start order (B-9, #43): sim -> gate -> supervisor -> planner -> bridge.
+# Each process starts as root, attaches its path, sets its own SCHED_FIFO priority and drops to
+# its uid (docs/architecture.md REF-PRIORITIES). A process whose binary is not in the image yet
+# is skipped. Logs go to slog2 and /data/var/log/guard-start.log.
+mkdir -p /data/var/log
+echo "guard start $(date)" > /data/var/log/guard-start.log
+if [ -x /system/bin/guard-sim ]; then
+    on -d /system/bin/guard-sim
+    waitfor /dev/sim/motor 5 || echo "guard-sim: /dev/sim/motor missing" >> /data/var/log/guard-start.log
+fi
+if [ -x /system/bin/guard-gate ]; then
+    on -d /system/bin/guard-gate
+    waitfor /dev/guard/gate 5 || echo "guard-gate: /dev/guard/gate missing" >> /data/var/log/guard-start.log
+fi
+if [ -x /system/bin/guard-supervisor ]; then
+    on -d /system/bin/guard-supervisor
+    waitfor /dev/name/local/guard/supervisor 5 || echo "guard-supervisor: name missing" >> /data/var/log/guard-start.log
+fi
+if [ -x /system/bin/guard-planner ]; then
+    on -d /system/bin/guard-planner
+fi
+if [ -x /system/bin/guard-bridge ]; then
+    on -d /system/bin/guard-bridge
+fi
+for p in guard-sim guard-gate guard-supervisor guard-planner guard-bridge; do
+    [ -x /system/bin/$p ] && echo "started $p" >> /data/var/log/guard-start.log || echo "skipped $p (not in image)" >> /data/var/log/guard-start.log
+done

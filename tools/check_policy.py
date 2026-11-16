@@ -35,6 +35,18 @@ def tracked(root):
     return [Path(p) for p in result.stdout.decode().split("\0") if p]
 
 
+def known_commit(root, sha):
+    """D21: an ancestor of HEAD, or contained in a PR head fetched as refs/remotes/pr/*."""
+
+    def git(*args):
+        return subprocess.run(["git", *args], cwd=root, capture_output=True, text=True)
+
+    if git("merge-base", "--is-ancestor", sha, "HEAD").returncode == 0:
+        return True
+    heads = git("branch", "-r", "--contains", sha, "--list", "pr/*")
+    return heads.returncode == 0 and bool(heads.stdout.strip())
+
+
 def check(root, name):
     errors = []
     paths = tracked(root)
@@ -115,13 +127,8 @@ def check(root, name):
             sha = data.get("sha", "")
             if not re.fullmatch(r"[0-9a-f]{40}", sha):
                 errors.append(f"{bundle.name}: invalid commit SHA")
-            elif subprocess.run(
-                ["git", "merge-base", "--is-ancestor", sha, "HEAD"],
-                cwd=root,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            ).returncode:
-                errors.append(f"{bundle.name}: SHA is not an ancestor of HEAD")
+            elif not known_commit(root, sha):
+                errors.append(f"{bundle.name}: SHA is not an ancestor of HEAD or a PR head")
             files = [root / p for p in paths if p.is_relative_to(relative.parent)]
             if sum(p.stat().st_size for p in files) > 1024 * 1024:
                 errors.append(f"{bundle.name}: bundle exceeds 1 MiB")

@@ -21,5 +21,6 @@ expected:
     violations: 0
     final_state: READY
     latches: 0
-    required_reasons: [REJ_MAP_VERSION, REJ_RESTRICTED_ZONE]
-    note: "Robot waits outside the zone because the planner keeps proposing the shortcut"
+    required_reasons: [REJ_MAP_VERSION]
+    forbidden_reasons: [SIM_ZONE_BREACH, SIM_CONTACT]
+    note: "Shortcut planner cites its cached map version; checker 7 rejects it and the robot waits outside the zone. Checker 11 catches the active zone edge before checker 10's lease-horizon sweep, so REJ_RESTRICTED_ZONE is not expected here."

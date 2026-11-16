@@ -1,0 +1,31 @@
+{
+  "binary": "guard_qnx_common_tests",
+  "status": "SUCCESS",
+  "test_cases": [
+    "DelayedReplies is fixed-capacity and tracks clients by OCB",
+    "PulseTimer validates its arguments",
+    "bounded send: ETIMEDOUT while send-blocked",
+    "bounded send: reply-blocked timeout ends via the server's unblock answer",
+    "connect_self reaches the process's own channel",
+    "named server and bounded send: round trip",
+    "one-shot PulseTimer fires once; re-arming replaces the deadline",
+    "open_named fails for an unknown name",
+    "periodic PulseTimer delivers repeated pulses until disarmed",
+    "resmgr: __DIOTF devctl round trip",
+    "resmgr: blocked read replied later from a timer pulse",
+    "resmgr: client TimerTimeout on a held reply gets the server's ETIMEDOUT",
+    "resmgr: kill -9 of a held client is answered and its OCB closes",
+    "set_fifo rejects priorities outside 1..63",
+    "set_fifo sets SCHED_FIFO and the priority"
+  ],
+  "test_cases_count": {
+    "total": 15,
+    "passed": 15,
+    "failed": 0
+  },
+  "assertions_count": {
+    "total": 83,
+    "passed": 83,
+    "failed": 0
+  }
+}

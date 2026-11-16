@@ -31,7 +31,7 @@ OUTPUT_SCHEMA = {
 
 
 class OllamaGenerator:
-    def __init__(self, model="qwen2.5:3b", timeout=30):
+    def __init__(self, model="qwen2.5:1.5b-instruct", timeout=30):
         self.model, self.timeout = model, timeout
 
     def __call__(self, request):
