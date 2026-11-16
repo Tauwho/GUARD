@@ -1,6 +1,6 @@
 # ADR-0018: Contracts v1.2: run summary events, acceleration interval, zone precedence
 
-- **Status:** Proposed (PO, #125)
+- **Status:** Accepted, 2026-11-16 (PO, #125; frozen early under D26)
 - **Date:** 2026-11-16
 - **Deciders:** @dngvmnh (PO), with @phatdat220707 and @baofrovn
 

@@ -1,6 +1,6 @@
 # contracts CHANGELOG
 
-## v1.2 -- proposed (#125, ADR 0018)
+## v1.2 -- frozen 2026-11-16 (#125, ADR 0018)
 
 No binary wire-format change: same messages, sizes, `devctl` numbers and reason codes.
 

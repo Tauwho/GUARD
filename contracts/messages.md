@@ -1,6 +1,6 @@
 # GUARD wire messages, C1-C7 (contracts v1.2)
 
-Status: **v1.2 proposed** (ADR 0018). v1.0 was frozen on 16 Nov 2026 (tag `contracts-v1.0`), v1.1 on 16 Nov 2026 (ADR 0017, tag `contracts-v1.1`). See `CHANGELOG.md`.
+Status: **v1.2** (ADR 0018, tag `contracts-v1.2`), the final freeze (D26). v1.0 was frozen on 16 Nov 2026 (tag `contracts-v1.0`), v1.1 on 16 Nov 2026 (ADR 0017, tag `contracts-v1.1`). See `CHANGELOG.md`.
 Source of truth for both streams. If this file and `docs/architecture.md` disagree, this file wins after the freeze.
 
 ## 1. Common rules
