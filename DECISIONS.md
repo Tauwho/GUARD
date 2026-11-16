@@ -16,6 +16,7 @@
 | D10 | 2026-11-15 | Anyone who needs the PO or a teammate asks in the relevant issue or PR with an @-mention. No DMs or private messages for project work (AGENTS.md hard rule 5) |
 | D11 | 2026-11-16 | Supersedes D5 under assumption A5 (#2, #62): publish nothing measured on QNX (no timing numbers, no QNX-vs-Linux comparison, no numeric result tables from the target); numeric results come only from the host harness, labelled "host (Linux) harness" |
 | D12 | 2026-11-16 | Reviews are optional: the author merges a PR when it is finished, CI is green and every conversation is resolved. Branch protection on `main` needs 0 approvals. CODEOWNERS stays for ownership and automatic review requests only; this replaces the approval part of D9 |
+| D13 | 2026-11-16 | Required status checks on `main`: the 11 host CI jobs from GitHub Actions (4 builds, format, 5 policy checks, eval). Not strict, so a PR does not have to be re-synced with `main` before merging. Reviews stay optional (D12) |
 
 ## ADR index
 All entries were accepted on 2026-11-15. Full write-ups go in `docs/adr/` (issue PO-5).
