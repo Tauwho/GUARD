@@ -62,6 +62,24 @@ ssh root@10.10.10.2 uname -a     # wait ~20 s after boot
 - WSL2: a headless target started from a one-shot `wsl -- ...` command dies when that command ends. Start it from an open Ubuntu terminal, or with `setsid nohup mkqnximage --run=-h ... &`.
 - On the image, `/tmp` is the 64 MiB `/data` partition. `nc` and `traceprinter` are not installed.
 
+**Option C, no sudo: QEMU user-mode networking** (verified by the PO on Windows 11 + WSL2 Ubuntu 24.04 with KVM, 16 Nov, #81). Option B needs sudo for the `br0` bridge (§3). Without sudo, build the image with `mkqnximage` and start QEMU yourself:
+```sh
+ssh-keygen -q -t ed25519 -N '' -f ~/.ssh/guard_target_ed25519     # key only for the target
+mkdir -p ~/guard-target && cd ~/guard-target
+mkqnximage --type=qemu --arch=x86_64 --hostname=guard-<you> --sshd-pregen=yes \
+  --ssh-ident="$HOME/.ssh/guard_target_ed25519.pub" --build
+setsid qemu-system-x86_64 -enable-kvm -cpu host -smp 2 -m 1G \
+  -drive file=output/disk-qemu.vmdk,if=ide,id=drv0 \
+  -netdev user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22 -device virtio-net-pci,netdev=net0 \
+  -object rng-random,filename=/dev/urandom,id=rng0 -device virtio-rng-pci,rng=rng0 \
+  -kernel output/ifs.bin -serial file:output/qemu.out -display none < /dev/null > /dev/null 2>&1 &
+sleep 45 && tail -3 output/qemu.out                                  # expect "Startup complete"
+ssh -i ~/.ssh/guard_target_ed25519 -p 2222 root@127.0.0.1 uname -a
+```
+- Drop `-enable-kvm -cpu host` if `/dev/kvm` is missing (slower, TCG mode).
+- `scp` fails on this image (no sftp server). Copy files with ssh instead: `ssh -i ~/.ssh/guard_target_ed25519 -p 2222 root@127.0.0.1 'cat > /tmp/hello && chmod +x /tmp/hello' < /tmp/hello`.
+- In §6-§8, replace `ssh qnxuser@<target-ip>` with `ssh -i ~/.ssh/guard_target_ed25519 -p 2222 root@127.0.0.1`.
+
 ## 6. First program (S1)
 ```sh
 printf '#include <stdio.h>\nint main(void){puts("hello qnx");return 0;}\n' > /tmp/hello.c
