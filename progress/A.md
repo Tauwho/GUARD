@@ -6,6 +6,7 @@ Brief: `docs/streams/BRIEF-A.md`. Resume from this file after any restart. Live 
 - A5: preserve physical JSONL framing after corrupt bridge lines, validate browser-finite numbers, smoke UI headlessly.
 - A3: implement local/SSH C14 runner, validate real F0/F3, review cleanup/deadline behavior.
 - A1/A2: verify existing fixes against frozen v1.2, add passthrough refusal regression.
+- A4: continuous Linux matrix, explicit B2 gate, unmeasured margin handling and isolated fresh-clone CI.
 - Run full tools/check.py and F5/F6 acceptance commands.
 - Fresh-context adversarial review, fix findings, self-merge on green CI.
 
@@ -23,10 +24,13 @@ A2: done 25fc74b
 - Frozen v1.2 consumed unchanged; Linux evidence run https://github.com/Tauwho/GUARD/actions/runs/43847940386.
 
 ## Next
-- A3 target runner local/SSH, A4 continuous Linux matrix, A5 dashboard bridge resilience.
+- A5 dashboard bridge resilience; A6 advisor recorded default; A7 seeded trials.
 
 ## Known issues
 
+A4: local checks passed; Linux main artifact pending (not yet done).
+- `python tools/check.py`: RESULT: GREEN (out/d26-a4-check.txt).
+- run_start.ablate is already emitted under frozen v1.2; preserve it.
 
 A3: done (local acceptance)
 - `python -m pytest eval/tests/test_target_runner.py -q`: 11 passed, including actual core F0/F3.

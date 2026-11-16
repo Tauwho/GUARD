@@ -63,7 +63,14 @@ def render(data, out):
             )
             contacts = sum(item["contacts"] for item in good)
             zones = sum(item["zone_breaches"] for item in good)
-            margin = min((item["minimum_margin_m"] for item in good), default=None)
+            margin = min(
+                (
+                    item["minimum_margin_m"]
+                    for item in good
+                    if item.get("minimum_margin_m") is not None
+                ),
+                default=None,
+            )
             margin = "unavailable" if margin is None else f"{margin:.3f}"
             states = ", ".join(sorted({item["final_state"] for item in good})) or "unavailable"
             lines.append(

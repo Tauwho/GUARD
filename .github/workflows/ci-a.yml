@@ -1,0 +1,29 @@
+name: stream-a
+on:
+  push:
+    branches: [main, 'a/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: stream-a-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pytest==9.0.2 ruff==0.14.6 PyYAML==6.0.3 jsonschema==4.26.0 websockets==17.3
+      - name: Fetch evidence provenance
+        run: git fetch origin '+refs/pull/*/head:refs/remotes/pr/*'
+      - run: PATH="$PWD/host/ci-bin:$PATH" python tools/check.py
+      - name: Reproduce from an isolated fresh clone
+        env:
+          GUARD_REPO_URL: ${{ github.workspace }}
+        run: setsid --wait bash tools/fresh_clone_demo.sh '${{ github.sha }}'

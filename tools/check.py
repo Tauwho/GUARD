@@ -9,6 +9,7 @@ output can be pasted into progress/<stream>.md as evidence.
 """
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -43,6 +44,13 @@ def main():
     parser.add_argument("--skip-build", action="store_true")
     args = parser.parse_args()
     failed = []
+    # The evidence policy (D21) accepts bundles whose SHA is in a PR head, as CI does.
+    # Best effort: offline runs still check against local history only.
+    subprocess.run(
+        ["git", "fetch", "-q", "--no-tags", "origin", "+refs/pull/*/head:refs/remotes/pr/*"],
+        cwd=ROOT,
+        capture_output=True,
+    )
     for name, command in stages(args.fast or args.skip_build):
         if command is None:
             print(f"FAIL {name}: cmake not found (install cmake >= 3.24 or use --fast)")
@@ -56,8 +64,9 @@ def main():
             failed.append(name)
             tail = (done.stdout + done.stderr).strip().splitlines()[-25:]
             print("\n".join("    " + line for line in tail))
-    # Report only: never fails the build.
-    subprocess.run([PY, "tools/scope_gate.py", "--summary"], cwd=ROOT)
+    # Report only: never fails the build. File and grep checks only (cmd checks are slow).
+    env = dict(os.environ, GUARD_SCOPE_GATE_ACTIVE="1")
+    subprocess.run([PY, "tools/scope_gate.py", "--summary"], cwd=ROOT, env=env)
     print("RESULT:", "GREEN" if not failed else "RED (" + ", ".join(failed) + ")")
     return 1 if failed else 0
 

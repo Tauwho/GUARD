@@ -114,7 +114,14 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
             if (!plant.step(now, world.scene()))
                 throw std::runtime_error("plant step failed");
             const auto truth = plant.ground_truth();
-            result.minimum_margin = std::min(result.minimum_margin, truth.clearance);
+            const auto &scene = world.scene();
+            bool measured = scene.wall_count || scene.obstacle_count;
+            for (std::size_t i = 0; i < scene.zone_count; ++i)
+                measured = measured || (scene.zones[i].active && scene.zones[i].restricted);
+            if (measured) {
+                result.minimum_margin = std::min(result.minimum_margin, truth.clearance);
+                result.margin_measured = true;
+            }
             for (unsigned event = 0; event < 2; ++event) {
                 const bool enabled = event == 0 ? truth.contact : truth.zone_breach;
                 bool &previous = event == 0 ? previous_contact : previous_zone;
@@ -347,9 +354,10 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                     << ",\"proposals\":" << result.proposals << ",\"rejected\":" << result.rejected
                     << ",\"authorized\":" << result.authorized
                     << ",\"unverifiable\":" << result.unverifiable
-                    << ",\"latches\":" << result.latches
-                    << ",\"min_margin_m\":" << result.minimum_margin
-                    << ",\"sim_duration_ns\":" << result.ended_ns;
+                    << ",\"latches\":" << result.latches;
+    if (result.margin_measured)
+        telemetry.out() << ",\"min_margin_m\":" << result.minimum_margin;
+    telemetry.out() << ",\"sim_duration_ns\":" << result.ended_ns;
     telemetry.end();
     return result;
 }

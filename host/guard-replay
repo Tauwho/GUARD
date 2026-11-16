@@ -25,6 +25,7 @@ def summarize(events):
     summary = dict(end["payload"])
     if "min_margin_m" in summary:
         summary["minimum_margin_m"] = summary["min_margin_m"]
+    summary.setdefault("minimum_margin_m", None)
     summary.setdefault(
         "time_to_goal_s",
         (end["t_ns"] - events[0]["t_ns"]) / 1e9 if summary["final_state"] == "GOAL" else None,
