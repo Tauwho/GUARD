@@ -20,9 +20,9 @@ simulator are separate processes; only the planner is treated as untrusted.
 ## Demo
 
 The 3-minute demo (host replay F3, dashboard, target `run-demo.sh` with
-`guardctl`, and a refusal with its reason code) is specified in `demo/DEMO.md`
+`guardctl`, and a refusal with its reason code) is specified in [demo/DEMO.md](demo/DEMO.md)
 and recorded from `v1.0-rc1`. Video and GIF: planned (P4) - under 3:00, no QNX
-logo, captions in `docs/video/`.
+logo, [storyboard and captions plan](docs/video/storyboard.md) in `docs/video/`.
 
 ## Limits — read first
 <!-- claims-ok: negated -->
