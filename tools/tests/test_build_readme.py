@@ -23,6 +23,10 @@ old results
 {readme.markers("evidence-map")[0]}
 old evidence
 {readme.markers("evidence-map")[1]}
+
+{readme.markers("limits")[0]}
+old limits
+{readme.markers("limits")[1]}
 """
 
 
@@ -66,6 +70,47 @@ def test_quickstart_commands_come_from_component_readmes():
     assert "image/run-demo.sh" in block
 
 
-def test_checked_in_readme_is_current():
-    current = readme.README.read_text(encoding="utf-8")
-    assert readme.render(current) == current
+def test_limits_block_mirrors_limits_md_with_claims_marker():
+    out = readme.render(SKELETON)
+    assert "old limits" not in out
+    block = out.split(readme.markers("limits")[0])[1].split(readme.markers("limits")[1])[0]
+    lines = block.strip().splitlines()
+    assert lines[0] == "<!-- claims-ok: negated -->"
+    assert lines[1:] == readme.limits_bullets(readme.LIMITS.read_text(encoding="utf-8"))
+
+
+def test_missing_limits_source_renders_planned(tmp_path, monkeypatch):
+    monkeypatch.setattr(readme, "LIMITS", tmp_path / "absent.md")
+    assert readme.limits() == readme.planned("limits")
+
+
+def _raises(text):
+    try:
+        readme.limits_bullets(text)
+    except SystemExit as error:
+        return str(error)
+    return None
+
+
+def test_limits_missing_heading_is_an_error():
+    assert "no '## Limits' section" in _raises("# limits\n\n- No x.\n")
+
+
+def test_limits_empty_list_is_an_error():
+    assert "empty" in _raises("## Limits\n\n")
+
+
+def test_limits_wrapped_bullet_is_folded():
+    text = "## Limits\n- No real actuators,\n  braking or vehicles.\n- No formal proof.\n"
+    assert readme.limits_bullets(text) == [
+        "- No real actuators, braking or vehicles.",
+        "- No formal proof.",
+    ]
+
+
+def test_limits_unnegated_bullet_is_rejected():
+    assert "not a negation" in _raises("## Limits\n- This system guarantees safety.\n")
+
+
+def test_limits_stray_prose_is_rejected():
+    assert "not a '- ' bullet" in _raises("## Limits\n- No x.\nsurprise prose\n")

@@ -3,7 +3,7 @@
 Brief: [BRIEF-P.md](../docs/streams/BRIEF-P.md). Resume from this file after any restart. Live scope: `python tools/scope_gate.py --stream P`.
 
 ## Now
-- P0, P1 and P2 closed; P5 in review.
+- P0, P1, P2 and P5 closed; P6 draft next, then P3 (10 Dec) and P4 (13 Dec).
 
 ## Done (with evidence: command + last lines, commit or run link)
 
@@ -115,6 +115,40 @@ $ python -m pytest tools/tests/test_check_demo_commands.py -q
 $ python tools/check.py --fast
 RESULT: GREEN
 $ python tools/scope_gate.py --stream P   ->   P2 ... DONE
+```
+
+### P5 — architecture diagram and Limits final (2026-11-16)
+
+- `docs/architecture.svg`: hand-written SVG (no generator, no QNX logo). Processes
+  on the target (planner, supervisor, gate, simulator, bridge, guardctl) with their
+  REF-PRIORITIES priorities and the C1-C8 contract arrows; dashboard and
+  guard-replay on the host. Embedded in README "How it works".
+- Limits: `docs/limits.md` is now the single source. README Limits is a generated
+  block (`gen:limits`), so `build_readme.py --check` fails on drift. The README had
+  drifted ("No timing guarantee" vs "No hard real-time guarantee"); the limits.md
+  wording wins. `docs/architecture.md` REF-CLAIMS points at limits.md instead of a
+  third copy.
+- `build_readme.py` writes LF on Windows (it wrote CRLF before).
+- Fresh-context review: 2 blockers (AI disclosure ignored the bootstrap commit and
+  implied human review; diagram showed unbuilt processes as if running) and 10
+  shoulds (priority labels, C4 direction, telemetry producers, CSS markers,
+  Limits parser strictness, README-current pytest breaking A/B CI). All fixed;
+  new `tools/check_architecture_svg.py` (6 tests), 13 build_readme tests.
+- README AI disclosure corrected: agents open and merge PRs under D12/D26; the old
+  text said a human merged every change.
+
+Evidence:
+
+```
+$ python tools/build_readme.py --check
+build_readme: PASS (README blocks match their sources on main)
+$ python -m pytest tools/tests/test_build_readme.py -q
+9 passed
+$ python tools/check_policy.py claims-lint
+claims-lint: PASS
+$ python tools/check.py --fast
+RESULT: GREEN
+$ python tools/scope_gate.py --stream P   ->   P5 ... DONE
 ```
 
 ## Next

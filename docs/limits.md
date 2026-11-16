@@ -1,6 +1,7 @@
 # GUARD limits
 
-What GUARD is not. This list is copied verbatim from the README "Limits" section; if they differ, fix both.
+What GUARD is not. This list is the single source: the README "Limits" block is generated
+from it by `tools/build_readme.py`, and `build_readme.py --check` fails if they differ.
 
 ## Limits
 <!-- claims-ok: negated -->
