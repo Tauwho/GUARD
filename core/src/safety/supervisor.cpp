@@ -23,10 +23,35 @@ bool Supervisor::observe(const Observation &observation, std::int64_t now) {
         (current && (observation.obs_id <= current->obs_id || observation.seq <= current->seq ||
                      observation.stamp_ns < current->stamp_ns)))
         return false;
+    route_sources_[route_next_] = {observation.obs_id, observation.stamp_ns,
+                                   observation.map_version, observation.sensor_ok != 0};
+    route_next_ = (route_next_ + 1) % route_capacity_;
+    route_count_ = std::min(route_count_ + 1, route_capacity_);
     history_[next_] = observation;
     next_ = (next_ + 1) % history_.size();
     count_ = std::min(count_ + 1, static_cast<std::size_t>(config_.obs_history));
     return true;
+}
+std::uint16_t Supervisor::admit_route(const RouteProposal &route, const Scene &scene,
+                                      std::int64_t now) const {
+    if (!valid(config_))
+        return static_cast<std::uint16_t>(Reason::UNV_INTERNAL);
+    const auto *current = latest();
+    if (!current)
+        return static_cast<std::uint16_t>(Reason::UNV_SENSOR_STALE);
+    for (std::size_t i = 0; i < route_count_; ++i) {
+        const auto &saved =
+            route_sources_[(route_next_ + route_capacity_ - 1 - i) % route_capacity_];
+        if (saved.id != route.observation_id)
+            continue;
+        Observation source;
+        source.obs_id = source.seq = saved.id;
+        source.stamp_ns = saved.stamp;
+        source.map_version = saved.map;
+        source.sensor_ok = saved.sensor_ok;
+        return check_route(route, source, *current, scene, config_, now);
+    }
+    return static_cast<std::uint16_t>(Reason::REJ_UNKNOWN_OBSERVATION);
 }
 SafetyEvaluation Supervisor::evaluate(const Proposal &p, const Scene &scene, std::int64_t now) {
     SafetyEvaluation result;

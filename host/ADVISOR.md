@@ -7,6 +7,15 @@ The portable route checker uses a retained supervisor-owned source observation,
 current sensor/map state, a maximum route age of 5 seconds and inflated active
 restricted zones. A usable route does not authorize a motor command.
 
+D24: `Supervisor::admit_route` uses a separate provenance ring whose active capacity
+is `ceil(route_max_age_ms * obs_rate_hz / 1000)` (100 by default); C1 history stays
+64. Age uses the current observation stamp minus the retained source stamp.
+The bounded backing array supports all valid configurations (up to 6000 metadata
+entries); the supervisor object reserves roughly 192 KiB more storage even at the
+default capacity. Target adapters should provision this object outside small thread
+stacks. No heap allocation occurs in observation or route admission.
+The binary RouteProposal transport remains deferred until contracts v1.3.
+
 ## Recorded response mode
 
 ```sh
