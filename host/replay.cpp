@@ -8,6 +8,7 @@
 #include <ostream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 namespace guard::host {
 namespace {
@@ -61,7 +62,20 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
     telemetry.begin(0, "run_start");
     telemetry.out() << "\"scenario\":\"F" << scenario.id << "\",\"seed\":" << seed
                     << ",\"mode\":\"B" << static_cast<unsigned>(config.mode)
-                    << "\",\"model\":\"virtual-time\"";
+                    << "\",\"runner\":\"host\",\"ablate\":[";
+    bool ablation_comma = false;
+    const std::pair<const char *, bool> ablations[] = {{"freshness", config.ablate_freshness},
+                                                       {"stopping", config.ablate_stopping},
+                                                       {"expiry", config.ablate_expiry},
+                                                       {"epoch", config.ablate_epoch}};
+    for (const auto &item : ablations)
+        if (item.second) {
+            if (ablation_comma)
+                telemetry.out() << ',';
+            telemetry.out() << '"' << item.first << '"';
+            ablation_comma = true;
+        }
+    telemetry.out() << ']';
     telemetry.end();
     const auto duration = static_cast<std::int64_t>(scenario.duration * 1000);
     for (std::int64_t ms = 0; ms <= duration; ++ms) {
@@ -182,8 +196,8 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
             }
             Proposal proposal;
             if (!boot && planner.propose(now, options, proposal)) {
-                ++result.proposals;
                 if (!guarded) {
+                    ++result.passthrough_commands;
                     PassthruCmd command;
                     command.cmd_seq = proposal.seq;
                     command.v = proposal.v_cmd;
@@ -191,13 +205,14 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                     command.stamp_ns = now;
                     const auto reason = gate.passthrough(command, now);
                     if (reason != Reason::GATE_PASSTHRU_ACCEPTED)
-                        ++result.rejected;
+                        ++result.passthrough_dropped;
                     telemetry.begin(now, "proposal");
                     telemetry.out() << "\"cmd_seq\":" << command.cmd_seq << ",\"v\":" << command.v
                                     << ",\"w\":" << command.w << ",\"reason\":\""
                                     << reason_name(static_cast<unsigned>(reason)) << "\"";
                     telemetry.end();
                 } else {
+                    ++result.proposals;
                     auto evaluation = supervisor.evaluate(proposal, world.scene(), now);
                     bool accepted = false;
                     unsigned reason = static_cast<unsigned>(evaluation.primary_reason);
@@ -236,7 +251,11 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                             telemetry.end();
                         }
                     }
-                    if (!accepted)
+                    if (accepted)
+                        ++result.authorized;
+                    else if (reason >= 300 && reason < 400)
+                        ++result.unverifiable;
+                    else
                         ++result.rejected;
                     telemetry.begin(now, "decision");
                     telemetry.out()
@@ -275,6 +294,8 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
             }
             const auto status = gate.status(now);
             if (status.mode != previous_mode) {
+                if (status.mode == GateMode::latched)
+                    ++result.latches;
                 unsigned reason = 511;
                 if (status.mode == GateMode::ready && previous_mode == GateMode::latched)
                     reason = 512;
@@ -302,18 +323,23 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
             break;
         }
     }
+    if (!guarded) {
+        telemetry.begin(result.ended_ns, "status");
+        telemetry.out() << "\"passthrough_commands\":" << result.passthrough_commands
+                        << ",\"passthrough_dropped\":" << result.passthrough_dropped;
+        telemetry.end();
+    }
     telemetry.begin(result.ended_ns, "run_end");
     telemetry.out() << "\"final_state\":\""
                     << (result.goal ? "GOAL" : mode_name(gate.status(result.ended_ns).mode))
                     << "\",\"contacts\":" << result.contacts
                     << ",\"zone_breaches\":" << result.zone_breaches
                     << ",\"proposals\":" << result.proposals << ",\"rejected\":" << result.rejected
-                    << ",\"minimum_margin_m\":" << result.minimum_margin;
-    telemetry.out() << ",\"time_to_goal_s\":";
-    if (result.goal)
-        telemetry.out() << result.ended_ns / 1e9;
-    else
-        telemetry.out() << "null";
+                    << ",\"authorized\":" << result.authorized
+                    << ",\"unverifiable\":" << result.unverifiable
+                    << ",\"latches\":" << result.latches
+                    << ",\"min_margin_m\":" << result.minimum_margin
+                    << ",\"sim_duration_ns\":" << result.ended_ns;
     telemetry.end();
     return result;
 }
