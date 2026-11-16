@@ -197,7 +197,7 @@ Values outside the schema bounds give `REJ_SCHEMA`. Values inside the schema bou
 - If checks pass but the gate refuses the lease, `verdict = 2` with `REJ_GATE_NOT_READY`.
 - If checking exceeds its budget, `verdict = 3` with `UNV_CHECK_BUDGET`.
 
-**Checker 9, implied acceleration (v1.2).** `v_0` is `v_meas` from the supervisor's own latest observation, and `dt = 1 / obs_rate_hz` (C12, default 20 Hz, so 50 ms). The proposal fails with `REJ_ACCEL_ENVELOPE` if `abs(v_cmd - v_0) > a_max * dt + 1e-9`. The `1e-9` m/s tolerance stops a command that sits exactly on the limit from being rejected by floating-point rounding. The active-lease re-check (checkers 8-11) uses the same `dt`.
+**Checker 9, implied acceleration (v1.2).** `v_0` is `v_meas` from the supervisor's own latest observation, and `dt = 1 / obs_rate_hz` (C12, default 20 Hz, so 50 ms). The proposal fails with `REJ_ACCEL_ENVELOPE` if `v_cmd - v_0 > a_max * dt + 1e-9`. Only a speed *increase* is bounded: a `v_cmd` below `v_0` never fails this check, because slowing down is always allowed and the gate and plant limit braking to `a_brake` (D17); checker 10 still uses the measured `v_0` for stopping distance. The `1e-9` m/s tolerance stops a command that sits exactly on the limit from being rejected by floating-point rounding. The active-lease re-check (checkers 8-11) applies only the speed part of checker 9 (`v_cmd`, `w_cmd` and `v_0` bounds), not the acceleration part: the gate ramps toward an installed target, so a lease still being reached is not a new proposal.
 
 ---
 
