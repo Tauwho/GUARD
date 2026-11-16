@@ -54,6 +54,15 @@ def test_model_cannot_choose_provenance_or_unbounded_waypoints(monkeypatch):
             asyncio.run(advisor.reply(request()))
 
 
+def test_schema_valid_route_to_the_wrong_goal_is_not_accepted(monkeypatch):
+    module = api(monkeypatch)
+    advisor = module["OllamaAdvisor"](
+        generator=lambda _request: {"waypoints": [[2, 1]]}, clock=lambda: 1
+    )
+    with pytest.raises(ValueError, match="does not reach"):
+        asyncio.run(advisor.reply(request()))
+
+
 def test_ollama_http_request_is_local_bounded_and_schema_constrained(monkeypatch):
     module = api(monkeypatch)
     called = []
@@ -81,4 +90,5 @@ def test_ollama_http_request_is_local_bounded_and_schema_constrained(monkeypatch
     body = json.loads(message.data)
     assert body["stream"] is False
     assert body["format"]["additionalProperties"] is False
+    assert body["options"]["num_gpu"] == 0
     assert timeout == 30
