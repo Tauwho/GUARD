@@ -14,6 +14,7 @@ import argparse
 import datetime
 import glob
 import json
+import os
 import re
 import subprocess
 import sys
@@ -26,10 +27,18 @@ SGT = datetime.timezone(datetime.timedelta(hours=8))
 
 
 def run(command):
-    return (
-        subprocess.run(command, cwd=ROOT, shell=True, capture_output=True, text=True).returncode
-        == 0
-    )
+    # A cmd check may itself call tools/check.py, which calls this script again.
+    # Inside a cmd check, nested scope_gate runs skip cmd checks, so it cannot recurse.
+    if os.environ.get("GUARD_SCOPE_GATE_ACTIVE"):
+        return False
+    env = dict(os.environ, GUARD_SCOPE_GATE_ACTIVE="1")
+    try:
+        done = subprocess.run(
+            command, cwd=ROOT, shell=True, capture_output=True, text=True, env=env, timeout=600
+        )
+    except subprocess.TimeoutExpired:
+        return False
+    return done.returncode == 0
 
 
 def check(spec):

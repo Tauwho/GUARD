@@ -9,6 +9,7 @@ output can be pasted into progress/<stream>.md as evidence.
 """
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -56,8 +57,9 @@ def main():
             failed.append(name)
             tail = (done.stdout + done.stderr).strip().splitlines()[-25:]
             print("\n".join("    " + line for line in tail))
-    # Report only: never fails the build.
-    subprocess.run([PY, "tools/scope_gate.py", "--summary"], cwd=ROOT)
+    # Report only: never fails the build. File and grep checks only (cmd checks are slow).
+    env = dict(os.environ, GUARD_SCOPE_GATE_ACTIVE="1")
+    subprocess.run([PY, "tools/scope_gate.py", "--summary"], cwd=ROOT, env=env)
     print("RESULT:", "GREEN" if not failed else "RED (" + ", ".join(failed) + ")")
     return 1 if failed else 0
 
