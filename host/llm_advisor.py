@@ -81,8 +81,8 @@ class RecordedAdvisor:
         return record["response"]
 
 
-async def serve_client(reader, writer, records):
-    advisor = RecordedAdvisor(records)
+async def serve_client(reader, writer, records=None, advisor_factory=None):
+    advisor = advisor_factory() if advisor_factory else RecordedAdvisor(records)
     try:
         while True:
             line = await asyncio.wait_for(reader.readline(), 30)
@@ -101,23 +101,37 @@ async def serve_client(reader, writer, records):
 
 
 async def run(args):
-    records = load_recording(args.trace)
+    records = load_recording(args.trace) if args.trace else None
+    factory = None
+    if args.ollama:
+        from ollama_route import OllamaAdvisor, OllamaGenerator
+
+        def factory():
+            return OllamaAdvisor(OllamaGenerator(args.model), record_path=args.record)
+
     server = await asyncio.start_server(
-        lambda reader, writer: serve_client(reader, writer, records),
+        lambda reader, writer: serve_client(reader, writer, records, factory),
         "127.0.0.1",
         args.port,
         limit=65536,
     )
     async with server:
-        print(f"Recorded advisor: 127.0.0.1:{args.port}; source={records[0]['source']}", flush=True)
+        source = records[0]["source"] if records else "live Ollama"
+        print(f"Advisor: 127.0.0.1:{args.port}; source={source}", flush=True)
         await server.serve_forever()
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--trace", type=Path, required=True)
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--trace", type=Path)
+    mode.add_argument("--ollama", action="store_true")
+    parser.add_argument("--model", default="qwen2.5:3b")
+    parser.add_argument("--record", type=Path)
     parser.add_argument("--port", type=int, default=7701)
     args = parser.parse_args()
+    if args.record and not args.ollama:
+        parser.error("--record is for live Ollama mode only")
     if not 1024 <= args.port <= 65535:
         parser.error("port must be 1024..65535")
     asyncio.run(run(args))
