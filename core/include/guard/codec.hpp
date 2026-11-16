@@ -32,6 +32,7 @@ bool valid(const WorldPause &value);
 
 namespace detail {
 template <class T> void clear_reserved(T &) {}
+inline void clear_reserved(Revoke &v) { v.reserved0 = 0; }
 inline void clear_reserved(Observation &v) { v.reserved0 = 0; }
 inline void clear_reserved(Proposal &v) { v.based_on.reserved0 = 0; }
 inline void clear_reserved(Decision &v) { v.reserved0 = 0; }
