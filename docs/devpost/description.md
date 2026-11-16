@@ -90,4 +90,4 @@ TBD (from the build, by 6 Dec).
 
 ## AI-use disclosure
 
-We built GUARD with AI coding assistants. Assistants drafted documents, contracts and code under human direction. A human code owner reviewed and merged every change. The rule-based planner is the baseline; an LLM route advisor is an optional extra.
+We built GUARD with AI coding assistants. Assistants drafted documents, contracts and code under human direction. A human team member merged every change once CI was green. The rule-based planner is the baseline; an LLM route advisor is an optional extra.
