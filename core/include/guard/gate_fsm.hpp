@@ -38,6 +38,8 @@ class Gate {
     LeaseAck prepare_lease(const Lease &value, std::int64_t now);
     bool commit_lease(std::uint64_t sequence, std::int64_t now, bool ack_delivered);
     LeaseAck lease(const Lease &value, std::int64_t now);
+    // 514/504 map to EOK; 505 to EPERM; 200 to EINVAL in the platform adapter.
+    Reason passthrough(const PassthruCmd &value, std::int64_t now);
     bool revoke(const Revoke &value);
     RecoverReply recover(const RecoverRequest &request, RecoveryConditions conditions);
     MotorCmd tick(std::int64_t now, double v_meas, double w_meas = 0);
@@ -56,6 +58,8 @@ class Gate {
     bool pending_valid_ = false;
     bool registered_ = false;
     MotorCmd motor_{};
+    PassthruCmd held_{};
+    std::int64_t last_passthrough_ = -1;
     std::uint32_t standstill_ticks_ = 0;
     std::int64_t last_tick_ = -1;
 };
