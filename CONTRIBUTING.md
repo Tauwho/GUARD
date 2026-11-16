@@ -15,7 +15,7 @@ Follow `docs/setup.md` (written in issue B-1).
 4. Open a PR of ≤ 400 changed lines (generated files excluded) using the template. It closes the issue (`Closes #N`).
 5. CI must be green. It is host-only and never touches the QNX SDP.
 6. **Evidence:** QNX-path PRs (`core/`, `qnx/`, `image/`, `cmake/`, `contracts/`) attach a bundle per `evidence/README.md`. Until then, add `status:needs-evidence`.
-7. **Merge when finished:** reviews are optional (D12). When CI is green and every conversation is resolved, the author merges. If you want a second pair of eyes, ask on the PR with an @-mention.
+7. **Merge when finished:** reviews are optional (D12). When CI is green, every conversation is resolved and, for QNX-path PRs, the evidence bundle from step 6 is committed (D18), the author merges. If you want a second pair of eyes, ask on the PR with an @-mention.
 8. Squash-merge. The branch is deleted automatically.
 
 ## Contract changes (after `contracts-v1.0`)
