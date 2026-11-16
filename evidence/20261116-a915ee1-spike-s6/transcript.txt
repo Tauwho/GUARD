@@ -1,0 +1,10 @@
+Script started on 2026-11-16 01:28:37-05:00 [COMMAND="ssh -o BatchMode=yes -o ConnectTimeout=5 root@10.10.10.2 'uname -a; /tmp/s6 10.10.10.1 1000'" <not executed on terminal>]
+QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+s6: sent 1000 lines
+
+Script done on 2026-11-16 01:28:37-05:00 [COMMAND_EXIT_CODE="0"]
+--- host side (s6_host.py)
+s6_host: listening on 0.0.0.0:7700
+s6_host: peer=10.10.10.2 lines=1000 expected=1000 bad=0
+s6_host: in order=yes
+S6 host received the target stream intact: yes

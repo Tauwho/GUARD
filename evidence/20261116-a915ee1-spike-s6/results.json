@@ -1,0 +1,11 @@
+{
+  "spike": "S6",
+  "commit": "a915ee19263d97626644c46f696cc82e7e9fd6f7",
+  "answer_lines": [
+    "s6: sent 1000 lines",
+    "s6_host: listening on 0.0.0.0:7700",
+    "s6_host: peer=10.10.10.2 lines=1000 expected=1000 bad=0",
+    "s6_host: in order=yes",
+    "S6 host received the target stream intact: yes"
+  ]
+}
