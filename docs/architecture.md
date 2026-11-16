@@ -354,4 +354,4 @@ All times SGT.
 - "hard real-time"
 - "faster than Linux"
 
-**Preferred wording:** "rejects stale or unverifiable motion in simulation", "measured in QEMU".
+**Preferred wording:** "rejects stale or unverifiable motion in simulation", "shown on the QNX target", "measured in the host (Linux) harness". Nothing measured on QNX is published (A5, D11).
