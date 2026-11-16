@@ -12,7 +12,7 @@ from pathlib import Path
 
 import jsonschema
 from llm_advisor import VALIDATOR, strict_json
-from ollama_route import OllamaAdvisor, OllamaGenerator
+from ollama_route import DEFAULT_MODEL, OllamaAdvisor, OllamaGenerator
 
 
 async def benchmark(request, output, samples, model):
@@ -75,7 +75,7 @@ def main():
     parser.add_argument("--request", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--samples", type=int, default=20)
-    parser.add_argument("--model", default="qwen2.5:1.5b-instruct")
+    parser.add_argument("--model", default=DEFAULT_MODEL)
     args = parser.parse_args()
     if not 2 <= args.samples <= 100:
         parser.error("samples must be 2..100 (plus one excluded warmup)")

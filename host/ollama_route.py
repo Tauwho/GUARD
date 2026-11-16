@@ -9,6 +9,8 @@ from urllib.request import Request, urlopen
 
 import jsonschema
 
+DEFAULT_MODEL = "qwen2.5:1.5b-instruct"
+
 OUTPUT_SCHEMA = {
     "type": "object",
     "required": ["waypoints"],
@@ -31,7 +33,7 @@ OUTPUT_SCHEMA = {
 
 
 class OllamaGenerator:
-    def __init__(self, model="qwen2.5:1.5b-instruct", timeout=30):
+    def __init__(self, model=DEFAULT_MODEL, timeout=30):
         self.model, self.timeout = model, timeout
 
     def __call__(self, request):
