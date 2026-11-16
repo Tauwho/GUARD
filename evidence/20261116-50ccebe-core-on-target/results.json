@@ -1,0 +1,29 @@
+{
+  "binary": "guard_core_tests",
+  "host": {
+    "status": "SUCCESS",
+    "test_cases": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    "assertions": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0
+    }
+  },
+  "target": {
+    "status": "SUCCESS",
+    "test_cases": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    "assertions": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0
+    }
+  }
+}
