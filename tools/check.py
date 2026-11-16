@@ -44,6 +44,13 @@ def main():
     parser.add_argument("--skip-build", action="store_true")
     args = parser.parse_args()
     failed = []
+    # The evidence policy (D21) accepts bundles whose SHA is in a PR head, as CI does.
+    # Best effort: offline runs still check against local history only.
+    subprocess.run(
+        ["git", "fetch", "-q", "--no-tags", "origin", "+refs/pull/*/head:refs/remotes/pr/*"],
+        cwd=ROOT,
+        capture_output=True,
+    )
     for name, command in stages(args.fast or args.skip_build):
         if command is None:
             print(f"FAIL {name}: cmake not found (install cmake >= 3.24 or use --fast)")
