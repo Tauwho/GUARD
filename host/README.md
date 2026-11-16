@@ -46,3 +46,9 @@ For the nominal F0 run, the reported `false_reject_rate` is operationally define
 rejected proposals divided by all proposals from the nominal rule planner. It is not
 a separate correctness oracle. `stop_time_s` measures fault onset to the first STOPPING
 transition, not time to physical standstill. Raw JSONL remains available for inspection.
+
+Run summaries also emit the C8 fields proposed in #127 (`authorized`, `rejected`,
+`unverifiable`, `latches`, `min_margin_m`, `sim_duration_ns`); the CLI still reads older
+traces. These decision counts cover the guarded C1 path. B0/B1 issue pass-through
+commands instead; their command/drop counts appear in a separate `status` event and
+their C1 decision counts are zero. No supervisor authorization is implied for baselines.
