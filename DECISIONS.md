@@ -13,42 +13,45 @@
 | D7 | 2026-11-15 | Framing: hospital logistics |
 | D8 | 2026-11-15 | Schedule: P0 complete Wed 9 Dec (the exam window ends 4 Dec). Code freeze Thu 10 Dec. File Sun 13 Dec |
 | D9 | 2026-11-15 | Each CODEOWNERS path has a primary and a secondary owner, so authors never need to self-approve |
+| D10 | 2026-11-15 | Anyone who needs the PO or a teammate asks in the relevant issue or PR with an @-mention. No DMs or private messages for project work (AGENTS.md hard rule 5) |
+| D11 | 2026-11-16 | Supersedes D5 under assumption A5 (#2, #62): publish nothing measured on QNX (no timing numbers, no QNX-vs-Linux comparison, no numeric result tables from the target); numeric results come only from the host harness, labelled "host (Linux) harness" |
+| D12 | 2026-11-16 | Reviews are optional: the author merges a PR when it is finished, CI is green and every conversation is resolved. Branch protection on `main` needs 0 approvals. CODEOWNERS stays for ownership and automatic review requests only; this replaces the approval part of D9 |
 
 ## ADR index
 All entries were accepted on 2026-11-15. Full write-ups go in `docs/adr/` (issue PO-5).
 
 | ADR | Decision | Rejected alternative | Why |
 |---|---|---|---|
-| 0001 | A separate gate process owns the only actuator path | Supervisor writes the motor directly | Fails safe when the supervisor dies; isolation can be demonstrated |
-| 0002 | Expiring leases with epoch + sequence fencing | Heartbeat watchdog | Liveness is not correctness; leases bound authority in time; epochs stop zombie supervisors |
-| 0003 | Provenance freshness against a supervisor-owned observation history | Message age (ROS 2 lifespan) | A message can be new while the decision behind it is old |
-| 0004 | Portable core with time injected; QNX layer only wires IPC and timers | Logic inside QNX handlers | Deterministic host CI; AGENTS.md rule 2 |
-| 0005 | Native message passing, pulses and resource managers on target; TCP only to the host | POSIX mqueue or sockets everywhere | Priority inheritance and bounded IPC; Qnet is removed in 8.0 |
-| 0006 | Priority map; default priority inheritance on the proposal channel | `_NTO_CHF_FIXED_PRIORITY` | Starving the planner path makes leases lapse, which fails safe |
-| 0007 | Plant simulator runs on the target; host harness uses virtual time | Simulator on the host | One clock domain; reproducible CI |
-| 0008 | Telemetry through shared-memory rings; read-only bridge and dashboard | Telemetry over IPC from the critical path | The critical path never blocks |
-| 0009 | No QNX SDP in CI; evidence-commit protocol | Self-hosted runner with QNX | Licence §4.2.6, §4.6(b), §4.6(l) |
-| 0010 | Binary authorize / reject | Clamp to a safe speed | Simpler and explainable |
-| 0011 | Publish functional metrics only | Publish latency numbers | Licence §4.6(i) |
-| 0012 | Compile-time checker registry; all checkers run; first failure is the primary reason | `dlopen` plugins; fail-fast | Determinism, explainability, bounded cost |
-| 0013 | uid-based authorization in P0; secpol in P1 (P0 if spike S4 passes) | secpol only | Risk that the spike fails on QSTI |
-| 0014 | Simulation only | Hardware | Licence §4.2.5; no hardware; $0 budget |
-| 0015 | Single-threaded gate dispatch | Thread pool | Deterministic ordering; bounded handlers |
-| 0016 | MIT licence | Apache-2.0 | Simplest; codelab can reuse code |
+| [0001](docs/adr/0001-separate-gate-process.md) | A separate gate process owns the only actuator path | Supervisor writes the motor directly | Fails safe when the supervisor dies; isolation can be demonstrated |
+| [0002](docs/adr/0002-expiring-leases-epoch-fencing.md) | Expiring leases with epoch + sequence fencing | Heartbeat watchdog | Liveness is not correctness; leases bound authority in time; epochs stop zombie supervisors |
+| [0003](docs/adr/0003-provenance-freshness.md) | Provenance freshness against a supervisor-owned observation history | Message age (ROS 2 lifespan) | A message can be new while the decision behind it is old |
+| [0004](docs/adr/0004-portable-core-time-injected.md) | Portable core with time injected; QNX layer only wires IPC and timers | Logic inside QNX handlers | Deterministic host CI; AGENTS.md rule 2 |
+| [0005](docs/adr/0005-native-ipc-resource-managers.md) | Native message passing, pulses and resource managers on target; TCP only to the host | POSIX mqueue or sockets everywhere | Priority inheritance and bounded IPC; Qnet is removed in 8.0 |
+| [0006](docs/adr/0006-priority-map-inheritance.md) | Priority map; default priority inheritance on the proposal channel | `_NTO_CHF_FIXED_PRIORITY` | Starving the planner path makes leases lapse, which fails safe |
+| [0007](docs/adr/0007-sim-on-target-virtual-time-host.md) | Plant simulator runs on the target; host harness uses virtual time | Simulator on the host | One clock domain; reproducible CI |
+| [0008](docs/adr/0008-shm-ring-telemetry.md) | Telemetry through shared-memory rings; read-only bridge and dashboard | Telemetry over IPC from the critical path | The critical path never blocks |
+| [0009](docs/adr/0009-no-qnx-in-ci.md) | No QNX SDP in CI; evidence-commit protocol | Self-hosted runner with QNX | Licence §4.2.6, §4.6(b), §4.6(l) |
+| [0010](docs/adr/0010-binary-authorize-reject.md) | Binary authorize / reject | Clamp to a safe speed | Simpler and explainable |
+| [0011](docs/adr/0011-functional-metrics-only.md) | Publish functional metrics only | Publish latency numbers | Licence §4.6(i) |
+| [0012](docs/adr/0012-compile-time-checker-registry.md) | Compile-time checker registry; all checkers run; first failure is the primary reason | `dlopen` plugins; fail-fast | Determinism, explainability, bounded cost |
+| [0013](docs/adr/0013-uid-authz-p0-secpol-p1.md) | uid-based authorization in P0; secpol in P1 (P0 if spike S4 passes) | secpol only | Risk that the spike fails on QSTI |
+| [0014](docs/adr/0014-simulation-only.md) | Simulation only | Hardware | Licence §4.2.5; no hardware; $0 budget |
+| [0015](docs/adr/0015-single-threaded-gate.md) | Single-threaded gate dispatch | Thread pool | Deterministic ordering; bounded handlers |
+| [0016](docs/adr/0016-mit-licence.md) | MIT licence | Apache-2.0 | Simplest; codelab can reuse code |
 
 ## Clarification log
 Questions Q1–Q8 are in issue PO-1.
 
-| Q | Topic | Sent | Answer | Plan impact |
+| Q | Topic | Sent | Answer / assumption | Plan impact |
 |---|---|---|---|---|
-| Q1 | Bonus stacking | — | — | — |
-| Q2 | QEMU as "the device" | — | — | — |
-| Q3 | AI assistants | — | — | — |
-| Q4 | AI Creativity scoring | — | — | — |
-| Q5 | Licence §4.6(i) benchmarks | — | — | — |
-| Q6 | Licence §4.2.5 high-risk | — | — | — |
-| Q7 | Codelab PR / hosting | — | — | — |
-| Q8 | QNX marks in the video | — | — | — |
+| Q1 | Bonus stacking | ≤ 16 Nov 2026 | Organisers unable to answer; assumption A1: a project wins at most one Bonus prize, and no second submission to carry the codelab. | None; codelab stays P1, decided at CK-M3 (#13). |
+| Q2 | QEMU as "the device" | ≤ 16 Nov 2026 | Organisers unable to answer; assumption A2: QSTI in QEMU on x86_64 is an acceptable target device. | None; say "QNX 8.0 quick-start target image in QEMU (x86_64)". |
+| Q3 | AI assistants | ≤ 16 Nov 2026 | Organisers unable to answer; assumption A3: allowed, with disclosure. | None; keep the AI-use disclosure (#5, #8). |
+| Q4 | AI Creativity scoring | ≤ 16 Nov 2026 | Organisers unable to answer; assumption A4: judges reward visible AI. | LLM route advisor becomes P1 rank 2 at CK-M3, after secpol (#13, #61). |
+| Q5 | Licence §4.6(i) benchmarks | ≤ 16 Nov 2026 | Organisers unable to answer; assumption A5: no written approval, treated as denied. | No QNX-measured numbers in public; numeric results only from the host (Linux) harness. |
+| Q6 | Licence §4.2.5 high-risk | ≤ 16 Nov 2026 | Organisers unable to answer; assumption A6: simulation-only is not a High-Risk Application. | Wording: "simulation-only research prototype" (#5, #7, #8). |
+| Q7 | Codelab PR / hosting | ≤ 16 Nov 2026 | Organisers unable to answer; assumption A7: an unmerged qnx/codelabs PR may not count. | Submit our own GitHub Pages copy; qnx/codelabs PR optional (#10, #50). |
+| Q8 | QNX marks in the video | ≤ 16 Nov 2026 | Organisers unable to answer; assumption A8: no permission to use QNX logos. | No QNX logo; "QNX" as plain text only (#7). |
 
 ## Spike log
 | Spike | Question | Owner | Due | Result | Decision |
