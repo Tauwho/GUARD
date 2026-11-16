@@ -12,6 +12,10 @@ Never fails the build; it is a report. Agents read it to self-descope
 A check is file/grep/cmd (pass/fail) or `evidence: manual` (returns None).
 An item with manual evidence is MANUAL and never counts as DONE; the summary
 counts it separately. A progress file alone is never a done-check (audit fix 3).
+
+Early cut (audit fix 7): after cp2, if B4 (F0 on target evidence) is not DONE,
+every SHOULD item is DROPPED. B's gate is the demo's backbone; without it the
+host-only SHOULD work has nothing to point at. MUST items are unaffected.
 """
 
 import argparse
@@ -83,8 +87,12 @@ def check(spec):
     return False
 
 
-def item_state(item, now, dates):
-    """DONE / MANUAL / OPEN / AT-RISK / DROPPED for one item (pure)."""
+def item_state(item, now, dates, early_cut=False):
+    """DONE / MANUAL / OPEN / AT-RISK / DROPPED for one item (pure).
+
+    early_cut: the B4-gate rule is in force (after cp2, F0 is not on target);
+    SHOULD items are then DROPPED regardless of cut_1.
+    """
     results = [check(spec) for spec in item.get("checks", [])]
     failed = any(result is False for result in results)
     manual = item.get("evidence") == "manual" or any(result is None for result in results)
@@ -94,13 +102,21 @@ def item_state(item, now, dates):
         return "DONE", due
     if manual and not failed:
         return "MANUAL", due
-    if item["tier"] == "SHOULD" and now > dates["cut_1"]:
+    if item["tier"] == "SHOULD" and (early_cut or now > dates["cut_1"]):
         return "DROPPED", due
     if item["tier"] == "STRETCH" and now > dates["cut_2"]:
         return "DROPPED", due
     if item["tier"] == "MUST" and now > due:
         return "AT-RISK", due
     return "OPEN", due
+
+
+def b4_early_cut(scope, now, dates):
+    """True after cp2 when the F0-on-target bundle (B4) is not DONE (audit fix 7)."""
+    b4 = next((i for i in scope["items"] if i["id"] == "B4"), None)
+    return (
+        b4 is not None and now > dates["cp2"] and item_state(b4, now, dates)[0] != "DONE"
+    )
 
 
 def summarize(rows):
@@ -156,11 +172,12 @@ def main():
         k: datetime.datetime.fromisoformat(v) if isinstance(v, str) else v
         for k, v in scope["dates"].items()
     }
+    early_cut = b4_early_cut(scope, now, dates)
     rows = []
     for item in scope["items"]:
         if args.stream and item["owner"] != args.stream:
             continue
-        state, due = item_state(item, now, dates)
+        state, due = item_state(item, now, dates, early_cut)
         rows.append((item, state, due))
     if args.summary:
         summarize(rows)

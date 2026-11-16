@@ -3,6 +3,7 @@
 #   DONE     - every check passes
 #   OPEN     - not done, cut date not reached
 #   DROPPED  - not done and the cut date for its tier has passed (SHOULD: cut_1, STRETCH: cut_2)
+#              Early cut: after cp2, if B4 (F0 on target) is not DONE every SHOULD item is DROPPED.
 #   AT-RISK  - MUST item not done after its due date (the fallback in "fallback" applies automatically)
 # Check kinds: file (glob must match), grep (regex must match in a file), cmd (exit 0),
 # evidence: manual (reported MANUAL, never DONE; a progress file is never a done-check).
@@ -71,3 +72,5 @@ items:
   - {id: P4, tier: MUST, owner: P, due: package_done, title: "Video under 3:00 linked in README; make package-check passes",
      checks: [{cmd: "python tools/check_package.py"}, {grep: {file: "README.md", re: "(?i)video"}}]}
   - {id: P5, tier: SHOULD, owner: P, due: cut_1, title: "Architecture diagram + Limits page final", checks: [{file: "docs/architecture.svg"}]}
+  - {id: P6, tier: MUST, owner: P, due: package_done, title: "Devpost submission draft (description, screenshots, video link, AI-use); the upload itself is human PO only",
+     checks: [{file: "docs/devpost/description.md"}, {file: "docs/devpost/screenshots.md"}, {cmd: "python tools/check_submission.py"}]}

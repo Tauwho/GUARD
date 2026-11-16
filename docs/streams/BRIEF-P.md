@@ -24,6 +24,7 @@ Evidence bundles (I9: `evidence/*/manifest.json`, `transcript.txt`), host evalua
 | P3 | Thu 10 Dec 18:00 | MUST | Code freeze: tag `v1.0-rc1` on the newest `main` commit where `python tools/check.py` and `bash tools/fresh_clone_demo.sh <sha>` both pass (if the newest fails, the newest `green-*` tag) | `git rev-parse v1.0-rc1`; fresh-clone output in `progress/P.md` |
 | P4 | Sun 13 Dec | MUST | Video material ready (footage recorded from `v1.0-rc1` per `demo/DEMO.md`; captions file; under 3:00, no QNX logo); README links the video; `make package-check` passes | `make package-check`; `python tools/check_package.py` |
 | P5 | Fri 4 Dec | SHOULD | `docs/architecture.svg` and a final Limits page | file exists; `claims-lint` passes |
+| P6 | Sun 13 Dec | MUST | Devpost draft: every REF-DEVPOST section, screenshots list, video link, AI-use disclosure; the upload itself is human PO only | `python tools/check_submission.py` |
 <!-- gen:milestones-P-end -->
 
 `python tools/scope_gate.py --stream P` shows the live state. P's heavy work is Sat 5 - Sun 13 Dec; Mon 23 Nov - Fri 4 Dec are the PO's exams, so runs then are short (P1/P2 upkeep only).
