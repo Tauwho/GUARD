@@ -23,6 +23,7 @@ It only reads the bridge and sends no commands. Live history is bounded to 20,00
 events; pause/seek inspects that local buffer and Follow live returns to its end.
 
 Current view: map, zone schedules, observed obstacles, robot footprint/trajectory,
-gate mode/epoch, decision counts and reason journal. Lease bar,
-recorded stopping arc and target-trace acceptance are still work in progress (#24).
+gate mode/epoch, decision counts, reason journal, recorded lease bar and stopping arc.
+Lease/arc fields are shown only when present in the trace; the viewer does not invent
+missing target telemetry. Target-trace acceptance and the GIF remain pending (#24).
 No target numeric evaluation or QNX timings should be published (ADR0011/D11).
