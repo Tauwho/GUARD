@@ -10,6 +10,8 @@ import subprocess
 import time
 from pathlib import Path
 
+import jsonschema
+
 from llm_advisor import VALIDATOR, strict_json
 from ollama_route import OllamaAdvisor, OllamaGenerator
 
@@ -32,7 +34,7 @@ async def benchmark(request, output, samples, model):
                 "success": True,
                 "waypoints": len(response["waypoints"]),
             }
-        except (ValueError, OSError, asyncio.TimeoutError) as error:
+        except (ValueError, OSError, asyncio.TimeoutError, jsonschema.ValidationError) as error:
             result = {
                 "sample": index,
                 "warmup": index == 0,
@@ -45,9 +47,7 @@ async def benchmark(request, output, samples, model):
         print(f"Sample {index}: {'valid route' if result['success'] else 'failed'}", flush=True)
         if sum(not item["success"] for item in measurements) >= 2:
             break
-    durations = [
-        item["elapsed_s"] for item in measurements if item["success"] and not item["warmup"]
-    ]
+    durations = [item["elapsed_s"] for item in measurements if not item["warmup"]]
     summary = {
         "internal_only": True,
         "source": "host CPU",
@@ -59,6 +59,9 @@ async def benchmark(request, output, samples, model):
         "request": request,
         "samples": measurements,
         "warm_samples": len(durations),
+        "requested_warm_samples": samples,
+        "warm_successes": sum(item["success"] and not item["warmup"] for item in measurements),
+        "latency_population": "all completed warm attempts, including failures/timeouts",
         "median_s": statistics.median(durations) if durations else None,
         "p95_s": statistics.quantiles(durations, n=20, method="inclusive")[-1]
         if len(durations) > 1
