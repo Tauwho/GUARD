@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "sha": "161b1e85c1a1780265511bd35bb2a86d759d2880",
+  "date": "2026-11-16T06:24:20Z",
+  "topic": "setup-po",
+  "runner_role": "po",
+  "host_os": "Windows 11 + WSL2 Ubuntu 24.04, QEMU with KVM, user-mode networking",
+  "sdp_version": "8.0.0",
+  "qcc_version": "gcc 12.2.0 (gcc_ntox86_64); cc: targets available in ~/qnx800/host/linux/x86_64/etc/qcc:",
+  "image_id": "mkqnximage --type=qemu --arch=x86_64",
+  "files": ["transcript.txt", "uname.txt", "pidin.txt", "binaries.txt", "slog2.txt"],
+  "notes": "S1 setup: hello built with qcc on the host and run on the QEMU target. Target networking uses QEMU user-mode (hostfwd ssh) instead of the br0 bridge, because the mkqnximage run script needs dnsmasq/libvirt. Licence identifiers, serial numbers and home paths removed."
+}

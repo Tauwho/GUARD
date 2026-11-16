@@ -162,7 +162,7 @@ Defaults are an assumption at hospital-AMR scale. Sources go in `docs/parameters
 | R17 | STOPPED | latch set | LATCHED | — |
 | R18 | STOPPED | no latch | READY | — |
 
-**Lease delivery rule.** R4 and R5 take effect only after the `LeaseAck` reply is delivered (messages.md 3.2). If the reply fails because the supervisor timed out, the gate discards the lease, keeps its mode and emits `GATE_ACK_UNDELIVERED`.
+**Lease delivery rule.** R4 and R5 take effect only after the `LeaseAck` reply is delivered (messages.md 3.2). The gate sends that reply within the same handler call. If the reply fails, the gate discards the lease, keeps its mode and emits `GATE_ACK_UNDELIVERED`. A supervisor timeout only ends the call while it is send-blocked; once the gate has the lease, the supervisor waits for the ack (ADR 0017).
 
 **Recovery conditions.** All must hold; any unmet ones are reported as a bitmask.
 - Standstill confirmed.

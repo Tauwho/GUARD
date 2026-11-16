@@ -1,5 +1,12 @@
 # contracts CHANGELOG
 
+## v1.1 -- proposed (#89, ADR 0017)
+
+No wire format change: same messages, sizes, `devctl` numbers and reason codes.
+
+- C2 lease delivery rule (`messages.md` 3.2): the gate replies `LeaseAck` within the same handler call and never defers it. The `ESRCH` timeout path is replaced by "any `MsgReply` failure discards the lease". Unblock pulses for answered `rcvid`s are ignored.
+- C2 timeout (`messages.md` section 3 table) and errors (1.4): on a resmgr channel the 5 ms `TimerTimeout` bounds send-blocked time only. `ETIMEDOUT` means the gate never received the call; a late `LeaseAck` is binding. Evidence: spike S3 (#33).
+
 ## v1.0 -- frozen on merge (target Fri 20 Nov 2026 23:59 SGT)
 
 Initial contracts. Frozen when the PR for #3 merges (reviews optional, D12), then tagged `contracts-v1.0`.

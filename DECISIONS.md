@@ -24,6 +24,7 @@
 | D18 | 2026-11-16 | Under D12, a QNX-path PR (`core/`, `qnx/`, `image/`, `cmake/`, `contracts/`) is finished only when its target evidence bundle is committed (AGENTS.md hard rule 4), unless its issue exempts it. #74 merged without it, so #31 was reopened for a follow-up evidence PR |
 | D19 | 2026-11-16 | M0 fallback (A): @phatdat220707's setup evidence (#15) is deferred until Sun 22 Nov. Until then A works on the host path only (core, harness, CI); A-track QNX-path PRs still need target evidence before they are finished (D18) |
 | D20 | 2026-11-16 | M0 fallback (B): @baofrovn's setup evidence (#30) is deferred until Sun 22 Nov. Until then the toolchain work in #31 counts as setup progress; B's QNX-path PRs still need target evidence before they are finished (D18) |
+| D21 | 2026-11-16 | Evidence SHA rule under squash merges: a bundle's manifest `sha` passes the `evidence` check if it is an ancestor of HEAD **or** the head commit of any PR in this repo (CI fetches `refs/pull/*/head`). Squash merging no longer breaks bundles, and nobody rewrites a manifest after merging. Owner: @baofrovn (`tools/check_policy.py`, `.github/workflows/ci.yml`) |
 
 ## ADR index
 All entries were accepted on 2026-11-15. Full write-ups go in `docs/adr/` (issue PO-5).
@@ -46,6 +47,7 @@ All entries were accepted on 2026-11-15. Full write-ups go in `docs/adr/` (issue
 | [0014](docs/adr/0014-simulation-only.md) | Simulation only | Hardware | Licence §4.2.5; no hardware; $0 budget |
 | [0015](docs/adr/0015-single-threaded-gate.md) | Single-threaded gate dispatch | Thread pool | Deterministic ordering; bounded handlers |
 | [0016](docs/adr/0016-mit-licence.md) | MIT licence | Apache-2.0 | Simplest; codelab can reuse code |
+| [0017](docs/adr/0017-lease-ack-on-resmgr-channel.md) | **Proposed (#89).** Gate replies `LeaseAck` in the same handler; `ETIMEDOUT` means not received; a late ack is binding | Defer the reply and `MsgError(ETIMEDOUT)` on unblock | Spike S3: resmgr channels keep a reply-blocked client waiting, so the v1.0 `ESRCH` path never happens |
 
 ## Clarification log
 Questions Q1–Q8 are in issue PO-1.
@@ -65,11 +67,11 @@ Questions Q1–Q8 are in issue PO-1.
 | Spike | Question | Owner | Due | Result | Decision |
 |---|---|---|---|---|---|
 | S1 | QSTI boot + `qcc` hello on each host | all | 18 Nov | — | — |
-| S2 | CMake QNX toolchain + core tests on target | B | 19 Nov | — | — |
-| S3 | resmgr delayed reply, OCB close on death, mutex priority inheritance; delayed `LeaseAck` (gate waits 10 ms before `MsgReply`, supervisor `TimerTimeout` 5 ms: expect `ETIMEDOUT`, `MsgReply` fails with `ESRCH`, lease not installed, `GATE_ACK_UNDELIVERED`) | B | 21 Nov | — | — |
+| S2 | CMake QNX toolchain + core tests on target | B | 19 Nov | Pass. `qnx-x86_64` preset builds `guard_core_tests` with SDP 8.0 after setting `DOCTEST_CONFIG_USE_STD_HEADERS` (libc++ `std::__2`). Same commit passes on host and QSTI: 1/1 test cases, 1/1 assertions. Evidence `evidence/20261116-161b1e8-core-on-target/` | Keep the CMake toolchain (`cmake/qnx-x86_64.cmake`); no `qcc` Makefile fallback needed (#31, #80) |
+| S3 | resmgr delayed reply, OCB close on death, mutex priority inheritance; delayed `LeaseAck` (gate waits 10 ms before `MsgReply`, supervisor `TimerTimeout` 5 ms: expect `ETIMEDOUT`, `MsgReply` fails with `ESRCH`, lease not installed, `GATE_ACK_UNDELIVERED`) | B | 21 Nov | `__DIOTF` round trip: yes. Late `MsgReply` on a saved `rcvid`: yes. OCB close after `kill -9`: yes, but a reply-blocked client only dies once the server answers its unblock pulse; with `iofunc_unblock_default` that waits for the late reply. Default mutex protocol is `PRIO_INHERIT` and boosts the holder (10 → 30). One channel serves pulses and `devctl`s by priority, FIFO within a priority. Delayed `LeaseAck`: the client does **not** get `ETIMEDOUT` on its own (resmgr channels use `_NTO_CHF_UNBLOCK`); by default it waits and gets the late reply, and with an unblock handler it gets whatever `MsgError` the gate sends. `MsgReply` never fails with `ESRCH` in either case. Evidence `spike/s3:evidence/20261116-6e0eb27-spike-s3/` | Keep resmgr (ADR 0005/0006). `qnx/common` (#37) must answer unblock pulses for saved `rcvid`s. messages.md 3.2 step 4 (`ESRCH` path) does not match QNX; needs a contract change, owner to raise |
 | S4 | secpol denial errno; abilities across `setuid` | B | 22 Nov | — | — |
-| S5 | Instrumented `procnto` for tracelogger | B | 7 Dec | — | — |
-| S6 | Host ↔ target TCP 7700 | B | 19 Nov | — | — |
+| S5 | Instrumented `procnto` for tracelogger | B | 7 Dec | Yes. QSTI boots `procnto-smp-instr`; a 2 s `tracelogger -s 2` run decodes to `KER_CALL`, `KER_EXIT`, `THREAD`, `INT` and `PROCESS` events. The default image has no `traceprinter` (copied from the SDP), and `/tmp` is the 64 MiB `/data` partition, so traces must stay short or go elsewhere. Evidence `spike/s5:evidence/20261116-ae4410c-spike-s5/` | B-12c (#48) is GO: ship `traceprinter` in the image or decode on the host |
+| S6 | Host ↔ target TCP 7700 | B | 19 Nov | Yes. Target `10.10.10.2` on bridge `br0` sent 1000 JSON lines to host `10.10.10.1:7700`; all 1000 arrived in order. `nc` is not on the default image, so `spike/s6/s6.c` (needs `-lsocket`) sent them. Evidence `spike/s6:evidence/20261116-a915ee1-spike-s6/` | Bridge streams C8 over TCP 7700; no file + `scp` fallback needed |
 | S7 | Ollama Qwen2.5-3B latency | A | 7 Dec | — | — |
 | S8 | `mkqnximage` snippet with GUARD binaries | B | 26 Nov | — | — |
 
