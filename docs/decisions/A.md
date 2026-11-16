@@ -25,3 +25,5 @@ Decide, log one line, continue (D26). Never edit `DECISIONS.md`.
 | 2026-11-16 | Dispatch C8 envelope plus exact kind payload schema using jsonschema | Remove repeated mutually exclusive condition work while retaining every frozen constraint; differential tests and full-schema fallback. |
 
 | 2026-11-16 | Coalesce live dashboard work per animation frame with bounded ingestion | F8 telemetry must not trigger a full history render per message; preserve recorded-time pause/seek semantics. |
+
+| 2026-11-17 | Accept A9 using existing actual inference on Dat's laptop plus main Linux offline/recorded CI; another laptop is optional | [PO decision #29](https://github.com/Tauwho/GUARD/issues/29#issuecomment-6921570197) supersedes second-device acceptance; no second-machine inference claim or public timings; frozen scope stays MANUAL. |
