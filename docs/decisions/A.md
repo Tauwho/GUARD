@@ -9,3 +9,5 @@ Decide, log one line, continue (D26). Never edit `DECISIONS.md`.
 
 | 2026-11-16 | CI gates execution/schema errors and B2 regressions; control/ablation differences remain visible in full reports | Controls intentionally differ; default matrix CLI retains strict mismatch exit status. |
 | 2026-11-16 | Omit optional C8 min_margin_m when no geometry is measured; report adapter returns null | Frozen v1.2 permits number or absence, not null; never publish synthetic 1000 m sentinel. |
+| 2026-11-16 | Runner injects only F2/F3/F7 externally; World retains model-fault timeline | Avoid duplicate model injections; mock uses identical virtual-time scenario. |
+| 2026-11-16 | F7 resume_after_ms overrides duration_ms for C14 --duration-ms | C14 has one resume-duration flag; retain explicit resume semantics. |
