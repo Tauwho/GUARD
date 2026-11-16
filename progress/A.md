@@ -3,9 +3,9 @@
 Brief: `docs/streams/BRIEF-A.md`; frozen contracts-v1.2; D26/D27. Resume here.
 
 ## Now
-- A8 merged #179 as 6ac05ec; all required checks and dedicated property/fresh-clone CI GREEN.
-- Account phatdat220707 verified after user-requested pause/resume; no secrets exposed.
-- Continue useful independent host work; no QNX target needed by stream A.
+- A1-A8 executable host outputs complete; all merged except final live-view follow-up is being submitted.
+- Full local check GREEN; final CI/merge evidence will be linked below.
+- Only A9 manual second-laptop evidence remains outside this machine; do not fabricate it.
 
 ## Done with executable evidence
 
@@ -62,7 +62,7 @@ A8: done 6ac05ec (#179; actual C++ property CI https://github.com/Tauwho/GUARD/a
 - Dedicated stream-a CI pins backend, builds probe and explicitly requires -k hypothesis. Existing tests unchanged.
 
 ## Next
-- Finish A8 check/review/CI/merge, then improve independently reproducible host demo/live-burst viewing if valuable.
+- Verify final main CI and newest Linux artifact; then stop feature churn and retain the evidence. A9 needs a physical second laptop.
 
 ## Known limits
 - A4/A7 remain MANUAL in scope_gate by design: remote evidence linked above, never inferred from progress text.
@@ -77,4 +77,4 @@ A8: done 6ac05ec (#179; actual C++ property CI https://github.com/Tauwho/GUARD/a
 - `python -m pytest eval/tests/test_dashboard_relay.py -q`: 7 passed, including burst and newer-error ordering regression.
 - Headless: 1000 arrivals -> one redraw per frame; pending/history capped at 20000; paused view preserved.
 - self-review: 0 blocker, 0 should, 0 nit after connection-status ordering and UTF-8 fixes.
-- Full integrated check/CI pending; no measured rendering-rate claim.
+- Full integrated `python tools/check.py`: RESULT: GREEN (out/d26-live-bursts-final.txt); no measured rendering-rate claim.
