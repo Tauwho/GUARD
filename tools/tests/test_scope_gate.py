@@ -35,6 +35,11 @@ def item(item_id="X", tier="MUST", due="cp1", checks=None, evidence=None):
     return spec
 
 
+def test_cmd_is_unknown_inside_check_py(monkeypatch):
+    monkeypatch.setenv("GUARD_SCOPE_GATE_ACTIVE", "1")
+    assert scope_gate.check({"cmd": "python -c 'raise SystemExit(1)'"}) is None
+
+
 def test_no_progress_file_is_a_done_check():
     for scope_item in SCOPE["items"]:
         for spec in scope_item.get("checks", []):

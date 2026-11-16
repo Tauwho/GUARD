@@ -97,7 +97,8 @@ def main():
             failed.append(name)
             tail = (done.stdout + done.stderr).strip().splitlines()[-25:]
             print("\n".join("    " + line for line in tail))
-    # Report only: never fails the build. File and grep checks only (cmd checks are slow).
+    # Report only: never fails the build. cmd checks are not run here (they show
+    # MANUAL); `python tools/scope_gate.py --report` runs the full table.
     env = dict(os.environ, GUARD_SCOPE_GATE_ACTIVE="1")
     subprocess.run([PY, "tools/scope_gate.py", "--summary"], cwd=ROOT, env=env)
     print("RESULT:", "GREEN" if not failed else "RED (" + ", ".join(failed) + ")")

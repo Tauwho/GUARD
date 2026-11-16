@@ -58,9 +58,11 @@ def execute(command, timeout=600):
 
 def run(command):
     # A cmd check may itself call tools/check.py, which calls this script again.
-    # Inside a cmd check, nested scope_gate runs skip cmd checks, so it cannot recurse.
+    # Inside a cmd check, nested scope_gate runs cannot evaluate cmd checks: report
+    # them as unknown (None -> MANUAL), never as a failure. `--report` outside
+    # check.py runs them for real.
     if os.environ.get("GUARD_SCOPE_GATE_ACTIVE"):
-        return False
+        return None
     return execute(command).returncode == 0
 
 
