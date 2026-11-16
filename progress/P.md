@@ -84,9 +84,9 @@ RESULT: GREEN
   merge commit before P1's second half (fresh-clone nightly green) is evidenced.
 
 ## Next
-- P1: `tools/build_readme.py` (`<!-- gen:evidence-map -->`,
-  `<!-- gen:results -->`, `<!-- gen:quickstart -->`, `--check`), README rewrite,
-  `tools/check_readme_links.py`; then P2 demo and storyboard.
+- P2: `demo/DEMO.md`, `tools/check_demo_commands.py` (+ tests),
+  `docs/video/storyboard.md` with shot list and captions plan.
+- Then P5 (architecture SVG + Limits), P6, P3, P4.
 
 ## Decisions
 - Logged in [docs/decisions/P.md](../docs/decisions/P.md).
