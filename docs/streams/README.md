@@ -16,6 +16,8 @@ Files in this folder:
 | `README.md` (this) | Investigation, audit, Phase 0, harness, integration plan, risks |
 | `phase0/` | Files P copies into the repo in Phase 0 (contracts of the process, checks, scope) |
 | `BRIEF-A.md`, `BRIEF-B.md`, `BRIEF-P.md` | First message for each stream's agent. Self-contained |
+| `SELF_REVIEW.md` | Shared adversarial review each stream runs before merging |
+| `REMEDIATION.md` | The eight phase-0 audit defects, their fixes and PRs |
 
 ---
 
@@ -145,6 +147,7 @@ Balance (remaining effort estimate, hours):
 | policy | `python tools/check_policy.py all` (core-portable, no-qnx-files, claims-lint, schemas, evidence) | P (existing) |
 | contract compat | `python tools/check_contract_compat.py --base contracts-v1.2` | P |
 | ownership | `python tools/check_ownership.py --base origin/main` (CI; local run uses the current branch prefix) | P |
+| brief sync | `python tools/check_brief_sync.py` (brief milestone ids, tiers and dates match `SCOPE.yaml`; `tools/sync_briefs.py` rewrites the Due/Tier cells) | P |
 | host build + tests | `cmake --preset host-debug && cmake --build --preset host-debug && ctest --preset host-debug` | A |
 | Python | `python -m ruff check . && python -m pytest` | A |
 | scope report | `python tools/scope_gate.py` (report only, never fails the build) | P |

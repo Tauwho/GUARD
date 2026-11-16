@@ -15,14 +15,17 @@ Evidence bundles (I9: `evidence/*/manifest.json`, `transcript.txt`), host evalua
 
 ## 4. Milestones
 
+<!-- gen:milestones-P -->
 | ID | Due (SGT) | Tier | Work | Acceptance check |
 |---|---|---|---|---|
 | P0 | Tue 17 Nov | MUST | Phase 0 merged (see `docs/streams/README.md` §2) | `python tools/check.py` GREEN on main; `python tools/scope_gate.py` prints the table |
 | P1 | Sun 22 Nov | MUST | `tools/build_readme.py`: regenerates README sections between markers (`<!-- gen:evidence-map -->`, `<!-- gen:results -->`, `<!-- gen:quickstart -->`) from `evidence/`, the newest Linux eval artifact (`gh run download`) and the READMEs of `host/`, `dashboard/`, `image/`. `--check` fails if the README is stale. Nightly fresh-clone job green | `python tools/build_readme.py --check`; latest `nightly` run green |
 | P2 | Sun 29 Nov | MUST | `demo/DEMO.md`: the 3-minute demo as numbered commands (host replay F3, dashboard, target `run-demo.sh` + `guardctl inject F3` + `guardctl recover`, a refusal with its reason); `tools/check_demo_commands.py` runs `--help` of every command in it; storyboard and shot list in `docs/video/` | `python tools/check_demo_commands.py` |
 | P3 | Thu 10 Dec 18:00 | MUST | Code freeze: tag `v1.0-rc1` on the newest `main` commit where `python tools/check.py` and `bash tools/fresh_clone_demo.sh <sha>` both pass (if the newest fails, the newest `green-*` tag) | `git rev-parse v1.0-rc1`; fresh-clone output in `progress/P.md` |
-| P4 | Sun 13 Dec | MUST | Video material ready (footage recorded from `v1.0-rc1` per `demo/DEMO.md`; captions file; under 3:00, no QNX logo); README links the video; `make package-check` passes | `make package-check` |
+| P4 | Sun 13 Dec | MUST | Video material ready (footage recorded from `v1.0-rc1` per `demo/DEMO.md`; captions file; under 3:00, no QNX logo); README links the video; `make package-check` passes | `make package-check`; `python tools/check_package.py` |
 | P5 | Fri 4 Dec | SHOULD | `docs/architecture.svg` and a final Limits page | file exists; `claims-lint` passes |
+| P6 | Sun 13 Dec | MUST | Devpost draft: every REF-DEVPOST section, screenshots list, video link, AI-use disclosure; the upload itself is human PO only | `python tools/check_submission.py` |
+<!-- gen:milestones-P-end -->
 
 `python tools/scope_gate.py --stream P` shows the live state. P's heavy work is Sat 5 - Sun 13 Dec; Mon 23 Nov - Fri 4 Dec are the PO's exams, so runs then are short (P1/P2 upkeep only).
 
@@ -32,7 +35,7 @@ Evidence bundles (I9: `evidence/*/manifest.json`, `transcript.txt`), host evalua
 3. **Research** (README examples of strong hackathon entries, video structure, judging criteria) and note it in `progress/P.md` "Research".
 4. **Build** on `po/<id>-<slug>` from the newest green commit.
 5. **Verify:** `python tools/check.py` GREEN plus the milestone check.
-6. **Adversarial self-review** in a fresh context with §6, fix findings.
+6. **Adversarial self-review** in a fresh context with [SELF_REVIEW.md](SELF_REVIEW.md) plus §6, fix findings.
 7. **Merge yourself** when the required checks pass. Log in `progress/P.md`. Next.
 
 ## 6. Self-review checklist

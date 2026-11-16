@@ -18,6 +18,24 @@ Direction is always **producer -> main -> consumer**. Nobody hands work to a per
 | I10 | Host evaluation results | A (`eval/run_matrix.py`, CI artifact `host-evaluation`) | P (README Results) | `results.json` keys: `v`, `source: "host"`, `platform`, `commit`, `seed_variation`, `limitations[]`, `runs[]` with `scenario`, `mode`, `seed`, `summary`, `mismatches` | `eval/tests` fixture results | `eval/tests/test_report.py` | P's README generator reads only `platform == "Linux"` artifacts |
 | I11 | Demo entry points | A (`host/guard-replay`, `dashboard/relay.py`), B (`image/run-demo.sh [--test] [--stop]`) | P (`demo/DEMO.md`, video) | Command lines as documented in `host/README.md`, `dashboard/README.md`, `image/README.md` on main | The commands themselves | `tools/check_demo_commands.py` (P) runs `--help` of every command used in `demo/DEMO.md` | n/a |
 
+## Provided by P: tooling every stream depends on (audit fix 6, D27)
+
+A and B call these tools to decide "done" and to merge. P is away (exams) from Mon 23 Nov to Fri 4 Dec, so no stream waits for a fix: under **D27** any stream may fix a defect in these files with a PR titled `tooling-fix: <what>` that changes only these files (gate files excluded, see `tools/check_ownership.py`). CLI contracts are additive only: flags and exit codes below never change meaning.
+
+| ID | Tool | CLI contract | Exit codes | Consumers |
+|---|---|---|---|---|
+| T1 | `tools/check.py` (`make check`) | `python tools/check.py [--fast]`. Stages: format, policy, contract-compat, ownership, doc-links, brief-sync, (host-configure, host-build, host-test unless `--fast`), ruff, pytest, then a scope summary. Prints `PASS`/`FAIL`/`SKIPPED <stage>` and `RESULT: GREEN` or `RESULT: RED (<stages>)` | 0 green, 1 red | A, B, P (merge rule) |
+| T2 | `tools/check_policy.py` | `python tools/check_policy.py <core-portable\|no-qnx-files\|claims-lint\|schemas\|evidence\|all>`; `evidence` applies C13, size, no-timing and the D21 SHA rule (needs `refs/remotes/pr/*` fetched) | 0 pass, 1 fail | A, B (required checks) |
+| T3 | `tools/scope_gate.py` | `[--report]` table, `--summary` one line per stream, `--stream A\|B\|P`, `--check-core-evidence` (a `core-on-target` bundle whose `sha` descends from the commit that added `core/src/safety/supervisor.cpp`), `--now ISO` for tests. Done-checks run as argv lists, no shell | report: always 0; `--check-core-evidence`: 0 found, 1 not | A, B, P (self-descope, B1) |
+| T4 | `tools/check_format.py` + `.clang-format` | `python tools/check_format.py`: clang-format `--dry-run --Werror` over tracked C/C++ | 0 ok, 1 unformatted or missing in CI, 3 clang-format missing locally (`check.py` shows SKIPPED) | A, B |
+| T5 | `tools/check_ownership.py` | see its docstring; CI runs the base branch copy with `--policy-from-base` | 0 pass, 1 fail | all (required `ownership`) |
+| T6 | `tools/check_contract_compat.py` | `--base contracts-v1.2` | 0 pass, 1 fail | all (required `contract-compat`) |
+| T7 | `tools/check_doc_links.py` | no arguments; checks `docs/streams/*.md` links and `§N` references | 0 pass, 1 fail | P |
+| T8 | `tools/check_main_red.py` | `[--sha SHA] [--open-issue]`; names in `.github/required-checks.txt` | 0 none red, 1 red, 2 cannot read | nightly |
+| T9 | `tools/fresh_clone_demo.sh` | `bash tools/fresh_clone_demo.sh [ref]` clones `ref` and runs the README host quick start | 0 pass, non-zero fail | A (DoD), P (P3, P4) |
+| T10 | `.github/workflows/ci.yml`, `governance.yml` | job names = the 13 required checks in `.github/required-checks.txt`; triggers `push`, `pull_request`, `merge_group` | per job | all |
+| T11 | `tools/check_brief_sync.py`, `tools/sync_briefs.py` | check: brief milestone tables (ids, tiers, dates) vs `SCOPE.yaml`; sync: rewrite the Due and Tier cells, never Work/Acceptance prose | 0 match, 1 drift or missing row | P |
+
 ## Not interfaces any more (removed by D26)
 - C1 `RouteProposal` (v1.3, D24): cut. `guard-planner` checks a route with `guard::check_route` and emits ordinary C1 `Proposal`s.
 - Any human review, approval, `CONTRACT-Q:` or `PO-DECISION:` between streams.

@@ -3,14 +3,10 @@
 Brief: `docs/streams/BRIEF-A.md`. Resume from this file after any restart. Live scope: `python tools/scope_gate.py --stream A`.
 
 ## Now
-Resumed at user request on 2026-11-16; account identity/access verified (phatdat220707).
-- Working branch: `a/a6-recorded-default`; A6 changes remain uncommitted, preserved on disk.
-- A6 implemented: --recorded default (synthetic bundled fixture), --trace alias, exact-provenance live timeout fallback; D26 docs updated.
-- `python -m pytest eval/tests/test_recorded_advisor.py -q`: 9 passed; Ruff passes. Full check, fresh-context review, commit/push/PR still required.
-- A5 #163 merged 82ba25a after host-ci/governance/stream-a all GREEN.
-- A4 merged #161 at f48946b; main Linux matrix GREEN run 43856863508, fresh clone GREEN run 43856863542. A1/A2 #158 and A3 #160 merged.
-- No local Ollama/advisor server or build/test task from this session is running.
-- Before any next push, verify the new account's repository identity/access; never print credentials.
+- Resumed at user request on 2026-11-16; GitHub identity/access verified as phatdat220707.
+- A5 PR #163 merged 82ba25a, host-ci/governance/stream-a GREEN.
+- A6: recorded mode default, --trace compatibility, exact timeout fallback; full checks and self-review underway.
+- Next: A7 real seed variation, then A8 property tests. A9 second-laptop evidence remains manual.
 
 ## Done (with evidence: command + last lines, commit or run link)
 
@@ -30,7 +26,9 @@ A2: done 25fc74b
 
 ## Known issues
 
-A4: local checks passed; Linux main artifact pending (not yet done).
+A4: done https://github.com/Tauwho/GUARD/actions/runs/43856863508
+- Main f48946b: host-evaluation GREEN, 63 cases with B2 gate; artifact retained 90 days.
+- Linux tools/check.py and fresh-clone demo: https://github.com/Tauwho/GUARD/actions/runs/43856863542 GREEN.
 - `python tools/check.py`: RESULT: GREEN (out/d26-a4-check.txt).
 - run_start.ablate is already emitted under frozen v1.2; preserve it.
 
@@ -40,3 +38,13 @@ A3: done (local acceptance)
 - Local C14 command log includes load/start/process inject/stop; SSH transport has bounded capture and BatchMode auth.
 - Fresh-context review: fixed top-level duration, requested seed/multiple-run validation, out-of-duration injection and stop-after-refused-load findings. Validate optional frozen C8 run_id when supplied; enforce shared injection deadline.
 - SSH hardware not claimed: tests use local core and transport mocks. Target execution belongs to B.
+
+
+A5: done (host acceptance)
+- `python -m pytest eval/tests/test_dashboard_relay.py -q`: 7 passed.
+- Headless Node smoke: PASS (seek, lease, source arc, latch, reason feed).
+- Actual localhost HTTP/TCP tested; malformed/schema-invalid/non-finite and chunked oversized lines drop without poisoning later records.
+- Lease telemetry uses retained proposal source pose; no synthetic newer-pose fallback.
+- Fresh-context findings fixed: oversized physical-line framing and huge integer rejection.
+
+- A5 integrated `python tools/check.py`: RESULT: GREEN (out/d26-a5-integrated.txt); temporary A scope adapter removed after upstream P fix.

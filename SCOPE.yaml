@@ -3,36 +3,46 @@
 #   DONE     - every check passes
 #   OPEN     - not done, cut date not reached
 #   DROPPED  - not done and the cut date for its tier has passed (SHOULD: cut_1, STRETCH: cut_2)
+#              Early cut: after cp2, if B4 (F0 on target) is not DONE every SHOULD item is DROPPED.
 #   AT-RISK  - MUST item not done after its due date (the fallback in "fallback" applies automatically)
-# Check kinds: file (glob must match), grep (regex must match in a file), cmd (exit 0).
+# Check kinds: file (glob must match), grep (regex must match in a file), cmd (exit 0),
+# evidence: manual (reported MANUAL, never DONE; a progress file is never a done-check).
 version: 1
 dates:
+  phase0: 2026-11-17T23:59
   cp1: 2026-11-22T23:59
   cp2: 2026-11-29T23:59
   cut_1: 2026-12-04T23:59      # SHOULD items not DONE and with no branch activity are DROPPED
   cut_2: 2026-12-07T23:59      # every STRETCH item not DONE is DROPPED
   feature_freeze: 2026-12-09T23:59
   code_freeze: 2026-12-10T18:00
+  package_done: 2026-12-13T23:59
   hard_stop: 2026-12-15T18:00
 items:
   # ---------------- Stream A (host vertical) ----------------
   - {id: A1, tier: MUST, owner: A, due: cp1, title: "Open review blockers fixed in core (lease_seq on refusal, recheck uses lease length and speed bounds only)",
-     checks: [{cmd: "python -m pytest eval/tests -q -k 'not slow'"}, {grep: {file: "progress/A.md", re: "A1: done"}}]}
+     checks: [{cmd: "python -m pytest eval/tests -q -k 'not slow'"}]}
   - {id: A2, tier: MUST, owner: A, due: cp1, title: "Planner fixes: F5 keeps a_max ramp and retries at nominal speed; F6 shortcut cites cached map version",
-     checks: [{grep: {file: "progress/A.md", re: "A2: done"}}]}
+     checks: [{cmd: "python host/guard-replay --scenario scenarios/F5.yaml --mode B2 --out out/scope-F5.jsonl"}, {cmd: "python host/guard-replay --scenario scenarios/F6.yaml --mode B2 --out out/scope-F6.jsonl"}]}
   - {id: A3, tier: MUST, owner: A, due: cp1, title: "Host side of the target scenario runner, local mock target (eval/target_runner.py --target local)",
      checks: [{file: "eval/target_runner.py"}, {file: "eval/tests/test_target_runner.py"}]}
-  - {id: A4, tier: MUST, owner: A, due: cp2, title: "Linux host matrix (B0/B1/B2 + ablations) published as a CI artifact on main, report labelled host (Linux) harness",
-     checks: [{grep: {file: "progress/A.md", re: "A4: done .*actions/runs/[0-9]+"}}]}
+  - {id: A4, tier: MUST, owner: A, due: cp2, evidence: manual, checks: [],
+     title: "Linux host matrix (B0/B1/B2 + ablations) published as a CI artifact on main, report labelled host (Linux) harness",
+     note: "Manual: the artifact is remote (URL in progress/A.md); no offline check."}
   - {id: A5, tier: MUST, owner: A, due: cp2, title: "Dashboard replay final (lease bar, arc, reason feed) + headless smoke test",
-     checks: [{file: "eval/tests/test_dashboard_relay.py"}, {grep: {file: "progress/A.md", re: "A5: done"}}]}
+     checks: [{file: "eval/tests/test_dashboard_relay.py"}, {cmd: "python -m pytest eval/tests/test_dashboard_relay.py -q"}]}
   - {id: A6, tier: SHOULD, owner: A, due: cut_1, title: "LLM route advisor demo on host with recorded responses (Qwen2.5-1.5B, D23)",
-     checks: [{grep: {file: "host/ADVISOR.md", re: "1\\.5[bB]"}}, {grep: {file: "progress/A.md", re: "A6: done"}}]}
-  - {id: A7, tier: SHOULD, owner: A, due: cut_1, title: "Seeds perturb world/planner so 50 seeds are independent trials (or report says deterministic repeats)",
-     checks: [{grep: {file: "progress/A.md", re: "A7: done"}}]}
-  - {id: A8, tier: STRETCH, owner: A, due: cut_2, title: "Hypothesis property tests (#28)", checks: [{grep: {file: "progress/A.md", re: "A8: done"}}]}
-  - {id: A9, tier: STRETCH, owner: A, due: cut_2, title: "Live Ollama advisor path verified on a second laptop", checks: [{grep: {file: "progress/A.md", re: "A9: done"}}]}
+     checks: [{grep: {file: "host/ADVISOR.md", re: "1\\.5[bB]"}}, {cmd: "python host/llm_advisor.py --help"}, {cmd: "python -m pytest eval/tests/test_recorded_advisor.py -q"}]}
+  - {id: A7, tier: SHOULD, owner: A, due: cut_1, evidence: manual, checks: [],
+     title: "Seeds perturb world/planner so 50 seeds are independent trials (or report says deterministic repeats)",
+     note: "Manual: read the Linux report; either 50 independent seeds or an explicit deterministic-repeat statement."}
+  - {id: A8, tier: STRETCH, owner: A, due: cut_2, title: "Hypothesis property tests (#28)", checks: [{cmd: "python -m pytest eval/tests -q -k hypothesis"}]}
+  - {id: A9, tier: STRETCH, owner: A, due: cut_2, evidence: manual, checks: [],
+     title: "Live Ollama advisor path verified with recorded fallback on timeout on a second laptop",
+     note: "Manual: second laptop; recorded fallback on timeout."}
   # ---------------- Stream B (target vertical) ----------------
+  - {id: B0, tier: MUST, owner: B, due: phase0, title: "image/target-check.sh builds, boots, runs and captures an evidence bundle",
+     checks: [{cmd: "bash image/target-check.sh --help"}]}
   - {id: B1, tier: MUST, owner: B, due: cp1, title: "core-on-target evidence from main after A's core landed",
      checks: [{cmd: "python tools/scope_gate.py --check-core-evidence"}]}
   - {id: B2, tier: MUST, owner: B, due: cp1, title: "guard-gate process on target (resmgr /dev/guard/gate, C2/C3/C4/C5) with evidence",
@@ -46,15 +56,21 @@ items:
   - {id: B6, tier: MUST, owner: B, due: cut_2, title: "secpol policy + denial demo (#46, D22); MUST-lite fallback: uid denial only",
      checks: [{file: "evidence/*-secpol*/manifest.json"}]}
   - {id: B7, tier: SHOULD, owner: B, due: cut_1, title: "F2, F4, F7, F8 on target", checks: [{file: "evidence/*-scenario-F2/manifest.json"}, {file: "evidence/*-scenario-F7/manifest.json"}]}
-  - {id: B8, tier: SHOULD, owner: B, due: cut_1, title: "Image packs normalized inputs (#141) and boots straight into GUARD (run-demo.sh)", checks: [{grep: {file: "progress/B.md", re: "B8: done"}}]}
+  - {id: B8, tier: SHOULD, owner: B, due: cut_1, evidence: manual, title: "Image packs normalized inputs (#141) and boots straight into GUARD (run-demo.sh)",
+     checks: [{file: "image/run-demo.sh"}], note: "Manual: boot transcript shows normalized inputs and GUARD start."}
   - {id: B9, tier: STRETCH, owner: B, due: cut_2, title: "Remote planner backend on target over C9 TCP 7701 against the recorded advisor (#49)", checks: [{file: "evidence/*-remote-planner/manifest.json"}]}
   - {id: B10, tier: STRETCH, owner: B, due: cut_2, title: "SLM ordered start + restart into LATCHED (#47)", checks: [{file: "evidence/*-slm/manifest.json"}]}
   - {id: B11, tier: STRETCH, owner: B, due: cut_2, title: "tracelogger timeline (#48)", checks: [{file: "evidence/*-tracelogger/manifest.json"}]}
   # ---------------- Stream P (package vertical) ----------------
+  - {id: P0, tier: MUST, owner: P, due: phase0, title: "Phase 0 merged: zero-handoff process, ownership, scope and verification harness on main",
+     checks: [{file: "OWNERSHIP.yaml"}, {file: "SCOPE.yaml"}, {file: "tools/scope_gate.py"}, {file: "docs/streams/BRIEF-P.md"}]}
   - {id: P1, tier: MUST, owner: P, due: cp1, title: "README generator (Evidence Map, Results, quick start from main) + fresh-clone nightly green",
      checks: [{file: "tools/build_readme.py"}, {cmd: "python tools/build_readme.py --check"}]}
   - {id: P2, tier: MUST, owner: P, due: cp2, title: "Demo script and storyboard whose every command exists on main",
      checks: [{file: "demo/DEMO.md"}, {cmd: "python tools/check_demo_commands.py"}]}
   - {id: P3, tier: MUST, owner: P, due: code_freeze, title: "v1.0-rc1 tag on a green, fresh-clone-passing commit", checks: [{cmd: "git rev-parse -q --verify refs/tags/v1.0-rc1"}]}
-  - {id: P4, tier: MUST, owner: P, due: hard_stop, title: "Video under 3:00 linked in README; make package-check passes", checks: [{grep: {file: "progress/P.md", re: "P4: done .*package-check PASS"}}, {grep: {file: "README.md", re: "(?i)video"}}]}
+  - {id: P4, tier: MUST, owner: P, due: package_done, title: "Video under 3:00 linked in README; make package-check passes",
+     checks: [{cmd: "python tools/check_package.py"}, {grep: {file: "README.md", re: "(?i)video"}}]}
   - {id: P5, tier: SHOULD, owner: P, due: cut_1, title: "Architecture diagram + Limits page final", checks: [{file: "docs/architecture.svg"}]}
+  - {id: P6, tier: MUST, owner: P, due: package_done, title: "Devpost submission draft (description, screenshots, video link, AI-use); the upload itself is human PO only",
+     checks: [{file: "docs/devpost/description.md"}, {file: "docs/devpost/screenshots.md"}, {cmd: "python tools/check_submission.py"}]}

@@ -1,7 +1,10 @@
 name: governance
 on:
   pull_request:
-    types: [opened, synchronize, reopened, labeled, unlabeled]
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled]
+  merge_group:
+  push:
+    branches: [main]
 permissions:
   contents: read
 jobs:
@@ -15,7 +18,24 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install PyYAML==6.0.3
-      - run: python tools/check_ownership.py --base "origin/${{ github.base_ref }}" --head-ref "${{ github.head_ref }}" --labels "${{ join(github.event.pull_request.labels.*.name, ',') }}"
+      - name: ownership (base branch copy of the gate, D27)
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          if [ -z "$BASE_REF" ]; then echo "ownership: not a pull request; nothing to check"; exit 0; fi
+          gate="$RUNNER_TEMP/check_ownership.py"
+          git show "origin/$BASE_REF:tools/check_ownership.py" > "$gate"
+          if grep -q -- "--policy-from-base" "$gate"; then
+            python "$gate" --root . --base "origin/$BASE_REF" --policy-from-base \
+              --head-ref "$HEAD_REF" --labels "$PR_LABELS" --title "$PR_TITLE"
+          else
+            # One-time bootstrap: the base copy predates D27.
+            python tools/check_ownership.py --base "origin/$BASE_REF" \
+              --head-ref "$HEAD_REF" --labels "$PR_LABELS" --title "$PR_TITLE"
+          fi
   contract-compat:
     runs-on: ubuntu-24.04
     steps:
