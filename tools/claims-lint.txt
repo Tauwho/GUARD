@@ -1,0 +1,7 @@
+\bis safe\b
+\bguarantee(?:s)?\b
+\bcertified\b
+\bcompliant\b
+\bprevents collisions\b
+\bhard real-time\b
+\bfaster than Linux\b
