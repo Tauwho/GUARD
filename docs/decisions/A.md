@@ -15,3 +15,5 @@ Decide, log one line, continue (D26). Never edit `DECISIONS.md`.
 | 2026-11-16 | Dashboard drops malformed physical records and reports count; parser rejects browser-infinite numbers | Preserve live viewing after bad bridge input without presenting corrupt telemetry. |
 | 2026-11-16 | Use Node VM with DOM/canvas stubs for headless behavior smoke | No visible browser or extra runtime package; transport tests use real localhost HTTP/TCP. |
 | 2026-11-16 | Scope-only Linux make adapter returns pending for recursive P package-check probe | P Makefile check -> scope -> package-check -> check recurses; all A checks still run unchanged. |
+
+| 2026-11-16 | Remove temporary scope make adapter after P fixes f21aab4/2011b07 reach main | Use plain tools/check.py again; P-owned recursion is now fixed upstream. |

@@ -1,8 +1,0 @@
-#!/usr/bin/env sh
-# The P-owned scope probe recurses: check -> scope -> package-check -> check.
-# Leave that package milestone pending while A runs every real check unchanged.
-if [ "$#" -eq 1 ] && [ "$1" = "package-check" ]; then
-    echo 'Stream A scope probe: recursive package-check is pending in stream P.' >&2
-    exit 1
-fi
-exec /usr/bin/make "$@"

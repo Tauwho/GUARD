@@ -28,7 +28,9 @@ A2: done 25fc74b
 
 ## Known issues
 
-A4: local checks passed; Linux main artifact pending (not yet done).
+A4: done https://github.com/Tauwho/GUARD/actions/runs/43856863508
+- Main f48946b: host-evaluation GREEN, 63 cases with B2 gate; artifact retained 90 days.
+- Linux tools/check.py and fresh-clone demo: https://github.com/Tauwho/GUARD/actions/runs/43856863542 GREEN.
 - `python tools/check.py`: RESULT: GREEN (out/d26-a4-check.txt).
 - run_start.ablate is already emitted under frozen v1.2; preserve it.
 
@@ -46,3 +48,5 @@ A5: done (host acceptance)
 - Actual localhost HTTP/TCP tested; malformed/schema-invalid/non-finite and chunked oversized lines drop without poisoning later records.
 - Lease telemetry uses retained proposal source pose; no synthetic newer-pose fallback.
 - Fresh-context findings fixed: oversized physical-line framing and huge integer rejection.
+
+- A5 integrated `python tools/check.py`: RESULT: GREEN (out/d26-a5-integrated.txt); temporary A scope adapter removed after upstream P fix.
