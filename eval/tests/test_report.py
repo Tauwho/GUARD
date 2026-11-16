@@ -49,3 +49,15 @@ def test_report_keeps_failures_and_emits_valid_png(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match="host results only"):
         api["render"](data, tmp_path)
     assert "latency" not in json.dumps(data)
+
+
+def test_report_interpretation_matches_seeded_variation(tmp_path, monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).parents[1]))
+    api = runpy.run_path(str(Path(__file__).parents[1] / "report.py"))
+    api["render"](
+        {"source": "host", "platform": "Linux", "seed_variation": True, "runs": []}, tmp_path
+    )
+    text = (tmp_path / "report.md").read_text()
+    assert "bounded staff/planner perturbations" in text
+    assert "identical physical inputs" not in text
+    assert "does not establish statistical independence" in text

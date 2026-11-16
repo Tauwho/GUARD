@@ -18,9 +18,12 @@ goal time, F0 rejection rate, a PNG matrix and explicit mismatches. Operator rec
 trials are not implemented; their result stays unavailable. All nine B2 scenarios match on the Linux host harness; baseline F1
 still differs from the shared hypothesis (issue #22). Ablations use B2 as reference.
 
-Current seeds label deterministic repetitions without physical perturbations. Do not
-interpret the matrix as 50 independent randomized trials per scenario/configuration.
-Retain this limitation when using the results. Check trajectory hashes in `results.json`.
+Seeds now select bounded, reproducible host perturbations: a common staff-event
+start offset within +/-100 ms and planner-cadence delay of 0..5 ms. The scenario
+reference seed remains unchanged; flood cadence stays exact. All modes use the
+same staff offset for a given seed. These are seeded trials, not a claim of
+statistical independence; some modes may share traces. Compare trace-body hashes
+and retain the configured variation limits in reports. Repeating a seed is byte-identical.
 
 ADR0011/D11 applies: publish numeric results only from the host Linux harness. The tool
 records the real host platform and marks Windows reports preliminary/internal. Target

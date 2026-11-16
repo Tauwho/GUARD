@@ -120,8 +120,13 @@ def render(data, out):
         "",
         "## Interpretation",
         "",
-        "Repeated seeds currently have identical physical inputs. Counts across seeds "
-        "are repeated executions, not independent trials.",
+        (
+            "Seeds select bounded staff/planner perturbations; a repeated seed is deterministic. "
+            "Seeded variation alone does not establish statistical independence."
+            if data.get("seed_variation")
+            else "Repeated seeds currently have identical physical inputs. Counts across seeds "
+            "are repeated executions, not independent trials."
+        ),
         "Removing a check can change its emitted reasons without producing a contact. "
         "This alone does not demonstrate an effect on violations.",
         "Missing recovery measurements remain unavailable. F0 rejection rate uses "

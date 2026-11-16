@@ -19,3 +19,6 @@ Decide, log one line, continue (D26). Never edit `DECISIONS.md`.
 | 2026-11-16 | Remove temporary scope make adapter after P fixes f21aab4/2011b07 reach main | Use plain tools/check.py again; P-owned recursion is now fixed upstream. |
 
 | 2026-11-16 | Recorded mode is the offline default; live fallback requires an exact request and dedicated model-availability error | Never refresh old provenance or mask recording I/O/invalid model output. |
+
+| 2026-11-16 | Preserve the reference seed; vary staff start +/-100 ms and proposal cadence +0..5 ms for other seeds, retain flood cadence | Reproducible bounded host trials, paired staff inputs across modes, no change to fault/zone schedules or B2 expectations. |
+| 2026-11-16 | Dispatch C8 envelope plus exact kind payload schema using jsonschema | Remove repeated mutually exclusive condition work while retaining every frozen constraint; differential tests and full-schema fallback. |

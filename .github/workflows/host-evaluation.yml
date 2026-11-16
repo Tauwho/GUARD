@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       seeds:
-        description: Repeats per scenario/configuration (no physical seed variation yet)
+        description: Seeds per scenario/configuration (bounded host variation)
         type: choice
         options: ['1', '50']
         default: '1'
@@ -17,7 +17,7 @@ concurrency:
 jobs:
   evaluate:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -31,7 +31,7 @@ jobs:
         id: matrix
         env:
           MATRIX_SEEDS: ${{ inputs.seeds || '1' }}
-        run: python eval/run_matrix.py --seeds "$MATRIX_SEEDS" --gate-b2 --jobs 2 --out out/linux-matrix
+        run: python eval/run_matrix.py --seeds "$MATRIX_SEEDS" --gate-b2 --jobs 4 --out out/linux-matrix
       - name: Render report, including failed hypotheses
         if: always()
         run: |

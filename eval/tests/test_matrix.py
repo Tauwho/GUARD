@@ -1,5 +1,7 @@
 import json
 import runpy
+import subprocess
+import sys
 from pathlib import Path
 
 import jsonschema
@@ -64,3 +66,46 @@ def test_b2_gate_preserves_control_differences_but_fails_regressions(monkeypatch
     records[1]["error"] = "bad schema"
     assert api["failed_gate"](records, True)
     assert api["failed_gate"]([], True)
+
+
+def test_f1_seeds_change_physical_trajectory_and_repeating_seed_is_identical(tmp_path):
+    root = Path(__file__).parents[2]
+    binary = (
+        root
+        / "build/host-debug/host"
+        / ("guard-replay-core.exe" if sys.platform == "win32" else "guard-replay-core")
+    )
+    if not binary.exists():
+        pytest.skip("build host-debug for seeded trajectory integration")
+    outputs = []
+    for index, seed in enumerate((1001, 1002, 1002)):
+        path = tmp_path / f"run-{index}.jsonl"
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(root / "host/guard-replay"),
+                "--scenario",
+                str(root / "scenarios/F1.yaml"),
+                "--seed",
+                str(seed),
+                "--mode",
+                "B2",
+                "--out",
+                str(path),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+        outputs.append(path.read_bytes())
+
+    def poses(data):
+        return [
+            (e["payload"]["x"], e["payload"]["y"], e["payload"]["v_meas"])
+            for line in data.splitlines()
+            if (e := json.loads(line))["kind"] == "observation"
+        ]
+
+    assert poses(outputs[0]) != poses(outputs[1])
+    assert outputs[1] == outputs[2]
