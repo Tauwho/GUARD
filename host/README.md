@@ -1,0 +1,30 @@
+# Host replay
+
+Build with `cmake --preset host-debug` and `cmake --build --preset host-debug`.
+Install the pinned Python dependencies from `requirements-dev.txt`.
+
+Run from the repository root:
+
+```sh
+python host/guard-replay --scenario scenarios/F0.yaml --seed 1000 --mode B2 --out out/F0.jsonl
+```
+
+The Python entry point validates YAML, normalizes buffers for the portable loaders,
+runs `guard-replay-core`, validates every C8 telemetry record and checks the scenario's
+expected outcomes. Exit codes: 0 expectations met; 1 actual outcome differs; 2 input,
+model or execution error. Use `--binary` for another build directory.
+On Windows with a portable compiler, put that compiler's runtime directory on PATH.
+
+The engine runs the actual core classes with injected virtual time. F2 is an abstract
+supervisor stall; F3 closes its gate session and stops supervisor decisions/rechecks.
+These host models do not test QNX scheduling or process wiring. F7 currently returns
+an explicit model error. Baselines and the full matrix remain separate work under #25/#23.
+
+The seed is recorded for reproducibility; current scenario timelines have no random
+perturbations, so different seeds currently produce the same physical trajectory.
+Do not present those runs as independent randomized trials.
+
+For the nominal F0 run, the reported `false_reject_rate` is operationally defined as
+rejected proposals divided by all proposals from the nominal rule planner. It is not
+a separate correctness oracle. `stop_time_s` measures fault onset to the first STOPPING
+transition, not time to physical standstill. Raw JSONL remains available for inspection.

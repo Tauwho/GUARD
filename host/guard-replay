@@ -1,0 +1,131 @@
+#!/usr/bin/env python3
+"""Validate YAML, run the portable model, and check actual outcomes against hypotheses."""
+
+import argparse
+import json
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+import jsonschema
+import yaml
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_yaml(path):
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
+def summarize(events):
+    end = events[-1]
+    if end["kind"] != "run_end":
+        raise ValueError("incomplete telemetry")
+    summary = dict(end["payload"])
+    summary["violations"] = summary["contacts"] + summary["zone_breaches"]
+    summary["latches"] = sum(
+        event["kind"] == "gate_transition" and event["payload"]["to"] == "LATCHED"
+        for event in events
+    )
+    summary["false_reject_rate"] = summary["rejected"] / max(1, summary["proposals"])
+    reasons = set()
+    for event in events:
+        payload = event["payload"]
+        reasons.update(payload.get("reasons", []))
+        reasons.update(payload[key] for key in ("reason", "primary_reason") if key in payload)
+    summary["reasons"] = sorted(reasons)
+    starts = [
+        e["t_ns"] for e in events if e["kind"] == "fault" and e["payload"]["phase"] == "start"
+    ]
+    stops = [
+        e["t_ns"]
+        for e in events
+        if e["kind"] == "gate_transition" and e["payload"]["to"] == "STOPPING"
+    ]
+    if starts:
+        after = [stamp for stamp in stops if stamp >= starts[0]]
+        summary["stop_time_s"] = (after[0] - starts[0]) / 1e9 if after else None
+    return summary
+
+
+def mismatches(expected, summary):
+    failures = []
+    for key, value in expected.items():
+        if key == "note":
+            continue
+        if key in ("required_reasons", "forbidden_reasons"):
+            found = set(value) & set(summary["reasons"])
+            wrong = set(value) - found if key == "required_reasons" else found
+            if wrong:
+                failures.append(f"{key}: {sorted(wrong)}")
+        elif key.startswith("max_"):
+            actual = summary.get(key[4:])
+            if actual is None or actual > value:
+                failures.append(f"{key}: actual={actual}, limit={value}")
+        elif key not in summary:
+            failures.append(f"unsupported expectation: {key}")
+        elif isinstance(value, dict):
+            if set(value) != {"min"} or summary[key] < value["min"]:
+                failures.append(f"{key}: actual={summary[key]}, expected={value}")
+        elif summary[key] != value:
+            failures.append(f"{key}: actual={summary[key]}, expected={value}")
+    return failures
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--scenario", type=Path, required=True)
+    parser.add_argument("--seed", type=int)
+    parser.add_argument("--mode", choices=["B2"], default="B2")
+    parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--binary", type=Path)
+    args = parser.parse_args(argv)
+    scenario = load_yaml(args.scenario)
+    schema = json.loads((ROOT / "contracts/scenario.schema.json").read_text())
+    jsonschema.validate(scenario, schema)
+    map_path = ROOT / "scenarios/maps" / (scenario["map"] + ".yaml")
+    world = load_yaml(map_path)
+    jsonschema.validate(world, schema)
+    seed = scenario["seed"] if args.seed is None else args.seed
+    if not 0 <= seed <= 2**64 - 1:
+        raise ValueError("seed must fit uint64")
+    binary = args.binary or ROOT / "build/host-debug/host/guard-replay-core"
+    if sys.platform == "win32" and not binary.suffix:
+        binary = binary.with_suffix(".exe")
+    if not binary.is_file():
+        raise ValueError(f"build guard-replay-core first; missing {binary}")
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="guard-replay-") as temporary:
+        paths = {}
+        for name, data in (
+            ("scenario", scenario),
+            ("map", world),
+            ("config", {"version": 1, "mode": "B2"}),
+        ):
+            path = Path(temporary) / (name + ".json")
+            path.write_text(json.dumps(data, allow_nan=False), encoding="utf-8")
+            paths[name] = path
+        command = [str(binary.resolve())]
+        for name, path in paths.items():
+            command.extend(["--" + name, str(path)])
+        command.extend(["--seed", str(seed), "--out", str(args.out.resolve())])
+        subprocess.run(command, check=True, timeout=30)
+    events = [json.loads(line) for line in args.out.read_text(encoding="utf-8").splitlines()]
+    validator = jsonschema.Draft202012Validator(
+        json.loads((ROOT / "contracts/telemetry.schema.json").read_text())
+    )
+    for event in events:
+        validator.validate(event)
+    summary = summarize(events)
+    failures = mismatches(scenario["expected"][args.mode], summary)
+    print(json.dumps({"summary": summary, "mismatches": failures}, sort_keys=True))
+    return 1 if failures else 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except (ValueError, OSError, subprocess.SubprocessError, jsonschema.ValidationError) as error:
+        print(f"guard-replay: {error}", file=sys.stderr)
+        sys.exit(2)

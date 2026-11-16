@@ -1,6 +1,8 @@
 add_library(guard_host STATIC replay.cpp)
 target_link_libraries(guard_host PUBLIC guard_core)
 target_include_directories(guard_host PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+add_executable(guard-replay-core main.cpp)
+target_link_libraries(guard-replay-core PRIVATE guard_host)
 if(BUILD_TESTING)
   enable_testing()
   add_executable(guard_replay_tests tests/replay.cpp)
