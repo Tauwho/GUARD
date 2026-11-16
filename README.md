@@ -37,7 +37,7 @@ flowchart LR
 4. The gate sends a motor command every tick. When the lease expires, is revoked or comes from an old epoch, the gate brings the robot to a stop and, for some causes, latches until an operator recovers it.
 5. If the gate itself dies, the simulated drive brakes after its own watchdog timeout.
 
-Starving the planner path, for example with a busy process above the supervisor, can only let leases lapse, which stops the robot. It never extends motion. A shorter lease allows more speed near hazards, because the gate reacts sooner (see `d_req` in [docs/parameters.md](docs/parameters.md)).
+Starving the planner path, for example with a busy process above the supervisor, can only let leases lapse, which stops the robot. It never extends motion.
 
 Details: [docs/architecture.md](docs/architecture.md), contracts in [contracts/](contracts/), decisions in [DECISIONS.md](DECISIONS.md).
 
