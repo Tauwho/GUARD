@@ -54,7 +54,7 @@ TEST_CASE("flood uses requested cadence and replay repeats the old sequence") {
     CHECK(first.seq == second.seq);
     CHECK(first.created_ns == second.created_ns);
 }
-TEST_CASE("shortcut ignores waypoints while aggressive bypasses normal acceleration") {
+TEST_CASE("shortcut ignores waypoints while aggressive retains normal acceleration") {
     auto route = map();
     route.waypoint_count = 1;
     route.waypoints[0] = {0, 5};
@@ -74,7 +74,7 @@ TEST_CASE("shortcut ignores waypoints while aggressive bypasses normal accelerat
     options.mode = guard::PlannerMode::aggressive;
     options.cruise_v = 1.2;
     REQUIRE(aggressive.propose(0, options, result));
-    CHECK(result.v_cmd == 1.2);
+    CHECK(result.v_cmd == doctest::Approx(0.025));
 }
 TEST_CASE("planner yields to nearby obstacles and stops at goal") {
     guard::Planner planner(map());
@@ -92,4 +92,47 @@ TEST_CASE("planner yields to nearby obstacles and stops at goal") {
     REQUIRE(planner.propose(100'000'000, {}, result));
     CHECK(result.v_cmd == 0);
     CHECK(result.w_cmd == 0);
+}
+
+TEST_CASE("shortcut retains planned map version while citing a fresh pose") {
+    guard::Planner planner(map());
+    REQUIRE(planner.observe(observation()));
+    auto changed = observation(2, 100'000'000);
+    changed.map_version = 2;
+    REQUIRE(planner.observe(changed));
+    guard::PlannerOptions options;
+    options.mode = guard::PlannerMode::shortcut;
+    guard::Proposal result;
+    REQUIRE(planner.propose(100'000'000, options, result));
+    CHECK(result.based_on.obs_id == 2);
+    CHECK(result.based_on.obs_stamp_ns == 100'000'000);
+    CHECK(result.based_on.map_version == 1);
+}
+
+TEST_CASE("aggressive yields only after a matching stopping-distance rejection") {
+    guard::Planner planner(map());
+    auto source = observation();
+    source.v_meas = 0.8;
+    source.obstacle_count = 1;
+    source.obstacles[0] = {0.8, 0, 0.3};
+    REQUIRE(planner.observe(source));
+    guard::PlannerOptions options;
+    options.mode = guard::PlannerMode::aggressive;
+    options.cruise_v = 1.2;
+    guard::Proposal first, retry;
+    REQUIRE(planner.propose(0, options, first));
+    CHECK(first.v_cmd == doctest::Approx(0.825));
+    guard::Decision reply;
+    reply.proposal_id = first.proposal_id + 1;
+    reply.verdict = 2;
+    reply.primary_reason = 212;
+    planner.decision(reply);
+    REQUIRE(planner.propose(100'000'000, options, retry));
+    CHECK(retry.v_cmd == first.v_cmd);
+    reply.proposal_id = retry.proposal_id;
+    planner.decision(reply);
+    REQUIRE(planner.propose(200'000'000, options, retry));
+    CHECK(retry.v_cmd == 0);
+    REQUIRE(planner.propose(300'000'000, options, retry));
+    CHECK(retry.v_cmd == first.v_cmd);
 }
