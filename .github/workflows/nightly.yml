@@ -5,7 +5,17 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  issues: write
+  checks: read
 jobs:
+  main-red:
+    # Fails and opens one issue if the newest main commit has a red required check.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/check_main_red.py --open-issue
+        env:
+          GH_TOKEN: ${{ github.token }}
   fresh-clone-and-tag:
     runs-on: ubuntu-24.04
     steps:

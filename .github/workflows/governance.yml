@@ -2,6 +2,9 @@ name: governance
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
+  merge_group:
+  push:
+    branches: [main]
 permissions:
   contents: read
 jobs:
