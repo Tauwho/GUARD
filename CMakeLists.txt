@@ -35,7 +35,8 @@ if(BUILD_TESTING)
     URL_HASH SHA256=632ed2c05a7f53fa961381497bf8069093f0d6628c5f26286161fbd32a560186
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
   FetchContent_MakeAvailable(doctest)
-  add_executable(guard_core_tests core/tests/smoke.cpp "${GUARD_GENERATED}/contracts_fixtures.cpp")
+  add_executable(guard_core_tests core/tests/smoke.cpp core/tests/contracts_edges.cpp
+                 "${GUARD_GENERATED}/contracts_fixtures.cpp")
   target_link_libraries(guard_core_tests PRIVATE guard_core doctest::doctest)
   add_test(NAME guard_core_smoke COMMAND guard_core_tests)
 endif()
