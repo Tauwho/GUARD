@@ -3,7 +3,7 @@
 Brief: `docs/streams/BRIEF-A.md`; frozen contracts-v1.2; D26/D27. Resume here.
 
 ## Now
-- A8 generated production-C++ properties: implemented, integrated with A7, final check and CI pending.
+- A8 generated production-C++ properties: local acceptance complete, CI/merge pending.
 - Account phatdat220707 verified after user-requested pause/resume; no secrets exposed.
 - Continue useful independent host work; no QNX target needed by stream A.
 
@@ -51,12 +51,13 @@ A7: done b016a04 (#177), manual Linux evidence https://github.com/Tauwho/GUARD/a
 - `python tools/check.py`: RESULT: GREEN (out/d26-a7-final.txt); fresh-context reviews 0 outstanding blocker/should.
 - Local copies: out/a7-linux-full/linux-matrix/results.json and linux-report/report.md.
 
-## A8 current acceptance
+## A8 acceptance
+A8: done 9458c26 (local executable acceptance; CI/merge pending)
 - Hypothesis 6.170.15 + actual guard-core-probe: 5 tests, 100 generated examples per property + explicit regressions.
 - Valid wire bytes, nonfinite fields, arbitrary bytes, valid-header wrong lengths, ACK/refusal fencing, MOVING/expiry/braking/READY.
 - Found and fixed test-driver subnormal stod issue; finite strtod regression retained.
 - Self-review: 0 blocker/should/nit after removing wrong-length prefilter and requiring real movement.
-- `python tools/check.py`: RESULT: GREEN before integration (out/d26-a8-check.txt); final integrated rerun pending.
+- `python tools/check.py`: RESULT: GREEN before integration (out/d26-a8-check.txt); final integrated rerun RESULT: GREEN (out/d26-a8-integrated.txt).
 - Optional suite only collects with real backend + built probe. Without it, -k hypothesis exits5; no property success fabricated.
 - Dedicated stream-a CI pins backend, builds probe and explicitly requires -k hypothesis. Existing tests unchanged.
 
