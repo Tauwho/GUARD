@@ -122,7 +122,7 @@ Bits 5-31 are reserved and always 0.
 | Field out of range, NaN or Inf | C1: `Decision` with `REJ_SCHEMA` | `EINVAL` |
 | Caller uid not allowed | `MsgError(rcvid, EPERM)` | `EPERM` (gate also counts `GATE_UNAUTHORIZED_CLIENT`) |
 
-A client that gets `ETIMEDOUT` from its `TimerTimeout` treats the call as failed. **A failed call never authorizes or extends motion.** For `DCMD_GUARD_LEASE` the gate makes this hold even when the timeout fires after the gate has accepted the lease: see the delivery rule in section 3.2.
+A client that gets `ETIMEDOUT` from its `TimerTimeout` treats the call as failed. **A failed call never authorizes or extends motion.** On a resmgr channel (`_NTO_CHF_UNBLOCK`) a timeout that fires while the client is reply-blocked does not end the call: the kernel sends the server an unblock pulse and the client keeps waiting for the server's reply or `MsgError` (spike S3, ADR 0017). For `DCMD_GUARD_LEASE` see the delivery rule in section 3.2.
 
 ### 1.5 `devctl` command numbers
 
@@ -206,7 +206,7 @@ Values outside the schema bounds give `REJ_SCHEMA`. Values inside the schema bou
 | Purpose | The supervisor registers an epoch, hands leases to the gate and revokes them |
 | Sender -> receiver | `guard-supervisor` -> `guard-gate` |
 | Mechanism | `open("/dev/guard/gate", O_RDWR)`, then `devctl` (section 1.5) |
-| Timeout | Client `TimerTimeout` of **5 ms** on each `devctl`. On `ETIMEDOUT` the supervisor treats the lease as not granted; the delivery rule (section 3.2) guarantees the gate did not install it. The next lease uses a new, larger `lease_seq` |
+| Timeout | Client `TimerTimeout` of **5 ms** (send + reply blocked) on each `devctl`. On a resmgr channel the 5 ms bounds send-blocked time only: `ETIMEDOUT` means the gate never received the call. Once the gate has received it, the client waits for the reply, which the gate sends within the same handler call (section 3.2, ADR 0017). On `ETIMEDOUT` the supervisor treats the lease as not granted, and the gate did not install it. The next lease uses a new, larger `lease_seq` |
 | Allowed callers | uid `guard_sup` (1103) or root. Others get `EPERM` and the gate counts `GATE_UNAUTHORIZED_CLIENT` |
 | Session rule | The gate tracks the OCB that registered. When that OCB closes while MOVING, the gate goes to STOPPING and latches `SUPERVISOR_LOST` |
 
@@ -252,11 +252,12 @@ No input. Each successful call starts a **new epoch** (`epoch = previous + 1`). 
 
 **Delivery rule: a lease takes effect only after its ack is delivered.** This closes the timeout-after-apply gap (#3).
 1. The gate runs R11-R14. A refusal is replied as usual and changes nothing.
-2. For an accepted lease, the gate first records `lease_seq` as seen, then replies `LeaseAck` with `GATE_LEASE_ACCEPTED` itself (`MsgReply`, with the handler returning `_RESMGR_NOREPLY`).
+2. For an accepted lease, the gate first records `lease_seq` as seen, then replies `LeaseAck` with `GATE_LEASE_ACCEPTED` itself (`MsgReply`, with the handler returning `_RESMGR_NOREPLY`). The gate sends this reply within the same handler call; it never defers a `LeaseAck` to a later pulse or timer.
 3. Only if that reply succeeds does the gate install the lease (R4 or R5).
-4. If the reply fails (`ESRCH`: the supervisor's `TimerTimeout` fired and it is no longer reply-blocked), the gate discards the lease, keeps its mode and its current lease, and emits `GATE_ACK_UNDELIVERED` (516). Re-sending the same `lease_seq` gets `GATE_LEASE_REPLAY`.
+4. If the reply fails (any errno), the gate discards the lease, keeps its mode and its current lease, and emits `GATE_ACK_UNDELIVERED` (516). Re-sending the same `lease_seq` gets `GATE_LEASE_REPLAY`. On QSTI this was not seen even for a late reply or a killed client (spike S3); the check stays as a defensive path.
+5. An unblock pulse for a `rcvid` the gate has already answered is ignored (`iofunc_unblock_default`).
 
-The kernel delivers the reply or the timeout, never both, so the supervisor's view and the gate's view always agree: `ETIMEDOUT` means the lease is not installed. Revokes, registers and recovers are applied before their reply, because they only reduce motion. Baselines B0/B1 (section 3.4) do not use this rule. Target evidence: spike S3 (#33).
+**Why the views agree (ADR 0017).** The gate channel uses `_NTO_CHF_UNBLOCK`. If the supervisor's 5 ms `TimerTimeout` fires while it is still send-blocked, it gets `ETIMEDOUT` and the gate never sees the lease. If the timeout fires after the gate has received the lease, the supervisor stays reply-blocked until the gate's reply, so it gets the `LeaseAck` late, not `ETIMEDOUT`. A late `LeaseAck` is binding: `GATE_LEASE_ACCEPTED` means the lease is installed. Reply-blocked time is bounded by the gate's handler (single thread, bounded handlers, ADR 0015), not by the 5 ms. Revokes, registers and recovers are applied before their reply, because they only reduce motion. Baselines B0/B1 (section 3.4) do not use this rule. Target evidence: spike S3 (#33), `spike/s3:evidence/20261116-6e0eb27-spike-s3/`.
 
 **Ablation `expiry` (C12 `ablate.expiry: true`, B2 only).** The wire format does not change: the supervisor still fills `expires_ns` within its range. The gate ignores `expires_ns` for R6 and R13, so a lease holds until it is replaced or revoked. Eval-only; never used in the demo.
 
