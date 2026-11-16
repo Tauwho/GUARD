@@ -1,0 +1,24 @@
+Script started on 2026-11-16 02:35:55-05:00 [COMMAND="ssh -o BatchMode=yes -o ConnectTimeout=5 root@10.10.10.2 'uname -a; timeout 120 /tmp/guard_qnx_common_tests -s 2>&1 | grep -E "^(TEST CASE|\[doctest\])"'" <not executed on terminal>]
+QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+[doctest] doctest version is "2.4.11"
+[doctest] run with "--help" for options
+TEST CASE:  named server and bounded send: round trip
+TEST CASE:  bounded send: ETIMEDOUT while send-blocked
+TEST CASE:  bounded send: reply-blocked timeout ends via the server's unblock answer
+TEST CASE:  open_named fails for an unknown name
+TEST CASE:  connect_self reaches the process's own channel
+TEST CASE:  DelayedReplies is fixed-capacity and tracks clients by OCB
+TEST CASE:  resmgr: __DIOTF devctl round trip
+TEST CASE:  resmgr: blocked read replied later from a timer pulse
+TEST CASE:  resmgr: client TimerTimeout on a held reply gets the server's ETIMEDOUT
+TEST CASE:  resmgr: kill -9 of a held client is answered and its OCB closes
+TEST CASE:  set_fifo rejects priorities outside 1..63
+TEST CASE:  set_fifo sets SCHED_FIFO and the priority
+TEST CASE:  PulseTimer validates its arguments
+TEST CASE:  periodic PulseTimer delivers repeated pulses until disarmed
+TEST CASE:  one-shot PulseTimer fires once; re-arming replaces the deadline
+[doctest] test cases: 15 | 15 passed | 0 failed | 0 skipped
+[doctest] assertions: 83 | 83 passed | 0 failed |
+[doctest] Status: SUCCESS!
+
+Script done on 2026-11-16 02:35:57-05:00 [COMMAND_EXIT_CODE="0"]

@@ -1,0 +1,6 @@
+guard_sim:x:1101:1101:GUARD sim:/:/bin/false
+guard_gate:x:1102:1102:GUARD gate:/:/bin/false
+guard_sup:x:1103:1103:GUARD supervisor:/:/bin/false
+guard_plan:x:1104:1104:GUARD planner:/:/bin/false
+guard_bridge:x:1105:1105:GUARD bridge:/:/bin/false
+guard_op:x:1106:1106:GUARD operator:/:/bin/false
