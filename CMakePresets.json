@@ -13,11 +13,20 @@
       "inherits": "host-debug",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {"GUARD_SANITIZERS": "ON"}
+    },
+    {
+      "name": "qnx-x86_64",
+      "displayName": "QNX 8.0 x86_64 (source qnxsdp-env first; tests run on the target)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "toolchainFile": "${sourceDir}/cmake/qnx-x86_64.cmake",
+      "cacheVariables": {"CMAKE_BUILD_TYPE": "Debug", "BUILD_TESTING": "ON"}
     }
   ],
   "buildPresets": [
     {"name": "host-debug", "configurePreset": "host-debug"},
-    {"name": "host-asan", "configurePreset": "host-asan"}
+    {"name": "host-asan", "configurePreset": "host-asan"},
+    {"name": "qnx-x86_64", "configurePreset": "qnx-x86_64"}
   ],
   "testPresets": [
     {"name": "host-debug", "configurePreset": "host-debug", "output": {"outputOnFailure": true}, "execution": {"noTestsAction": "error"}},
