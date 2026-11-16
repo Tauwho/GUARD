@@ -65,7 +65,7 @@ Questions Q1–Q8 are in issue PO-1.
 | Spike | Question | Owner | Due | Result | Decision |
 |---|---|---|---|---|---|
 | S1 | QSTI boot + `qcc` hello on each host | all | 18 Nov | — | — |
-| S2 | CMake QNX toolchain + core tests on target | B | 19 Nov | — | — |
+| S2 | CMake QNX toolchain + core tests on target | B | 19 Nov | Pass. `qnx-x86_64` preset builds `guard_core_tests` with SDP 8.0 after setting `DOCTEST_CONFIG_USE_STD_HEADERS` (libc++ `std::__2`). Same commit passes on host and QSTI: 1/1 test cases, 1/1 assertions. Evidence `evidence/20261116-161b1e8-core-on-target/` | Keep the CMake toolchain (`cmake/qnx-x86_64.cmake`); no `qcc` Makefile fallback needed (#31, #80) |
 | S3 | resmgr delayed reply, OCB close on death, mutex priority inheritance; delayed `LeaseAck` (gate waits 10 ms before `MsgReply`, supervisor `TimerTimeout` 5 ms: expect `ETIMEDOUT`, `MsgReply` fails with `ESRCH`, lease not installed, `GATE_ACK_UNDELIVERED`) | B | 21 Nov | — | — |
 | S4 | secpol denial errno; abilities across `setuid` | B | 22 Nov | — | — |
 | S5 | Instrumented `procnto` for tracelogger | B | 7 Dec | — | — |
