@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Evaluate SCOPE.yaml: DONE / OPEN / AT-RISK / DROPPED per item, by date and executable checks.
 
-python tools/scope_gate.py            full table (Markdown)
+python tools/scope_gate.py [--report] full table (Markdown)
 python tools/scope_gate.py --summary  one line per stream (used by tools/check.py)
 python tools/scope_gate.py --stream B only one stream
 python tools/scope_gate.py --check-core-evidence
@@ -16,6 +16,7 @@ import glob
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -26,19 +27,37 @@ ROOT = Path(__file__).resolve().parents[1]
 SGT = datetime.timezone(datetime.timedelta(hours=8))
 
 
+def argv(command):
+    """A cmd check as an argv list, the same on Windows and Linux (no shell quoting).
+
+    A string is split with POSIX rules, so `-k 'not slow'` stays one argument even
+    under cmd.exe. A leading `python`/`python3` becomes this interpreter.
+    """
+    parts = list(command) if isinstance(command, list) else shlex.split(command, posix=True)
+    if parts and parts[0] in ("python", "python3"):
+        parts[0] = sys.executable
+    return parts
+
+
+def execute(command, timeout=600):
+    """Run one cmd check without a shell. Returns the CompletedProcess (rc 124 on timeout)."""
+    env = dict(os.environ, GUARD_SCOPE_GATE_ACTIVE="1")
+    try:
+        return subprocess.run(
+            argv(command), cwd=ROOT, capture_output=True, text=True, env=env, timeout=timeout
+        )
+    except subprocess.TimeoutExpired as error:
+        return subprocess.CompletedProcess(error.cmd, 124, "", "timeout")
+    except FileNotFoundError as error:
+        return subprocess.CompletedProcess(argv(command), 127, "", str(error))
+
+
 def run(command):
     # A cmd check may itself call tools/check.py, which calls this script again.
     # Inside a cmd check, nested scope_gate runs skip cmd checks, so it cannot recurse.
     if os.environ.get("GUARD_SCOPE_GATE_ACTIVE"):
         return False
-    env = dict(os.environ, GUARD_SCOPE_GATE_ACTIVE="1")
-    try:
-        done = subprocess.run(
-            command, cwd=ROOT, shell=True, capture_output=True, text=True, env=env, timeout=600
-        )
-    except subprocess.TimeoutExpired:
-        return False
-    return done.returncode == 0
+    return execute(command).returncode == 0
 
 
 def check(spec):
@@ -80,6 +99,7 @@ def main():
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument("--summary", action="store_true")
+    parser.add_argument("--report", action="store_true", help="full table (the default)")
     parser.add_argument("--stream")
     parser.add_argument("--check-core-evidence", action="store_true")
     parser.add_argument("--now", help="override time, ISO, for tests")
