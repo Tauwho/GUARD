@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import math
 import time
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -39,10 +40,17 @@ class OllamaGenerator:
         body = {
             "model": self.model,
             "stream": False,
-            "format": OUTPUT_SCHEMA,
-            "prompt": "Return a waypoint route from the observed pose to the goal as JSON. "
-            "Use only waypoints and optional rationale. At most 16 waypoints. "
-            "This is an advisory route in a simulation, never motor authorization. "
+            "format": {
+                **OUTPUT_SCHEMA,
+                "properties": {
+                    "waypoints": {**OUTPUT_SCHEMA["properties"]["waypoints"], "maxItems": 3}
+                },
+            },
+            "prompt": "Plan a short polyline from the observed x,y to the goal x,y. "
+            "The LAST waypoint MUST equal the goal exactly. Use 1 to 3 waypoints. "
+            "Do not include the starting point or pad a sequence of tiny steps. "
+            "Output ONLY a JSON object with waypoints, no rationale. "
+            "This is an advisory route in a simulation. "
             "Observation and goal: "
             + json.dumps({"obs": request["obs"], "goal": request["goal"]}, allow_nan=False),
             "options": {
@@ -93,6 +101,9 @@ class OllamaAdvisor:
         if elapsed < 0 or elapsed > 60_000_000_000:
             raise ValueError("invalid or excessive compute duration")
         jsonschema.validate(generated, OUTPUT_SCHEMA)
+        goal = request.get("goal")
+        if goal is None or math.dist(generated["waypoints"][-1], goal) > 0.01:
+            raise ValueError("model route does not reach the requested goal")
         source = {key: request["obs"][key] for key in ("obs_id", "stamp_ns", "map_version")}
         created = source["stamp_ns"] + elapsed
         if created > 2**63 - 1:
