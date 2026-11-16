@@ -112,7 +112,7 @@ Each cell will show violation episodes and the final state, from the eval report
 
 ## AI-use disclosure
 
-Three people build this project with AI coding assistants. Assistants drafted documents, contracts and code under human direction. A human code owner reviews and merges every change, and PRs written with an assistant tick the "AI-assisted" box. The rule-based planner is the baseline; an LLM route advisor is an optional extra (P1).
+Three people build this project with AI coding assistants. Assistants drafted documents, contracts and code under human direction. A human team member merges every change once CI is green, and PRs written with an assistant tick the "AI-assisted" box. The rule-based planner is the baseline; an LLM route advisor is an optional extra (P1).
 
 ## Team
 
