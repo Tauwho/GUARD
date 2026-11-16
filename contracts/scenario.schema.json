@@ -40,7 +40,7 @@
         "kind": {"enum": ["restricted", "slow", "info"], "description": "Only restricted zones are enforced by checker 10 in v1"},
         "rect": {"$ref": "#/$defs/rect"},
         "active": {
-          "description": "Activation schedule. Each change of state increments map_version.",
+          "description": "Activation schedule. Each change of state increments map_version. Precedence (v1.2): the map schedule applies until the scenario's first zones: event for this zone; from that event on, scenario events alone decide the zone's state for the rest of the run.",
           "oneOf": [
             {"type": "boolean"},
             {"type": "array", "items": {"$ref": "#/$defs/window"}, "minItems": 1, "maxItems": 8}

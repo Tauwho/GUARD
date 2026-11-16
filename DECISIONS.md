@@ -49,6 +49,7 @@ All entries were accepted on 2026-11-15. Full write-ups go in `docs/adr/` (issue
 | [0015](docs/adr/0015-single-threaded-gate.md) | Single-threaded gate dispatch | Thread pool | Deterministic ordering; bounded handlers |
 | [0016](docs/adr/0016-mit-licence.md) | MIT licence | Apache-2.0 | Simplest; codelab can reuse code |
 | [0017](docs/adr/0017-lease-ack-on-resmgr-channel.md) | **Accepted 2026-11-16 (#89).** Gate replies `LeaseAck` in the same handler; `ETIMEDOUT` means not received; a late ack is binding | Defer the reply and `MsgError(ETIMEDOUT)` on unblock | Spike S3: resmgr channels keep a reply-blocked client waiting, so the v1.0 `ESRCH` path never happens |
+| [0018](docs/adr/0018-contracts-v1-2-gaps.md) | **Proposed (#125).** Contracts v1.2: `run_start` / `run_end` telemetry payloads, checker 9 acceleration interval `1 / obs_rate_hz`, scenario zone events override map windows | Leave them undefined; interval = time since last proposal; map windows win | PR reviews showed the code had to guess |
 
 ## Clarification log
 Questions Q1–Q8 are in issue PO-1.

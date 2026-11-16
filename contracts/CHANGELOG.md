@@ -1,5 +1,14 @@
 # contracts CHANGELOG
 
+## v1.2 -- proposed (#125, ADR 0018)
+
+No binary wire-format change: same messages, sizes, `devctl` numbers and reason codes.
+
+- C8 telemetry: `run_start` and `run_end` payloads defined; stream rules (`run_start` first, `run_end` last per `run_id`; `t_ns` never decreases; `seq` per `src` +1, gap = drop).
+- C1 checker 9: implied acceleration uses `dt = 1 / obs_rate_hz` and `v_0` = the supervisor's latest `v_meas`; fail if `abs(v_cmd - v_0) > a_max * dt + 1e-9`. The active-lease re-check uses the same `dt`.
+- C11 scenarios: the first scenario `zones:` event for a zone overrides the map's activation windows for the rest of the run.
+- `messages.md` header names the version in force.
+
 ## v1.1 -- frozen 2026-11-16 (#89, ADR 0017)
 
 No wire format change: same messages, sizes, `devctl` numbers and reason codes.
