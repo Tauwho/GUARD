@@ -23,12 +23,23 @@ def summarize(events):
     if end["kind"] != "run_end":
         raise ValueError("incomplete telemetry")
     summary = dict(end["payload"])
-    summary["violations"] = summary["contacts"] + summary["zone_breaches"]
-    summary["latches"] = sum(
-        event["kind"] == "gate_transition" and event["payload"]["to"] == "LATCHED"
-        for event in events
+    if "min_margin_m" in summary:
+        summary["minimum_margin_m"] = summary["min_margin_m"]
+    summary.setdefault(
+        "time_to_goal_s",
+        (end["t_ns"] - events[0]["t_ns"]) / 1e9 if summary["final_state"] == "GOAL" else None,
     )
-    summary["false_reject_rate"] = summary["rejected"] / max(1, summary["proposals"])
+    summary["violations"] = summary["contacts"] + summary["zone_breaches"]
+    summary.setdefault(
+        "latches",
+        sum(
+            event["kind"] == "gate_transition" and event["payload"]["to"] == "LATCHED"
+            for event in events
+        ),
+    )
+    summary["false_reject_rate"] = (summary["rejected"] + summary.get("unverifiable", 0)) / max(
+        1, summary["proposals"]
+    )
     reasons = set()
     for event in events:
         payload = event["payload"]
@@ -77,10 +88,19 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--scenario", type=Path, required=True)
     parser.add_argument("--seed", type=int)
-    parser.add_argument("--mode", choices=["B2"], default="B2")
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument(
+        "--mode", choices=["B0", "B1", "B2", "B2-freshness", "B2-stopping", "B2-expiry", "B2-epoch"]
+    )
+    selection.add_argument("--config", type=Path)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--binary", type=Path)
     args = parser.parse_args(argv)
+    mode = (args.mode or "B2").split("-", 1)
+    config = load_yaml(args.config) if args.config else {"version": 1, "mode": mode[0]}
+    if len(mode) > 1:
+        config["ablate"] = {mode[1]: True}
+    jsonschema.validate(config, json.loads((ROOT / "contracts/config.schema.json").read_text()))
     scenario = load_yaml(args.scenario)
     schema = json.loads((ROOT / "contracts/scenario.schema.json").read_text())
     jsonschema.validate(scenario, schema)
@@ -101,7 +121,7 @@ def main(argv=None):
         for name, data in (
             ("scenario", scenario),
             ("map", world),
-            ("config", {"version": 1, "mode": "B2"}),
+            ("config", config),
         ):
             path = Path(temporary) / (name + ".json")
             path.write_text(json.dumps(data, allow_nan=False), encoding="utf-8")
@@ -118,7 +138,7 @@ def main(argv=None):
     for event in events:
         validator.validate(event)
     summary = summarize(events)
-    failures = mismatches(scenario["expected"][args.mode], summary)
+    failures = mismatches(scenario["expected"][config["mode"]], summary)
     print(json.dumps({"summary": summary, "mismatches": failures}, sort_keys=True))
     return 1 if failures else 0
 

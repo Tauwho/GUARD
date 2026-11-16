@@ -8,6 +8,7 @@
 #include <ostream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 namespace guard::host {
 namespace {
@@ -36,9 +37,9 @@ class Telemetry {
 } // namespace
 ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config config,
                     std::uint64_t seed, std::ostream &output) {
-    if (!valid(config) || config.mode != Mode::guarded || !std::isfinite(scenario.duration) ||
-        scenario.duration <= 0 || scenario.duration > 600 || scenario.rate_hz == 0 ||
-        1000 % config.obs_rate_hz || 1000 % config.t_tick_ms)
+    if (!valid(config) || !std::isfinite(scenario.duration) || scenario.duration <= 0 ||
+        scenario.duration > 600 || scenario.rate_hz == 0 || 1000 % config.obs_rate_hz ||
+        1000 % config.t_tick_ms)
         throw std::runtime_error("invalid replay configuration");
     World world(map, scenario);
     Plant plant(config, map.start);
@@ -48,18 +49,33 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
     Telemetry telemetry(output);
     ReplayResult result;
     RegisterReply registration;
-    if (!gate.register_supervisor(registration))
+    const bool guarded = config.mode == Mode::guarded;
+    if (guarded && !gate.register_supervisor(registration))
         throw std::runtime_error("register failed");
     Lease active;
     Lease zombie;
     std::uint64_t lease_sequence = 0;
-    bool boot = true, dead = false, previous_contact = false, previous_zone = false;
+    bool boot = guarded, dead = false, previous_contact = false, previous_zone = false;
     std::array<bool, 9> faults{};
     GateMode previous_mode = gate.status(0).mode;
     auto previous_counters = gate.status(0).counters;
     telemetry.begin(0, "run_start");
     telemetry.out() << "\"scenario\":\"F" << scenario.id << "\",\"seed\":" << seed
-                    << ",\"mode\":\"B2\",\"model\":\"virtual-time\"";
+                    << ",\"mode\":\"B" << static_cast<unsigned>(config.mode)
+                    << "\",\"runner\":\"host\",\"ablate\":[";
+    bool ablation_comma = false;
+    const std::pair<const char *, bool> ablations[] = {{"freshness", config.ablate_freshness},
+                                                       {"stopping", config.ablate_stopping},
+                                                       {"expiry", config.ablate_expiry},
+                                                       {"epoch", config.ablate_epoch}};
+    for (const auto &item : ablations)
+        if (item.second) {
+            if (ablation_comma)
+                telemetry.out() << ',';
+            telemetry.out() << '"' << item.first << '"';
+            ablation_comma = true;
+        }
+    telemetry.out() << ']';
     telemetry.end();
     const auto duration = static_cast<std::int64_t>(scenario.duration * 1000);
     for (std::int64_t ms = 0; ms <= duration; ++ms) {
@@ -77,7 +93,7 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                     dead = true;
                     gate.supervisor_lost();
                 }
-                if (fault == 7 && enabled) {
+                if (fault == 7 && enabled && guarded) {
                     zombie = active;
                     if (!gate.register_supervisor(registration))
                         throw std::runtime_error("replacement registration failed");
@@ -98,6 +114,7 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
             if (!plant.step(now, world.scene()))
                 throw std::runtime_error("plant step failed");
             const auto truth = plant.ground_truth();
+            result.minimum_margin = std::min(result.minimum_margin, truth.clearance);
             for (unsigned event = 0; event < 2; ++event) {
                 const bool enabled = event == 0 ? truth.contact : truth.zone_breach;
                 bool &previous = event == 0 ? previous_contact : previous_zone;
@@ -131,11 +148,19 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                             << ",\"v_meas\":" << observation.v_meas
                             << ",\"w_meas\":" << observation.w_meas
                             << ",\"map_version\":" << observation.map_version
-                            << ",\"sensor_ok\":true";
+                            << ",\"sensor_ok\":true,\"obstacles\":[";
+            for (unsigned i = 0; i < observation.obstacle_count; ++i) {
+                if (i)
+                    telemetry.out() << ',';
+                const auto &obstacle = observation.obstacles[i];
+                telemetry.out() << "{\"x\":" << obstacle.x << ",\"y\":" << obstacle.y
+                                << ",\"r\":" << obstacle.r << '}';
+            }
+            telemetry.out() << ']';
             telemetry.end();
         }
-        if (!dead && !faults[2]) {
-            if (gate.status(now).mode == GateMode::moving) {
+        if (!guarded || (!dead && !faults[2])) {
+            if (guarded && gate.status(now).mode == GateMode::moving) {
                 const auto reason = supervisor.recheck(active, world.scene(), now);
                 if (reason) {
                     Revoke revoke;
@@ -171,49 +196,89 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
             }
             Proposal proposal;
             if (!boot && planner.propose(now, options, proposal)) {
-                ++result.proposals;
-                auto evaluation = supervisor.evaluate(proposal, world.scene(), now);
-                bool accepted = false;
-                unsigned reason = static_cast<unsigned>(evaluation.primary_reason);
-                if (evaluation.authorized) {
-                    Lease lease;
-                    lease.lease_id = lease.lease_seq = ++lease_sequence;
-                    lease.proposal_id = proposal.proposal_id;
-                    lease.epoch = registration.epoch;
-                    lease.v_cmd = proposal.v_cmd;
-                    lease.w_cmd = proposal.w_cmd;
-                    lease.v_cap = config.v_max;
-                    lease.issued_ns = now;
-                    lease.expires_ns =
-                        now + milliseconds(std::min(config.t_lease_ms, proposal.lease_req_ms));
-                    const auto ack = gate.lease(lease, now);
-                    accepted = ack.reason == 500;
-                    if (accepted)
-                        active = lease;
-                    else
-                        reason = ack.reason;
-                }
-                if (!accepted)
-                    ++result.rejected;
-                telemetry.begin(now, "decision");
-                telemetry.out() << "\"proposal_id\":" << proposal.proposal_id
-                                << ",\"planner_id\":" << proposal.planner_id << ",\"verdict\":\""
-                                << (accepted                        ? "AUTHORIZED"
-                                    : reason >= 300 && reason < 400 ? "UNVERIFIABLE"
-                                                                    : "REJECTED")
-                                << "\",\"primary_reason\":\"" << reason_name(reason)
-                                << "\",\"reasons\":[";
-                bool comma = false;
-                for (const auto code : evaluation.reasons)
-                    if (code) {
-                        if (comma)
-                            telemetry.out() << ',';
-                        telemetry.out() << '"' << reason_name(code) << '"';
-                        comma = true;
+                if (!guarded) {
+                    ++result.passthrough_commands;
+                    PassthruCmd command;
+                    command.cmd_seq = proposal.seq;
+                    command.v = proposal.v_cmd;
+                    command.w = proposal.w_cmd;
+                    command.stamp_ns = now;
+                    const auto reason = gate.passthrough(command, now);
+                    if (reason != Reason::GATE_PASSTHRU_ACCEPTED)
+                        ++result.passthrough_dropped;
+                    telemetry.begin(now, "proposal");
+                    telemetry.out() << "\"cmd_seq\":" << command.cmd_seq << ",\"v\":" << command.v
+                                    << ",\"w\":" << command.w << ",\"reason\":\""
+                                    << reason_name(static_cast<unsigned>(reason)) << "\"";
+                    telemetry.end();
+                } else {
+                    ++result.proposals;
+                    auto evaluation = supervisor.evaluate(proposal, world.scene(), now);
+                    bool accepted = false;
+                    unsigned reason = static_cast<unsigned>(evaluation.primary_reason);
+                    if (evaluation.authorized) {
+                        Lease lease;
+                        lease.lease_id = lease.lease_seq = ++lease_sequence;
+                        lease.proposal_id = proposal.proposal_id;
+                        lease.epoch = registration.epoch;
+                        lease.v_cmd = proposal.v_cmd;
+                        lease.w_cmd = proposal.w_cmd;
+                        lease.v_cap = config.v_max;
+                        lease.issued_ns = now;
+                        lease.expires_ns =
+                            now + milliseconds(std::min(config.t_lease_ms, proposal.lease_req_ms));
+                        const auto ack = gate.lease(lease, now);
+                        accepted = ack.reason == 500;
+                        if (accepted) {
+                            active = lease;
+                            telemetry.begin(now, "lease");
+                            const auto *source = supervisor.latest();
+                            telemetry.out()
+                                << "\"lease_id\":" << lease.lease_id << ",\"epoch\":" << lease.epoch
+                                << ",\"issued_ns\":" << lease.issued_ns
+                                << ",\"expires_ns\":" << lease.expires_ns
+                                << ",\"v_cmd\":" << lease.v_cmd << ",\"w_cmd\":" << lease.w_cmd
+                                << ",\"d_req\":" << evaluation.required_distance;
+                            if (source)
+                                telemetry.out() << ",\"x\":" << source->x << ",\"y\":" << source->y
+                                                << ",\"theta\":" << source->theta;
+                            telemetry.end();
+                        } else {
+                            reason = static_cast<unsigned>(Reason::REJ_GATE_NOT_READY);
+                            telemetry.begin(now, "lease");
+                            telemetry.out() << "\"lease_id\":" << lease.lease_id << ",\"reason\":\""
+                                            << reason_name(ack.reason) << "\"";
+                            telemetry.end();
+                        }
                     }
-                telemetry.out() << "],\"lease_id\":" << (accepted ? active.lease_id : 0)
-                                << ",\"epoch\":" << registration.epoch;
-                telemetry.end();
+                    if (accepted)
+                        ++result.authorized;
+                    else if (reason >= 300 && reason < 400)
+                        ++result.unverifiable;
+                    else
+                        ++result.rejected;
+                    telemetry.begin(now, "decision");
+                    telemetry.out()
+                        << "\"proposal_id\":" << proposal.proposal_id
+                        << ",\"planner_id\":" << proposal.planner_id << ",\"verdict\":\""
+                        << (accepted                        ? "AUTHORIZED"
+                            : reason >= 300 && reason < 400 ? "UNVERIFIABLE"
+                                                            : "REJECTED")
+                        << "\",\"primary_reason\":\"" << reason_name(reason) << "\",\"reasons\":[";
+                    bool comma = false;
+                    for (const auto code : evaluation.reasons)
+                        if (code) {
+                            if (comma)
+                                telemetry.out() << ',';
+                            telemetry.out() << '"' << reason_name(code) << '"';
+                            comma = true;
+                        }
+                    if (reason == static_cast<unsigned>(Reason::REJ_GATE_NOT_READY))
+                        telemetry.out() << '"' << reason_name(reason) << '"';
+                    telemetry.out() << "],\"lease_id\":" << (accepted ? active.lease_id : 0)
+                                    << ",\"epoch\":" << registration.epoch;
+                    telemetry.end();
+                }
             }
         }
         if (ms % config.t_tick_ms == 0) {
@@ -229,15 +294,20 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
             }
             const auto status = gate.status(now);
             if (status.mode != previous_mode) {
+                if (status.mode == GateMode::latched)
+                    ++result.latches;
                 unsigned reason = 511;
                 if (status.mode == GateMode::ready && previous_mode == GateMode::latched)
                     reason = 512;
                 if (status.mode == GateMode::moving)
-                    reason = 500;
+                    reason = guarded ? 500 : 514;
                 if (status.mode == GateMode::stopping)
                     for (unsigned code = 506; code <= 510; ++code)
                         if (status.counters[code] > previous_counters[code])
                             reason = code;
+                if (status.mode == GateMode::stopping &&
+                    status.counters[515] > previous_counters[515])
+                    reason = 515;
                 telemetry.begin(now, "gate_transition");
                 telemetry.out() << "\"from\":\"" << mode_name(previous_mode) << "\",\"to\":\""
                                 << mode_name(status.mode) << "\",\"reason\":\""
@@ -253,12 +323,23 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
             break;
         }
     }
+    if (!guarded) {
+        telemetry.begin(result.ended_ns, "status");
+        telemetry.out() << "\"passthrough_commands\":" << result.passthrough_commands
+                        << ",\"passthrough_dropped\":" << result.passthrough_dropped;
+        telemetry.end();
+    }
     telemetry.begin(result.ended_ns, "run_end");
     telemetry.out() << "\"final_state\":\""
                     << (result.goal ? "GOAL" : mode_name(gate.status(result.ended_ns).mode))
                     << "\",\"contacts\":" << result.contacts
                     << ",\"zone_breaches\":" << result.zone_breaches
-                    << ",\"proposals\":" << result.proposals << ",\"rejected\":" << result.rejected;
+                    << ",\"proposals\":" << result.proposals << ",\"rejected\":" << result.rejected
+                    << ",\"authorized\":" << result.authorized
+                    << ",\"unverifiable\":" << result.unverifiable
+                    << ",\"latches\":" << result.latches
+                    << ",\"min_margin_m\":" << result.minimum_margin
+                    << ",\"sim_duration_ns\":" << result.ended_ns;
     telemetry.end();
     return result;
 }

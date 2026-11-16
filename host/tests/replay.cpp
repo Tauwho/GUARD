@@ -13,7 +13,8 @@ int main() {
         const auto result = guard::host::replay(map, scenario, {}, 42, first);
         guard::host::replay(map, scenario, {}, 42, second);
         if (!result.goal || result.contacts || result.zone_breaches ||
-            first.str() != second.str()) {
+            first.str() != second.str() ||
+            result.authorized + result.rejected + result.unverifiable != result.proposals) {
             const auto text = first.str();
             std::cerr << text.substr(text.size() > 4000 ? text.size() - 4000 : 0);
             throw std::runtime_error("nominal goal or deterministic output failed");
@@ -25,7 +26,7 @@ int main() {
         scenario.faults[0].at = 12;
         std::ostringstream killed;
         const auto stopped = guard::host::replay(map, scenario, {}, 42, killed);
-        if (stopped.goal || stopped.contacts || stopped.zone_breaches ||
+        if (stopped.goal || stopped.contacts || stopped.zone_breaches || stopped.latches != 1 ||
             killed.str().find("GATE_SUPERVISOR_LOST") == std::string::npos ||
             killed.str().find("\"final_state\":\"LATCHED\"") == std::string::npos)
             throw std::runtime_error("supervisor loss did not stop and latch");
@@ -38,6 +39,24 @@ int main() {
             zombie.str().find("GATE_EPOCH_STALE") == std::string::npos ||
             zombie.str().find("\"final_state\":\"LATCHED\"") == std::string::npos)
             throw std::runtime_error("zombie lease did not preserve the latch");
+        for (const auto mode : {guard::Mode::passthrough, guard::Mode::heartbeat}) {
+            guard::Config config;
+            config.mode = mode;
+            std::ostringstream baseline;
+            const auto moving = guard::host::replay(map, scenario, config, 42, baseline);
+            if (moving.goal || moving.contacts || moving.proposals != 0 ||
+                moving.passthrough_commands == 0 ||
+                baseline.str().find("\"final_state\":\"MOVING\"") == std::string::npos ||
+                baseline.str().find("\"kind\":\"decision\"") != std::string::npos)
+                throw std::runtime_error("baseline must bypass supervisor decisions");
+        }
+        scenario.faults[0].fault = 2;
+        scenario.faults[0].duration_ms = 400;
+        std::ostringstream stalled;
+        guard::host::replay(map, scenario, {}, 42, stalled);
+        if (stalled.str().find("\"primary_reason\":\"REJ_GATE_NOT_READY\"") == std::string::npos ||
+            stalled.str().find("\"primary_reason\":\"GATE_NOT_READY\"") != std::string::npos)
+            throw std::runtime_error("gate refusal must use the C1 decision reason");
         return 0;
     } catch (const std::exception &error) {
         std::cerr << error.what() << '\n';
