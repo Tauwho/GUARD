@@ -102,7 +102,7 @@ SafetyEvaluation Supervisor::evaluate(const Proposal &p, const Scene &scene, std
     if (p.v_cmd < 0 || p.v_cmd > config_.v_max || std::abs(p.w_cmd) > config_.w_max ||
         (current && current->v_meas < -0.02))
         fail(9, Reason::REJ_SPEED_ENVELOPE);
-    else if (current && p.v_cmd - current->v_meas > config_.a_max / config_.obs_rate_hz)
+    else if (current && p.v_cmd > current->v_meas + config_.a_max / config_.obs_rate_hz)
         fail(9, Reason::REJ_ACCEL_ENVELOPE);
     if (readable && current && valid(config_) && valid(scene)) {
         Scene world = scene;
