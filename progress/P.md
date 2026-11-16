@@ -188,6 +188,15 @@ malformed cue; the video length itself was unchecked) and 9 shoulds, fixed.
 Current state: FAIL on readme-video, video-duration, captions, submission (video
 URL) and release-tag, which P3 (10 Dec) and the recording (13 Dec) produce.
 
+### S2 (early) — results refresh (2026-11-17)
+
+- `python tools/build_readme.py --fetch` -> run
+  [43907070270](https://github.com/Tauwho/GUARD/actions/runs/43907070270) at `6220b91`
+  (1 repeat per scenario/config, B2 mismatches 0 in every scenario); README regenerated.
+- `docs/devpost/description.md` Results now cites that run and A's 50-seed run
+  43887605751 (3,150 runs, 0 B2 mismatches), with the report's own independence caveat.
+- Done early because A finished; S2 on Sat 5 Dec re-runs `--fetch` if main moves.
+
 ## Next
 - P5 (architecture SVG + Limits), then P6, P3 (10 Dec), P4 (13 Dec).
 - Mon 7 Dec: if B5 is not DONE, switch DEMO step 4 to the host fallback by hand.
