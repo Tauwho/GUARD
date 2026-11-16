@@ -47,7 +47,7 @@ if(BUILD_TESTING)
                  core/tests/plant_geometry.cpp core/tests/plant_dynamics.cpp core/tests/gate_fsm_rows.cpp
                  core/tests/gate_fsm_integration.cpp core/tests/supervisor_checks.cpp
                  core/tests/supervisor_recheck.cpp core/tests/contracts_config.cpp core/tests/contracts_scenario.cpp
-                 core/tests/scenario_world.cpp core/tests/planner.cpp
+                 core/tests/scenario_world.cpp core/tests/planner.cpp core/tests/gate_baselines.cpp
                  "${GUARD_GENERATED}/contracts_fixtures.cpp" "${GUARD_GENERATED}/loaders_fixtures.cpp")
   target_link_libraries(guard_core_tests PRIVATE guard_core doctest::doctest)
   add_test(NAME guard_core_smoke COMMAND guard_core_tests)
