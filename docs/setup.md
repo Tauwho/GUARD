@@ -62,7 +62,7 @@ ssh root@10.10.10.2 uname -a     # wait ~20 s after boot
 - WSL2: a headless target started from a one-shot `wsl -- ...` command dies when that command ends. Start it from an open Ubuntu terminal, or with `setsid nohup mkqnximage --run=-h ... &`.
 - On the image, `/tmp` is the 64 MiB `/data` partition. `nc` and `traceprinter` are not installed.
 
-**Option C, no sudo: QEMU user-mode networking** (verified by the PO on Windows 11 + WSL2 Ubuntu 24.04 with KVM, 16 Nov, #81). `mkqnximage --run` also needs `dnsmasq` on `br0` (or libvirt's `virbr0`) and the `arp` command. If you can't install those, build the image with `mkqnximage` and start QEMU yourself:
+**Option C, no sudo: QEMU user-mode networking** (verified by the PO on Windows 11 + WSL2 Ubuntu 24.04 with KVM, 16 Nov, #81). Option B needs sudo for the `br0` bridge (§3). Without sudo, build the image with `mkqnximage` and start QEMU yourself:
 ```sh
 ssh-keygen -q -t ed25519 -N '' -f ~/.ssh/guard_target_ed25519     # key only for the target
 mkdir -p ~/guard-target && cd ~/guard-target
