@@ -122,11 +122,13 @@ async def run(args):
 
 
 def main():
+    from ollama_route import DEFAULT_MODEL
+
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--trace", type=Path)
     mode.add_argument("--ollama", action="store_true")
-    parser.add_argument("--model", default="qwen2.5:1.5b-instruct")
+    parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--record", type=Path)
     parser.add_argument("--port", type=int, default=7701)
     args = parser.parse_args()

@@ -67,7 +67,8 @@ checker treats creation time as opaque metadata and derives age from its own sou
 observation. The recorded service never synthesizes a new creation time.
 
 D23 selects [Qwen2.5-1.5B-Instruct (Apache-2.0)](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/blob/main/LICENSE).
-Pull `qwen2.5:1.5b-instruct` locally. Weights are never committed or redistributed.
+The shared default is `DEFAULT_MODEL` in `host/ollama_route.py`; both CLIs use it
+and accept `--model` overrides. Pull `qwen2.5:1.5b-instruct` locally. Weights are never committed or redistributed.
 The earlier 3B experiment is historical only; 3B is excluded by D23.
 
 ## S7 reproduction
