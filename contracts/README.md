@@ -1,10 +1,10 @@
 <!-- managed-by: guard-bootstrap v1 -->
 # contracts/
 
-Interfaces that both streams build against. **Owner:** @dngvmnh (PO); @phatdat220707 (A) and @baofrovn (B) approve.
+Interfaces that both streams build against. **Owner:** @dngvmnh (PO); @phatdat220707 (A) and @baofrovn (B) are @-mentioned on every change; no approval is required (D12).
 
 - **Freeze:** v1.0 on Fri 20 Nov 2026 23:59 SGT, tagged `contracts-v1.0` (issue PO-2).
-- **After the freeze:** follow the contract-change process in CONTRIBUTING.md (ADR + approval from both A and B).
+- **After the freeze:** follow the contract-change process in CONTRIBUTING.md (ADR, plus an @-mention of both A and B).
 
 ## Expected files
 
