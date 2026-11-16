@@ -3,9 +3,14 @@
 Brief: `docs/streams/BRIEF-A.md`. Resume from this file after any restart. Live scope: `python tools/scope_gate.py --stream A`.
 
 ## Now
-- A4: continuous Linux matrix, explicit B2 gate, unmeasured margin handling and isolated fresh-clone CI.
-- Run full tools/check.py and F5/F6 acceptance commands.
-- Fresh-context adversarial review, fix findings, self-merge on green CI.
+Resumed at user request on 2026-11-16; account identity/access verified (phatdat220707).
+- Working branch: `a/a6-recorded-default`; A6 changes remain uncommitted, preserved on disk.
+- A6 implemented: --recorded default (synthetic bundled fixture), --trace alias, exact-provenance live timeout fallback; D26 docs updated.
+- `python -m pytest eval/tests/test_recorded_advisor.py -q`: 9 passed; Ruff passes. Full check, fresh-context review, commit/push/PR still required.
+- A5 #163 merged 82ba25a after host-ci/governance/stream-a all GREEN.
+- A4 merged #161 at f48946b; main Linux matrix GREEN run 43856863508, fresh clone GREEN run 43856863542. A1/A2 #158 and A3 #160 merged.
+- No local Ollama/advisor server or build/test task from this session is running.
+- Before any next push, verify the new account's repository identity/access; never print credentials.
 
 ## Done (with evidence: command + last lines, commit or run link)
 

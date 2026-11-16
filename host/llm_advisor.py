@@ -11,6 +11,7 @@ import jsonschema
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = json.loads((ROOT / "contracts/planner-remote.schema.json").read_text())
 VALIDATOR = jsonschema.Draft202012Validator(SCHEMA)
+DEFAULT_RECORDING = ROOT / "host/fixtures/advisor-recorded.jsonl"
 
 
 def strict_json(text):
@@ -81,9 +82,25 @@ class RecordedAdvisor:
         return record["response"]
 
 
+class FallbackAdvisor:
+    def __init__(self, live, records):
+        self.live, self.records = live, records
+
+    async def reply(self, request):
+        try:
+            return await self.live.reply(request)
+        except (OSError, asyncio.TimeoutError):
+            # An expired recording stays expired: never rewrite provenance or timestamps.
+            for record in self.records:
+                if record["request"] == request:
+                    print("advisor: recorded fallback (live timeout/unavailable)", flush=True)
+                    return await RecordedAdvisor([record]).reply(request)
+            raise ValueError("no exact recorded fallback for this request") from None
+
+
 async def serve_client(reader, writer, records=None, advisor_factory=None):
-    advisor = advisor_factory() if advisor_factory else RecordedAdvisor(records)
     try:
+        advisor = advisor_factory() if advisor_factory else RecordedAdvisor(records)
         while True:
             line = await asyncio.wait_for(reader.readline(), 30)
             if not line:
@@ -103,11 +120,15 @@ async def serve_client(reader, writer, records=None, advisor_factory=None):
 async def run(args):
     records = load_recording(args.trace) if args.trace else None
     factory = None
+    fallback = load_recording(args.fallback_recorded) if args.fallback_recorded else None
     if args.ollama:
         from ollama_route import OllamaAdvisor, OllamaGenerator
 
         def factory():
-            return OllamaAdvisor(OllamaGenerator(args.model), record_path=args.record)
+            live = OllamaAdvisor(OllamaGenerator(args.model), record_path=args.record)
+            if args.fallback_recorded:
+                return FallbackAdvisor(live, fallback)
+            return live
 
     server = await asyncio.start_server(
         lambda reader, writer: serve_client(reader, writer, records, factory),
@@ -121,22 +142,45 @@ async def run(args):
         await server.serve_forever()
 
 
-def main():
+def parse_args(argv=None):
     from ollama_route import DEFAULT_MODEL
 
     parser = argparse.ArgumentParser(description=__doc__)
-    mode = parser.add_mutually_exclusive_group(required=True)
-    mode.add_argument("--trace", type=Path)
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--recorded",
+        "--trace",
+        dest="trace",
+        type=Path,
+        nargs="?",
+        const=DEFAULT_RECORDING,
+        help="recorded responses (default; optional JSONL path)",
+    )
     mode.add_argument("--ollama", action="store_true")
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--record", type=Path)
     parser.add_argument("--port", type=int, default=7701)
-    args = parser.parse_args()
+    parser.add_argument(
+        "--fallback-recorded",
+        type=Path,
+        nargs="?",
+        const=DEFAULT_RECORDING,
+        help="exact recorded fallback for live timeout/unavailability",
+    )
+    args = parser.parse_args(argv)
+    if not args.ollama and args.trace is None:
+        args.trace = DEFAULT_RECORDING
+    if args.fallback_recorded and not args.ollama:
+        parser.error("--fallback-recorded requires --ollama")
     if args.record and not args.ollama:
         parser.error("--record is for live Ollama mode only")
     if not 1024 <= args.port <= 65535:
         parser.error("port must be 1024..65535")
-    asyncio.run(run(args))
+    return args
+
+
+def main():
+    asyncio.run(run(parse_args()))
 
 
 if __name__ == "__main__":
