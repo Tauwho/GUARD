@@ -30,6 +30,18 @@ The seed is recorded for reproducibility; current scenario timelines have no ran
 perturbations, so different seeds currently produce the same physical trajectory.
 Do not present those runs as independent randomized trials.
 
+For target image packaging, normalize inputs on the host before copying them:
+
+```sh
+python host/prepare_inputs.py --out out/runtime-inputs
+```
+
+This preserves the scenario/map `.yaml` paths but writes JSON-subset YAML, which
+the same portable buffer loaders consume without PyYAML on the target. It also
+emits a default `config.yaml` (B2) or the file given by `--config`, plus SHA256 hashes
+in `inputs.json`. Copy the generated files, not the original block-style YAML,
+into the image's scenario directory. Stream B owns the packaging/wiring change.
+
 For the nominal F0 run, the reported `false_reject_rate` is operationally defined as
 rejected proposals divided by all proposals from the nominal rule planner. It is not
 a separate correctness oracle. `stop_time_s` measures fault onset to the first STOPPING
