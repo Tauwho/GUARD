@@ -18,6 +18,7 @@ If you need more than the contracts give: adapter in your code, or an additive f
 
 ## 4. Milestones (each done only when its acceptance check passes; paste the command and its last lines into `progress/B.md`)
 
+<!-- gen:milestones-B -->
 | ID | Due (SGT) | Tier | Work | Acceptance check |
 |---|---|---|---|---|
 | B0 | Tue 17 Nov | MUST | Add `image/target-check.sh`: builds `qnx-x86_64`, boots with `run-demo.sh`, copies a test binary with `ssh <alias> 'cat > f'`, runs it, captures a bundle with `tools/capture-evidence.py`, stops the target. ssh alias `guard-target` (see `ENV.md`) | `bash image/target-check.sh --help`; a dry run prints each step |
@@ -28,10 +29,11 @@ If you need more than the contracts give: adapter in your code, or an additive f
 | B5 | Fri 4 Dec | MUST | `guardctl` (C14) and `guard-bridge` (C8 on TCP 7700); F1 and F3 on target | Bundles `scenario-F1`, `scenario-F3`; `guardctl --help` matches `guardctl.md` |
 | B6 | Mon 7 Dec | MUST | secpol policy and denial demo (#46, D22: a denied secpol connect and a uid denial both give `EPERM`; log which one). Fallback (MUST-lite): uid-based denial only | `evidence/*-secpol*/manifest.json` |
 | B7 | Fri 4 Dec | SHOULD | F2 (with `qnx/hog`), F4, F7, F8 on target | Bundles `scenario-F2`, `scenario-F7` at least |
-| B8 | Fri 4 Dec | SHOULD | Image packs the normalized inputs from `python host/prepare_inputs.py --out out/runtime-inputs` (#141) and boots straight into GUARD | `B8: done` with a boot transcript |
+| B8 | Fri 4 Dec | SHOULD | Image packs the normalized inputs from `python host/prepare_inputs.py --out out/runtime-inputs` (#141) and boots straight into GUARD | Boot transcript with normalized inputs (MANUAL in `scope_gate`) |
 | B9 | Mon 7 Dec | STRETCH | Remote planner backend over C9 TCP 7701 against `host/llm_advisor.py --recorded` (#49). The route is checked with `guard::check_route` in `guard-planner` and turned into ordinary C1 proposals (no new wire type, D26) | `evidence/*-remote-planner/` |
 | B10 | Mon 7 Dec | STRETCH | SLM ordered start, restart into LATCHED (#47) | `evidence/*-slm/` |
 | B11 | Mon 7 Dec | STRETCH | tracelogger timeline (#48) | `evidence/*-tracelogger/` |
+<!-- gen:milestones-B-end -->
 
 Check the live state any time with `python tools/scope_gate.py --stream B`. After **Fri 4 Dec 23:59** unfinished SHOULD items are DROPPED; after **Mon 7 Dec 23:59** STRETCH items are DROPPED. Stop working on DROPPED items. If B4 (F0 on target) is not done by Sun 29 Nov, cut B7 immediately and put all time into B4/B5.
 

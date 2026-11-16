@@ -38,6 +38,7 @@ def stages(fast):
     else:
         yield "ownership", [PY, "tools/check_ownership.py", "--base", "origin/main", "--local"]
     yield "doc-links", [PY, "tools/check_doc_links.py"]
+    yield "brief-sync", [PY, "tools/check_brief_sync.py"]
     if not fast:
         if not shutil.which("cmake"):
             yield "host-build", None
