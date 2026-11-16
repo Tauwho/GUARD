@@ -199,6 +199,10 @@ URL) and release-tag, which P3 (10 Dec) and the recording (13 Dec) produce.
 - (P1: README/video structure of strong hackathon entries goes here.)
 
 ## Known issues
+- A9 (STRETCH, A): the brief's "second-laptop evidence" is replaced by the PO decision on
+  #29 (issuecomment-6921570197): Dat's real Qwen2.5-1.5B run plus the CI offline/recorded
+  tests are the acceptance; a second machine is optional. SCOPE.yaml is frozen, so A9 keeps
+  showing MANUAL. P docs never cite a second-machine inference run.
 - SCOPE.yaml P4's grep check `(?i)video` on README already matches "Video and GIF:
   planned (P4)"; SCOPE.yaml is frozen, so P4's real gate is its other check,
   `python tools/check_package.py` (video URL, duration, captions).
