@@ -10,6 +10,7 @@ This file is binding for every contributor and every AI agent acting for one. If
    - `qnx/` only wires IPC, timers, resource managers and privileges to `core/`.
 3. **Keep all safety claims within the stated limits** (README "Limits"). Never write: "is safe", "guarantee(s)", "certified", "compliant", "prevents collisions", "hard real-time", "faster than Linux". The only exception is negated text placed after a `<!-- claims-ok: negated -->` marker. The marker exempts everything from that line to the next Markdown heading.
 4. **Every change that affects the QNX path must attach target evidence.** The QNX path is `core/`, `qnx/`, `image/`, `cmake/` and `contracts/`. Follow `evidence/README.md`.
+5. **Need someone? Ask in the issue, with an @-mention. Never by DM.** Requests, questions, blockers and decisions for the PO or anyone else go in the relevant GitHub issue or PR, and must @-mention the person. Private messages, DMs and chat apps are not used for project work. If no issue fits, open one first. Anything raised in a DM is not tracked until it is copied into the issue.
 
 ## 2. Licence constraints (QNX non-commercial licence)
 - **Personal licences.** Each person uses their own free licence, on at most 2 machines they own or control. Never share keys.
@@ -20,7 +21,7 @@ This file is binding for every contributor and every AI agent acting for one. If
 ## 3. Engineering rules
 - **Read order before any work:** this file → the issue → linked contracts and ADRs → the code.
 - **Scope.** Touch only the paths listed in your issue's Deliverables, plus their tests. Anything else needs a new issue.
-- **Contracts.** Never guess a wire format. Ask in the contract issue with a comment starting `CONTRACT-Q:`. After v1.0, changes need the `contract-change` label, an ADR, and approval from both @phatdat220707 and @baofrovn.
+- **Contracts.** Never guess a wire format. Ask in the contract issue with a comment starting `CONTRACT-Q:`. After v1.0, changes need the `contract-change` label, an ADR, and an @-mention of both @phatdat220707 and @baofrovn on the PR (no approval required, D12).
 - **Dependencies.** No new dependency without an ADR. Allowed now:
   - C++: doctest
   - Python: stdlib, pytest, hypothesis, websockets, PyYAML, jsonschema, ruff
@@ -34,17 +35,18 @@ This file is binding for every contributor and every AI agent acting for one. If
 - **$0 budget.** Free tiers and open-source only.
 
 ## 4. Communication protocol
-All communication happens in GitHub issues and PRs. Decisions made elsewhere must be written into the issue within 24 h.
+All communication happens in GitHub issues and PRs (hard rule 5). Decisions made elsewhere must be written into the issue within 24 h.
 
 | When | Do this |
 |---|---|
+| Need someone (the PO, a teammate, a reviewer) | Ask in the relevant issue or PR and @-mention them. Never by DM or private message. If no issue fits, open one first and mention them there |
 | Starting an issue | Assign yourself. Set board Status to In progress. Comment `START:` with a plan of ≤ 5 bullets and an ETA |
 | Daily, while active (work longer than 1 day) | Comment `UPDATE:` with done / next / risks |
 | Blocked | Add `status:blocked`. Comment `BLOCKED: <what> · needs <who/what> · by <date>` and mention the owner. After 24 h, mention @dngvmnh |
 | Question about an interface | Comment on the contract issue starting `CONTRACT-Q:`. Do not proceed on a guess |
 | Need something from another stream | Open a new issue with the work-package template, assign the owning stream, and link both ways. Never edit another stream's paths |
 | A decision is needed | Open a `decision` issue (ADR proposal). The PO accepts or rejects; the result goes to `docs/adr/` and `DECISIONS.md` |
-| PR opened | Title `<type>(<area>): <summary> (#issue)`. Fill in the template. Request CODEOWNER review. Add `status:needs-review` |
+| PR opened | Title `<type>(<area>): <summary> (#issue)`. Fill in the template. Reviews are optional (D12): when CI is green and every conversation is resolved, squash-merge it yourself |
 | Review received | Respond within 24 h. Resolve every conversation before merging |
 | End of every agent session | Comment `HANDOFF:` with done / next / open risks / evidence paths |
 | Freeze active (see `docs/architecture.md` REF-FREEZES) | Only fixes and docs. Anything else needs `freeze-exception` and PO approval |

@@ -73,7 +73,7 @@
         "from": {"$ref": "#/$defs/gate_mode"},
         "to": {"$ref": "#/$defs/gate_mode"},
         "reason": {"$ref": "#/$defs/reason"},
-        "fsm_row": {"type": "string", "pattern": "^R([1-9]|1[0-8])$"},
+        "fsm_row": {"type": "string", "pattern": "^(R([1-9]|1[0-8])|P[1-5])$", "description": "REF-FSM row (R1-R18, B2) or messages.md 3.4 row (P1-P5, B0/B1)"},
         "epoch": {"type": "integer", "minimum": 0},
         "lease_id": {"type": "integer", "minimum": 0},
         "latch_cause": {"enum": ["NONE", "BOOT", "SUPERVISOR_LOST", "EPOCH_CHANGED", "ZONE_BREACH", "SENSOR_LOST", "MOTOR_TIMEOUT", "INTERNAL"]},

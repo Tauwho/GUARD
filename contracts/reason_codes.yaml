@@ -46,7 +46,7 @@ codes:
   REJ_PROVENANCE_MISMATCH:
     number: 204
     group: rejected
-    meaning: "based_on.obs_stamp_ns or obs_seq differs from what the supervisor recorded for obs_id (checker 4)"
+    meaning: "based_on.obs_stamp_ns differs from the stamp the supervisor recorded for obs_id (checker 4)"
     emitted_by: supervisor
     operator_hint: "Planner provenance is inconsistent; possible forged or corrupted proposal"
   REJ_STALE_OBSERVATION:
@@ -146,7 +146,7 @@ codes:
     group: revoked
     meaning: "Three consecutive UNVERIFIABLE re-check results while MOVING"
     emitted_by: supervisor
-    operator_hint: "Supervisor cannot verify motion; check its feed and load"
+    operator_hint: "Supervisor cannot verify motion; robot stops and latches SENSOR_LOST; check its feed and load"
 
   GATE_LEASE_ACCEPTED:
     number: 500
@@ -233,6 +233,24 @@ codes:
     emitted_by: gate
     operator_hint: "Fix the unmet conditions shown by `guardctl status`, then retry"
 
+  GATE_PASSTHRU_ACCEPTED:
+    number: 514
+    group: gate
+    meaning: "Baseline B0/B1: gate accepted a planner pass-through command (messages.md 3.4, P2)"
+    emitted_by: gate
+    operator_hint: "Baseline run; GUARD checks are off"
+  GATE_HEARTBEAT_LOST:
+    number: 515
+    group: gate
+    meaning: "Baseline B1: no planner command for heartbeat_timeout_ms; STOPPING (messages.md 3.4, P3)"
+    emitted_by: gate
+    operator_hint: "Expected in B1 when the planner stalls longer than the heartbeat timeout"
+  GATE_ACK_UNDELIVERED:
+    number: 516
+    group: gate
+    meaning: "Lease passed R11-R14 but its LeaseAck could not be delivered (supervisor timed out); lease discarded, mode unchanged (messages.md 3.2 delivery rule)"
+    emitted_by: gate
+    operator_hint: "Supervisor-to-gate call exceeded 5 ms; check CPU load and thread priorities"
   SIM_ACTUATOR_WATCHDOG:
     number: 600
     group: sim

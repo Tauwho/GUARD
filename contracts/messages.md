@@ -42,6 +42,7 @@ Header size: **8 bytes**.
 | `0x0011` | `Lease` | C2 | 80 |
 | `0x0012` | `LeaseAck` | C2 | 24 |
 | `0x0013` | `Revoke` | C2 | 24 |
+| `0x0014` | `PassthruCmd` | C2 (B0/B1 only) | 40 |
 | `0x0020` | `RecoverRequest` | C3 | 16 |
 | `0x0021` | `RecoverReply` | C3 | 24 |
 | `0x0030` | `MotorCmd` | C5 | 48 |
@@ -121,7 +122,7 @@ Bits 5-31 are reserved and always 0.
 | Field out of range, NaN or Inf | C1: `Decision` with `REJ_SCHEMA` | `EINVAL` |
 | Caller uid not allowed | `MsgError(rcvid, EPERM)` | `EPERM` (gate also counts `GATE_UNAUTHORIZED_CLIENT`) |
 
-A client that gets `ETIMEDOUT` from its `TimerTimeout` treats the call as failed. **A failed call never authorizes or extends motion.**
+A client that gets `ETIMEDOUT` from its `TimerTimeout` treats the call as failed. **A failed call never authorizes or extends motion.** For `DCMD_GUARD_LEASE` the gate makes this hold even when the timeout fires after the gate has accepted the lease: see the delivery rule in section 3.2.
 
 ### 1.5 `devctl` command numbers
 
@@ -133,6 +134,7 @@ All commands use class `_DCMD_MISC` from `<devctl.h>`. Numbers are built with th
 | `DCMD_GUARD_LEASE` | `__DIOTF(_DCMD_MISC, 0xA1, guard_lease_t)` | `0xA1` | in: `Lease` (80); out: `LeaseAck` (24) in the same buffer | C2 |
 | `DCMD_GUARD_REVOKE` | `__DIOT(_DCMD_MISC, 0xA2, guard_revoke_t)` | `0xA2` | in: `Revoke` (24) | C2 |
 | `DCMD_GUARD_RECOVER` | `__DIOTF(_DCMD_MISC, 0xA3, guard_recover_t)` | `0xA3` | in: `RecoverRequest` (16); out: `RecoverReply` (24); buffer 24 | C3 |
+| `DCMD_GUARD_PASSTHRU` | `__DIOT(_DCMD_MISC, 0xA4, guard_passthru_t)` | `0xA4` | in: `PassthruCmd` (40) | C2 (B0/B1) |
 | `DCMD_SIM_MOTOR` | `__DIOT(_DCMD_MISC, 0xB0, guard_motor_cmd_t)` | `0xB0` | in: `MotorCmd` (48) | C5 |
 | `DCMD_SIM_WORLD_LOAD` | `__DIOT(_DCMD_MISC, 0xB1, guard_world_load_t)` | `0xB1` | in: `WorldLoad` (120) | C7 |
 | `DCMD_SIM_WORLD_INJECT` | `__DIOT(_DCMD_MISC, 0xB2, guard_world_inject_t)` | `0xB2` | in: `WorldInject` (24) | C7 |
@@ -164,7 +166,7 @@ For `__DIOTF`, the caller passes a buffer of `max(in, out)` bytes. The server wr
 | 20 | `lease_req_ms` | u32 | ms | 50-1000. The supervisor grants `min(lease_req_ms, T_lease)` |
 | 24 | `seq` | u64 | - | ≥ 1, strictly increasing per `planner_id` |
 | 32 | `based_on.obs_id` | u64 | - | ≥ 1; must be in the supervisor history (64) |
-| 40 | `based_on.obs_seq` | u64 | - | ≥ 1 |
+| 40 | `based_on.obs_seq` | u64 | - | ≥ 1. The `seq` the planner saw on its own feed. Logged for diagnosis only; checker 4 does not compare it |
 | 48 | `based_on.obs_stamp_ns` | i64 | ns | ≥ 0; must equal the recorded stamp of `obs_id` |
 | 56 | `based_on.map_version` | u32 | - | ≥ 1 |
 | 60 | `reserved0` | u32 | - | 0 |
@@ -204,7 +206,7 @@ Values outside the schema bounds give `REJ_SCHEMA`. Values inside the schema bou
 | Purpose | The supervisor registers an epoch, hands leases to the gate and revokes them |
 | Sender -> receiver | `guard-supervisor` -> `guard-gate` |
 | Mechanism | `open("/dev/guard/gate", O_RDWR)`, then `devctl` (section 1.5) |
-| Timeout | Client `TimerTimeout` of **5 ms** on each `devctl`. On `ETIMEDOUT` the supervisor treats the lease as not granted |
+| Timeout | Client `TimerTimeout` of **5 ms** on each `devctl`. On `ETIMEDOUT` the supervisor treats the lease as not granted; the delivery rule (section 3.2) guarantees the gate did not install it. The next lease uses a new, larger `lease_seq` |
 | Allowed callers | uid `guard_sup` (1103) or root. Others get `EPERM` and the gate counts `GATE_UNAUTHORIZED_CLIENT` |
 | Session rule | The gate tracks the OCB that registered. When that OCB closes while MOVING, the gate goes to STOPPING and latches `SUPERVISOR_LOST` |
 
@@ -230,7 +232,7 @@ No input. Each successful call starts a **new epoch** (`epoch = previous + 1`). 
 | 20 | `reserved0` | u32 | - | 0 |
 | 24 | `lease_seq` | u64 | - | ≥ 1, strictly increasing across all epochs |
 | 32 | `proposal_id` | u64 | - | ≥ 1 |
-| 40 | `v_cmd` | f64 | m/s | -1.2 to 1.2 (`v_max`) |
+| 40 | `v_cmd` | f64 | m/s | 0 to 1.2 (`v_max`). v1 authorizes no reverse motion (REF-CHECKERS check 9); the gate returns `EINVAL` for a negative value |
 | 48 | `w_cmd` | f64 | rad/s | -1.0 to 1.0 (`w_max`) |
 | 56 | `v_cap` | f64 | m/s | 0 to 1.2; the gate clamps abs(v) to `v_cap` |
 | 64 | `issued_ns` | i64 | ns | ≥ 0 |
@@ -248,6 +250,16 @@ No input. Each successful call starts a **new epoch** (`epoch = previous + 1`). 
 
 `devctl` returns `EOK` whenever a `LeaseAck` was written, including refusals. The refusal is in `reason`. Gate checks run in the REF-FSM order R11, R12, R13, R14.
 
+**Delivery rule: a lease takes effect only after its ack is delivered.** This closes the timeout-after-apply gap (#3).
+1. The gate runs R11-R14. A refusal is replied as usual and changes nothing.
+2. For an accepted lease, the gate first records `lease_seq` as seen, then replies `LeaseAck` with `GATE_LEASE_ACCEPTED` itself (`MsgReply`, with the handler returning `_RESMGR_NOREPLY`).
+3. Only if that reply succeeds does the gate install the lease (R4 or R5).
+4. If the reply fails (`ESRCH`: the supervisor's `TimerTimeout` fired and it is no longer reply-blocked), the gate discards the lease, keeps its mode and its current lease, and emits `GATE_ACK_UNDELIVERED` (516). Re-sending the same `lease_seq` gets `GATE_LEASE_REPLAY`.
+
+The kernel delivers the reply or the timeout, never both, so the supervisor's view and the gate's view always agree: `ETIMEDOUT` means the lease is not installed. Revokes, registers and recovers are applied before their reply, because they only reduce motion. Baselines B0/B1 (section 3.4) do not use this rule. Target evidence: spike S3 (#33).
+
+**Ablation `expiry` (C12 `ablate.expiry: true`, B2 only).** The wire format does not change: the supervisor still fills `expires_ns` within its range. The gate ignores `expires_ns` for R6 and R13, so a lease holds until it is replaced or revoked. Eval-only; never used in the demo.
+
 ### 3.3 `DCMD_GUARD_REVOKE`: `Revoke` (type `0x0013`, 24 bytes)
 
 | Offset | Field | Type | Units | Range |
@@ -259,6 +271,43 @@ No input. Each successful call starts a **new epoch** (`epoch = previous + 1`). 
 | 22 | `reserved0` | u16 | - | 0 |
 
 A revoke of a lease that is not active returns `EOK` and changes nothing.
+
+**Latching revokes.** While MOVING, a revoke with reason `REVOKE_SENSOR_HEALTH` (400) or `REVOKE_UNVERIFIABLE` (404) sends the gate to STOPPING **and latches `SENSOR_LOST`** (REF-FSM R7 plus latch). Every other 4xx reason follows R7 with no latch, so the gate returns to READY after standstill.
+
+### 3.4 Baseline modes B0 and B1: `DCMD_GUARD_PASSTHRU`
+
+Status: **approved by the PO on 15 Nov 2026; needs agreement from A (A-10) and B (B-5) before the freeze.**
+
+In B0 and B1 the planner commands the gate directly, so these runs show what happens **without** GUARD.
+
+| Item | Value |
+|---|---|
+| Purpose | Baseline runs only: the planner's command goes straight to the gate, unchecked |
+| Sender -> receiver | `guard-planner` -> `guard-gate` |
+| Mechanism | `open("/dev/guard/gate", O_RDWR)`, then `devctl(DCMD_GUARD_PASSTHRU)` once per planning cycle (20 Hz) |
+| Timeout | Client `TimerTimeout` of **5 ms**. On `ETIMEDOUT` the planner sends its next command in the next cycle |
+| Allowed callers | uid `guard_plan` (1104) or root, **only while the gate runs in mode B0 or B1** (config C12 `mode`). In B2 the gate returns `EPERM` and counts `GATE_UNAUTHORIZED_CLIENT` |
+| Supervisor | Runs, so that F3 and F7 can be injected, but takes no part: it does not register with the gate, and the planner sends it no proposals. In B0 and B1 the gate returns `EPERM` to `DCMD_GUARD_REGISTER`, `DCMD_GUARD_LEASE` and `DCMD_GUARD_REVOKE` |
+
+`PassthruCmd` (type `0x0014`, 40 bytes):
+
+| Offset | Field | Type | Units | Range |
+|---|---|---|---|---|
+| 0 | header | 8 B | - | type `0x0014`, size 40 |
+| 8 | `cmd_seq` | u64 | - | ≥ 1, strictly increasing; otherwise `EINVAL` |
+| 16 | `v` | f64 | m/s | -1.2 to 1.2; otherwise `EINVAL` |
+| 24 | `w` | f64 | rad/s | -1.0 to 1.0; otherwise `EINVAL` |
+| 32 | `stamp_ns` | i64 | ns | ≥ 0, the planner's send time |
+
+Gate behaviour in B0 and B1. These rows replace REF-FSM rows R1-R14 for these modes. R15, R16 and R18 still apply, and `MotorCmd` is still sent every tick.
+
+| Row | From | Event | To | Emits |
+|---|---|---|---|---|
+| P1 | INIT | start | READY (no BOOT latch) | - |
+| P2 | READY or MOVING | valid `PassthruCmd` | MOVING; it becomes the held command | `GATE_PASSTHRU_ACCEPTED` |
+| P3 | MOVING | B1 only: no valid `PassthruCmd` for `heartbeat_timeout_ms` (C12, default 500) | STOPPING | `GATE_HEARTBEAT_LOST` |
+| P4 | MOVING | B0 only: no new command | MOVING; the held command repeats every tick | - |
+| P5 | STOPPING or STOPPED | valid `PassthruCmd` | unchanged; `EOK`, command dropped | `GATE_NOT_READY` |
 
 ---
 
@@ -370,8 +419,8 @@ count.<CODE>=<n>
 | Offset | Field | Type | Units | Range |
 |---|---|---|---|---|
 | 0 | header | 8 B | - | type `0x0001`, size 464 |
-| 8 | `obs_id` | u64 | - | ≥ 1, unique across feeds |
-| 16 | `seq` | u64 | - | ≥ 1, +1 per observation on this feed |
+| 8 | `obs_id` | u64 | - | ≥ 1. Identifies one world sample. The sim publishes each sample on **both** feeds with the same `obs_id`, `stamp_ns` and world fields |
+| 16 | `seq` | u64 | - | ≥ 1, +1 per observation delivered on this feed. Used only to spot gaps on one feed; never compared across feeds |
 | 24 | `stamp_ns` | i64 | ns | ≥ 0, time the sim sampled the world |
 | 32 | `x` | f64 | m | -100 to 100 (map frame) |
 | 40 | `y` | f64 | m | -100 to 100 |
@@ -386,6 +435,8 @@ count.<CODE>=<n>
 | 80 | `obstacles[16]` | 16 × 24 B | - | Entries `0 .. obstacle_count-1` are valid; the rest are zero |
 
 Each obstacle entry (24 bytes): `x` f64 (m, -100 to 100) at +0, `y` f64 (m, -100 to 100) at +8, `r` f64 (m, 0.05 to 2.0) at +16.
+
+**Feeds and faults.** Both feeds carry the same samples. Fault F1 delays delivery on the planner feed: same `obs_id` and `stamp_ns`, later arrival. Fault F4 pauses delivery on the supervisor feed: samples published during the pause are skipped on that feed, not queued. The supervisor records `obs_id` -> `stamp_ns` for the last 64 samples it received (checkers 4-6).
 
 ---
 
