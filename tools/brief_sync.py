@@ -53,7 +53,7 @@ def load_scope(path=ROOT / "SCOPE.yaml"):
 
 def due_text(value):
     due = value if isinstance(value, datetime.datetime) else datetime.datetime.fromisoformat(value)
-    text = due.strftime("%a %d %b")
+    text = f"{due:%a} {due.day} {due:%b}"
     if (due.hour, due.minute) != (23, 59):
         text += due.strftime(" %H:%M")
     return text
@@ -75,7 +75,7 @@ def table(text, stream):
         if not line.startswith("|"):
             continue
         cells = [cell.strip() for cell in line.strip("|").split("|")]
-        if cells == HEADER or all(set(cell) <= set("-: ") for cell in cells):
+        if cells[0] == HEADER[0] or all(set(cell) <= set("-: ") for cell in cells):
             continue
         if len(cells) != len(HEADER):
             raise BriefError(f"{stream}: row {index + 1} has {len(cells)} cells, want 5")
