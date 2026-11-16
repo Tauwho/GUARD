@@ -27,3 +27,12 @@ gate mode/epoch, decision counts, reason journal, recorded lease bar and stoppin
 Lease/arc fields are shown only when present in the trace; the viewer does not invent
 missing target telemetry. Target-trace acceptance and the GIF remain pending (#24).
 No target numeric evaluation or QNX timings should be published (ADR0011/D11).
+
+
+Headless acceptance (no visible browser):
+`python -m pytest eval/tests/test_dashboard_relay.py`.
+The tests exercise actual localhost HTTP/TCP and a dependency-free Node DOM/canvas
+smoke for seeking, lease expiry, recorded source-pose arc and latch/reason feed.
+Malformed JSON, schema-invalid lines and non-finite numbers on the live bridge are
+counted as drops and skipped; later valid records still arrive. The UI shows the
+drop count. The arc uses the proposal's retained source pose, never a newer pose.

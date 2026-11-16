@@ -3,6 +3,7 @@
 Brief: `docs/streams/BRIEF-A.md`. Resume from this file after any restart. Live scope: `python tools/scope_gate.py --stream A`.
 
 ## Now
+- A5: preserve physical JSONL framing after corrupt bridge lines, validate browser-finite numbers, smoke UI headlessly.
 - A3: implement local/SSH C14 runner, validate real F0/F3, review cleanup/deadline behavior.
 - A1/A2: verify existing fixes against frozen v1.2, add passthrough refusal regression.
 - Run full tools/check.py and F5/F6 acceptance commands.
@@ -33,3 +34,11 @@ A3: done (local acceptance)
 - Local C14 command log includes load/start/process inject/stop; SSH transport has bounded capture and BatchMode auth.
 - Fresh-context review: fixed top-level duration, requested seed/multiple-run validation, out-of-duration injection and stop-after-refused-load findings. Validate optional frozen C8 run_id when supplied; enforce shared injection deadline.
 - SSH hardware not claimed: tests use local core and transport mocks. Target execution belongs to B.
+
+
+A5: done (host acceptance)
+- `python -m pytest eval/tests/test_dashboard_relay.py -q`: 7 passed.
+- Headless Node smoke: PASS (seek, lease, source arc, latch, reason feed).
+- Actual localhost HTTP/TCP tested; malformed/schema-invalid/non-finite and chunked oversized lines drop without poisoning later records.
+- Lease telemetry uses retained proposal source pose; no synthetic newer-pose fallback.
+- Fresh-context findings fixed: oversized physical-line framing and huge integer rejection.
