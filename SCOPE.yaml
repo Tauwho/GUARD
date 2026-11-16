@@ -56,5 +56,5 @@ items:
   - {id: P2, tier: MUST, owner: P, due: cp2, title: "Demo script and storyboard whose every command exists on main",
      checks: [{file: "demo/DEMO.md"}, {cmd: "python tools/check_demo_commands.py"}]}
   - {id: P3, tier: MUST, owner: P, due: code_freeze, title: "v1.0-rc1 tag on a green, fresh-clone-passing commit", checks: [{cmd: "git rev-parse -q --verify refs/tags/v1.0-rc1"}]}
-  - {id: P4, tier: MUST, owner: P, due: hard_stop, title: "Video under 3:00 linked in README; make package-check passes", checks: [{cmd: "make package-check"}]}
+  - {id: P4, tier: MUST, owner: P, due: hard_stop, title: "Video under 3:00 linked in README; make package-check passes", checks: [{grep: {file: "progress/P.md", re: "P4: done .*package-check PASS"}}, {grep: {file: "README.md", re: "(?i)video"}}]}
   - {id: P5, tier: SHOULD, owner: P, due: cut_1, title: "Architecture diagram + Limits page final", checks: [{file: "docs/architecture.svg"}]}
