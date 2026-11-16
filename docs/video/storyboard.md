@@ -18,7 +18,7 @@ Total length **2:50** (hard limit: under 3:00).
 | 1 | 0:00-0:10 | Hospital corridor map; robot icon at Ward A | host: `python dashboard/relay.py --replay F6-B0.jsonl` | F6 under B0, seed 1006 (host replay) | Map only, zone outline visible | "AI planners can be right about a world that no longer exists." |
 | 2 | 0:10-0:25 | QEMU window booting, then target terminal | `uname -a`, then `pidin` | -- | Not shown | "QNX 8.0 quick-start target image in QEMU (x86_64)" |
 | 3 | 0:25-0:45 | Animated diagram from the README | -- | -- | Not shown | "Proposal -> 11 checks -> 250 ms lease -> gate -> motor" |
-| 4 | 0:45-1:10 | Dashboard live from target; inset: host replay under B1 | `guardctl scenario load /guard/scenarios/F6.yaml --seed 1006 --mode B2`, `guardctl scenario start`; host inset: `guard-replay scenarios/F6.yaml --mode B1` | F6, seed 1006 (B2 live, B1 inset) | B2: zone turns active, reason `REJ_MAP_VERSION` / `REJ_RESTRICTED_ZONE`, robot waits. Inset: B1 robot enters the zone | "Stale map -> rejected" |
+| 4 | 0:45-1:10 | Dashboard live from target; inset: host replay under B1 | `guardctl scenario load /guard/scenarios/F6.yaml --seed 1006 --mode B2`, `guardctl scenario start`; host inset: `guard-replay scenarios/F6.yaml --mode B1` | F6, seed 1006 (B2 live, B1 inset) | B2: zone turns active, reason `REJ_MAP_VERSION` (#137), robot waits. Inset: B1 robot enters the zone | "Stale map -> rejected" |
 | 5 | 1:10-1:30 | Dashboard + target terminal side by side | `guardctl scenario load /guard/scenarios/F3.yaml --seed 1003 --mode B2`, `guardctl scenario start`, then `guardctl inject F3`, then `guardctl status` | F3, seed 1003 | Lease bar drains; mode STOPPING -> STOPPED -> LATCHED; reason `GATE_SUPERVISOR_LOST` | "Supervisor killed. The gate stops the robot on its own timer." |
 | 6 | 1:30-1:45 | Target terminal + dashboard | `guardctl scenario load /guard/scenarios/F7.yaml --seed 1007 --mode B2`, `guardctl scenario start`, `guardctl inject F7` | F7, seed 1007 | `GATE_EPOCH_CHANGED`, then `GATE_EPOCH_STALE` for the old supervisor | "Zombie supervisor: old epoch refused" |
 | 7 | 1:45-2:00 | Target terminal with `pidin` priorities, dashboard | `guardctl scenario load /guard/scenarios/F2.yaml --seed 1002 --mode B2`, `guardctl scenario start`, `guardctl inject F2` | F2, seed 1002 | Leases lapse, `GATE_LEASE_EXPIRED`, STOPPED, then moving again | "Overload above the supervisor: leases lapse, robot stops" |
@@ -68,7 +68,7 @@ C8 and C9 are now backed by README lines (#64, HO4-11), from `docs/architecture.
 ## 4. Shot list and capture checklist (Fri 11 Dec, tag `v1.0-rc1`)
 
 **Before recording:**
-- [ ] `git checkout v1.0-rc1`; image built with `image/build-image.sh` (planned, #43).
+- [ ] `git checkout v1.0-rc1`; boot the test image with `image/run-demo.sh --test` (builds with `image/build-image.sh --test`, adds `guard-hog` for scene 7, F2). Stop it after with `image/run-demo.sh --stop`.
 - [ ] Close every other window. Hide desktop icons, notifications and personal folders.
 - [ ] Screen at 1920 × 1080; scaling 100 %.
 - [ ] Terminal font: monospace, 18 pt, dark background, prompt shortened to `$ `.
