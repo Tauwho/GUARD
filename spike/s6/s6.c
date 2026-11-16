@@ -1,5 +1,5 @@
 /* Spike S6 (#32): send N JSON lines from the target to the host on TCP 7700.
- * Use this only if `nc` is missing on the image.
+ * Use this only if `nc` is missing on the image. Build: qcc ... s6.c -lsocket
  *   ./s6 <host-ip> [count]   default count 1000 */
 #include <arpa/inet.h>
 #include <stdio.h>

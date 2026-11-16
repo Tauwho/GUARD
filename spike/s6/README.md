@@ -1,7 +1,7 @@
 # Spike S6 (#32): host to target TCP stream on port 7700
 
 Throwaway spike code. It stays on branch `spike/s6` and never goes to `main`.
-`s6.c` has not been compiled yet: the agent that wrote it has no QNX SDP.
+`s6.c` builds with SDP 8.0 `qcc` (needs `-lsocket`). It has not run on a target yet.
 
 ## Run
 
@@ -12,7 +12,7 @@ Throwaway spike code. It stays on branch `spike/s6` and never goes to `main`.
    i=0; while [ $i -lt 1000 ]; do echo "{\"seq\":$i}"; i=$((i+1)); done | nc 10.10.10.1 7700
    ```
 
-3. If `nc` is missing: on the host, `qcc -Vgcc_ntox86_64 -Wall -o /tmp/s6 spike/s6/s6.c`,
+3. If `nc` is missing: on the host, `qcc -Vgcc_ntox86_64 -Wall -o /tmp/s6 spike/s6/s6.c -lsocket`,
    `scp /tmp/s6 root@<target-ip>:/tmp/`, then on the target `/tmp/s6 10.10.10.1 1000`.
 
 The host prints `S6 host received the target stream intact: yes/no`.
