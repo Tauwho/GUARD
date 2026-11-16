@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Regenerate the README's Evidence Map, Results and Quick start blocks.
+"""Regenerate the README's Evidence Map, Results, Quick start and Limits blocks.
 
 Sources, all on main:
   evidence/*/manifest.json          Evidence Map (target and host bundles)
   docs/results/host-linux.json      Results, from the newest Linux host-evaluation run
   host/, dashboard/, image/ READMEs Quick start commands
+  docs/limits.md                    Limits (negated bullets only)
 
 Usage:
   python tools/build_readme.py            rewrite the README from the sources
@@ -132,16 +133,42 @@ def quickstart():
     return "\n".join(parts).strip()
 
 
+NEGATED_BULLET = re.compile(r"^- (No|Not|Never)\b")
+
+
+def limits_bullets(text):
+    """Bullets under `## Limits`, continuation lines folded in. Raises on a malformed list.
+
+    Every bullet must be a negation (`- No`, `- Not`, `- Never`): the generated block
+    carries a claims-ok marker, so an un-negated claim must not slip in under it.
+    """
+    pattern = r"^## Limits[ \t]*\n(.*?)(?=^## |\Z)"
+    match = re.search(pattern, text.lstrip("﻿"), re.S | re.M)
+    if not match:
+        raise SystemExit("build_readme: docs/limits.md has no '## Limits' section")
+    bullets = []
+    for line in match.group(1).splitlines():
+        if not line.strip() or line.strip() == "<!-- claims-ok: negated -->":
+            continue
+        if line.startswith("- "):
+            bullets.append(line.rstrip())
+        elif line.startswith((" ", "\t")) and bullets:
+            bullets[-1] += " " + line.strip()
+        else:
+            raise SystemExit(f"build_readme: docs/limits.md: not a '- ' bullet: {line!r}")
+    if not bullets:
+        raise SystemExit("build_readme: docs/limits.md: the Limits list is empty")
+    for bullet in bullets:
+        if not NEGATED_BULLET.match(bullet):
+            raise SystemExit(f"build_readme: docs/limits.md: bullet is not a negation: {bullet!r}")
+    return bullets
+
+
 def limits():
-    """The bullet list under `## Limits` in docs/limits.md, with its claims-ok marker."""
+    """The Limits list from docs/limits.md, with its claims-ok marker."""
     if not LIMITS.exists():
         return planned("limits")
-    text = LIMITS.read_text(encoding="utf-8")
-    match = re.search(r"^## Limits\n(.*?)(?=^## |\Z)", text, re.S | re.M)
-    bullets = [line for line in (match.group(1) if match else "").splitlines()
-               if line.startswith("- ")]
-    if not bullets:
-        return planned("limits")
+    bullets = limits_bullets(LIMITS.read_text(encoding="utf-8"))
     return "\n".join(["<!-- claims-ok: negated -->", *bullets])
 
 

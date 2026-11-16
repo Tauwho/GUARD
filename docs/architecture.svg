@@ -15,12 +15,12 @@
     .s { font-size: 12px; fill: #334155; }
     .l { font-size: 12px; fill: #0f172a; }
     .z { font-size: 12px; font-weight: 700; fill: #475569; }
-    .e { stroke: #334155; stroke-width: 1.5; fill: none; marker-end: url(#a); }
+    .e { stroke: #334155; stroke-width: 1.5; fill: none; }
   </style>
   <rect width="960" height="560" fill="#ffffff"/>
 
   <rect class="zone" x="20" y="20" width="920" height="390" rx="8"/>
-  <text class="z" x="36" y="42">QNX 8.0 target in QEMU: one process per box, SCHED_FIFO priorities (docs/architecture.md REF-PRIORITIES)</text>
+  <text class="z" x="36" y="42">Design, QNX 8.0 target in QEMU: one process per box (docs/architecture.md); target processes land in Stream B</text>
   <rect class="zone" x="20" y="425" width="920" height="115" rx="8"/>
   <text class="z" x="924" y="447" text-anchor="end">Host (Linux or WSL2)</text>
 
@@ -31,13 +31,13 @@
 
   <rect class="box" x="375" y="70" width="210" height="90" rx="6"/>
   <text class="h" x="480" y="100" text-anchor="middle">Supervisor</text>
-  <text class="s" x="480" y="122" text-anchor="middle">prio 30, own observation history</text>
-  <text class="s" x="480" y="140" text-anchor="middle">checks 1-11, then a short lease</text>
+  <text class="s" x="480" y="122" text-anchor="middle">own observation history, checks 1-11</text>
+  <text class="s" x="480" y="140" text-anchor="middle">monitor prio 30, C1 server inherits 10</text>
 
   <rect class="key" x="700" y="70" width="210" height="90" rx="6"/>
   <text class="h" x="805" y="100" text-anchor="middle">Gate</text>
-  <text class="s" x="805" y="122" text-anchor="middle">resource manager, prio 35</text>
-  <text class="s" x="805" y="140" text-anchor="middle">own timer stops on expiry</text>
+  <text class="s" x="805" y="122" text-anchor="middle">own timer stops on lease expiry</text>
+  <text class="s" x="805" y="140" text-anchor="middle">tick + expiry prio 35; resmgr inherits</text>
 
   <rect class="box" x="375" y="290" width="210" height="90" rx="6"/>
   <text class="h" x="480" y="320" text-anchor="middle">Simulator</text>
@@ -47,12 +47,12 @@
   <rect class="box" x="50" y="290" width="210" height="90" rx="6"/>
   <text class="h" x="155" y="320" text-anchor="middle">Bridge</text>
   <text class="s" x="155" y="342" text-anchor="middle">prio 8, reads the telemetry ring</text>
-  <text class="s" x="155" y="360" text-anchor="middle">never sends commands</text>
+  <text class="s" x="155" y="360" text-anchor="middle">C8 telemetry out only</text>
 
   <rect class="box" x="700" y="290" width="210" height="90" rx="6"/>
   <text class="h" x="805" y="320" text-anchor="middle">guardctl</text>
   <text class="s" x="805" y="342" text-anchor="middle">operator: status, recover,</text>
-  <text class="s" x="805" y="360" text-anchor="middle">inject (test image)</text>
+  <text class="s" x="805" y="360" text-anchor="middle">inject via C7 (test image)</text>
 
   <rect class="box" x="50" y="460" width="210" height="65" rx="6"/>
   <text class="h" x="155" y="487" text-anchor="middle">Dashboard</text>
@@ -62,36 +62,38 @@
   <text class="h" x="480" y="487" text-anchor="middle">guard-replay</text>
   <text class="s" x="480" y="508" text-anchor="middle">same core, virtual time</text>
 
-  <path class="e" d="M260 100 H373"/>
+  <path class="e" marker-end="url(#a)" d="M260 100 H373"/>
   <text class="l" x="316" y="92" text-anchor="middle">C1 proposal</text>
-  <path class="e" d="M375 135 H262"/>
+  <path class="e" marker-end="url(#a)" d="M375 135 H262"/>
   <text class="l" x="316" y="153" text-anchor="middle">decision + reason</text>
 
-  <path class="e" d="M585 115 H698"/>
+  <path class="e" marker-end="url(#a)" d="M585 115 H698"/>
   <text class="l" x="641" y="107" text-anchor="middle">C2 lease</text>
   <text class="l" x="641" y="133" text-anchor="middle">(epoch, expiry)</text>
 
-  <path class="e" d="M760 160 L590 300"/>
+  <path class="e" marker-end="url(#a)" d="M760 160 L590 300"/>
   <text class="l" x="668" y="222" text-anchor="end">C5 motor command</text>
   <text class="l" x="668" y="238" text-anchor="end">(stop when no lease)</text>
 
-  <path class="e" d="M480 290 V162"/>
+  <path class="e" marker-end="url(#a)" d="M480 290 V162"/>
   <text class="l" x="472" y="230" text-anchor="end">C6 observations</text>
 
-  <path class="e" d="M375 310 L240 162"/>
+  <path class="e" marker-end="url(#a)" d="M375 310 L240 162"/>
   <text class="l" x="205" y="238" text-anchor="middle">C6 own feed</text>
 
-  <path class="e" d="M805 290 V162"/>
-  <text class="l" x="813" y="230">C3 recover</text>
-  <text class="l" x="813" y="246">C4 status</text>
+  <path class="e" marker-end="url(#a)" d="M785 290 V162"/>
+  <text class="l" x="777" y="230" text-anchor="end">C3 recover</text>
+  <path class="e" marker-end="url(#a)" d="M825 162 V288"/>
+  <text class="l" x="833" y="230">C4 status</text>
 
-  <path class="e" d="M375 360 H262"/>
+  <path class="e" marker-end="url(#a)" d="M375 360 H262"/>
   <text class="l" x="318" y="378" text-anchor="middle">telemetry ring</text>
+  <text class="l" x="318" y="394" text-anchor="middle">(all processes)</text>
 
-  <path class="e" d="M155 380 V458"/>
+  <path class="e" marker-end="url(#a)" d="M155 380 V458"/>
   <text class="l" x="163" y="402">C8 JSONL, TCP 7700</text>
 
-  <path class="e" d="M375 492 H262"/>
+  <path class="e" marker-end="url(#a)" d="M375 492 H262"/>
   <text class="l" x="318" y="484" text-anchor="middle">C8 trace</text>
 
   <text class="s" x="605" y="487">Simulation-only research prototype.</text>

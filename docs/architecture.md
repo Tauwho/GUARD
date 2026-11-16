@@ -339,7 +339,7 @@ All times SGT.
 
 <!-- claims-ok: negated -->
 
-**Marker rule:** the `<!-- claims-ok: negated -->` marker exempts everything from its line to the next Markdown heading. Use it only for negated statements, like the Limits list, and for this block.
+**Marker rule:** the `<!-- claims-ok: negated -->` marker exempts everything from its line to the next Markdown heading. Use it only for negated statements, like the Limits list in [limits.md](limits.md), and for this block.
 
 **Limits:** the list lives in [limits.md](limits.md); the README Limits block is generated from it (`tools/build_readme.py`).
 

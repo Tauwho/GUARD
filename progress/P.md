@@ -129,6 +129,11 @@ $ python tools/scope_gate.py --stream P   ->   P2 ... DONE
   wording wins. `docs/architecture.md` REF-CLAIMS points at limits.md instead of a
   third copy.
 - `build_readme.py` writes LF on Windows (it wrote CRLF before).
+- Fresh-context review: 2 blockers (AI disclosure ignored the bootstrap commit and
+  implied human review; diagram showed unbuilt processes as if running) and 10
+  shoulds (priority labels, C4 direction, telemetry producers, CSS markers,
+  Limits parser strictness, README-current pytest breaking A/B CI). All fixed;
+  new `tools/check_architecture_svg.py` (6 tests), 13 build_readme tests.
 - README AI disclosure corrected: agents open and merge PRs under D12/D26; the old
   text said a human merged every change.
 
