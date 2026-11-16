@@ -30,6 +30,19 @@ TEST_CASE("valid recent source allows normal motion") {
     CHECK(result.reasons_mask == 0);
 }
 
+TEST_CASE("representable acceleration ceiling is accepted without subtraction rounding") {
+    guard::Supervisor supervisor;
+    auto source = observation();
+    source.v_meas = 0.045;
+    REQUIRE(supervisor.observe(source, 0));
+    auto request = proposal();
+    request.v_cmd = source.v_meas + 0.5 / 20;
+    CHECK(supervisor.evaluate(request, {}, 1).authorized);
+    ++request.seq;
+    request.v_cmd += 1e-6;
+    CHECK(supervisor.evaluate(request, {}, 2).primary_reason == guard::Reason::REJ_ACCEL_ENVELOPE);
+}
+
 TEST_CASE("stale source is rejected while current observations remain fresh") {
     guard::Supervisor supervisor;
     REQUIRE(supervisor.observe(observation(1, 0), 0));
