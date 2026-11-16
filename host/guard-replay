@@ -23,12 +23,23 @@ def summarize(events):
     if end["kind"] != "run_end":
         raise ValueError("incomplete telemetry")
     summary = dict(end["payload"])
-    summary["violations"] = summary["contacts"] + summary["zone_breaches"]
-    summary["latches"] = sum(
-        event["kind"] == "gate_transition" and event["payload"]["to"] == "LATCHED"
-        for event in events
+    if "min_margin_m" in summary:
+        summary["minimum_margin_m"] = summary["min_margin_m"]
+    summary.setdefault(
+        "time_to_goal_s",
+        (end["t_ns"] - events[0]["t_ns"]) / 1e9 if summary["final_state"] == "GOAL" else None,
     )
-    summary["false_reject_rate"] = summary["rejected"] / max(1, summary["proposals"])
+    summary["violations"] = summary["contacts"] + summary["zone_breaches"]
+    summary.setdefault(
+        "latches",
+        sum(
+            event["kind"] == "gate_transition" and event["payload"]["to"] == "LATCHED"
+            for event in events
+        ),
+    )
+    summary["false_reject_rate"] = (summary["rejected"] + summary.get("unverifiable", 0)) / max(
+        1, summary["proposals"]
+    )
     reasons = set()
     for event in events:
         payload = event["payload"]
