@@ -98,3 +98,14 @@ def test_evidence_checks_ancestry_and_files(repo):
     assert not policy.check(repo, "evidence")
     put(repo, "evidence/bundle/manifest.json", json.dumps({"sha": "0" * 40, "files": ["missing"]}))
     assert len(policy.check(repo, "evidence")) == 3
+
+
+def test_nested_evidence_counts_towards_size_limit(repo):
+    put(repo, "evidence/bundle/manifest.json", json.dumps({"sha": "0" * 40, "files": []}))
+    put(repo, "evidence/bundle/nested/large.txt", "x" * (1024 * 1024 + 1))
+    assert any("1 MiB" in error for error in policy.check(repo, "evidence"))
+
+
+def test_plain_portable_core_passes(repo):
+    put(repo, "core/src/example.cpp", "int twice(int value) { return value * 2; }")
+    assert not policy.check(repo, "core-portable")

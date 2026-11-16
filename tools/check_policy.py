@@ -19,7 +19,7 @@ FORBIDDEN_CORE = re.compile(
 )
 FORBIDDEN_FILE = re.compile(
     r"(?:^|/)(?:qnxsdp-env[^/]*|id_rsa[^/]*|id_ed25519[^/]*|licen[cs]e(?:[_-]key|\.dat|\.lic)[^/]*)$"
-    r"|\.(?:ifs|qcow2|vmdk|img|pem|key|p12|exe|dll|so|a|o)$",
+    r"|\.(?:ifs|qcow2|vmdk|img|lic|pem|key|p12|exe|dll|so|a|o)$",
     re.I,
 )
 SECRET = re.compile(
@@ -122,11 +122,16 @@ def check(root, name):
                 stderr=subprocess.DEVNULL,
             ).returncode:
                 errors.append(f"{bundle.name}: SHA is not an ancestor of HEAD")
-            files = [root / p for p in paths if p.parent == relative.parent]
+            files = [root / p for p in paths if p.is_relative_to(relative.parent)]
             if sum(p.stat().st_size for p in files) > 1024 * 1024:
                 errors.append(f"{bundle.name}: bundle exceeds 1 MiB")
             if {p.name for p in files if p.name != "manifest.json"} != set(data.get("files", [])):
                 errors.append(f"{bundle.name}: unlisted evidence files")
+            for path in files:
+                try:
+                    path.read_bytes().decode("utf-8")
+                except UnicodeDecodeError:
+                    errors.append(f"{bundle.name}: non-text evidence")
             for filename in data.get("files", []):
                 if (
                     filename
