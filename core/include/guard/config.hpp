@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <string_view>
 
 namespace guard {
 enum class Mode : std::uint8_t { passthrough, heartbeat, guarded };
@@ -36,4 +37,6 @@ constexpr std::int64_t milliseconds(std::uint32_t value) {
     return static_cast<std::int64_t>(value) * 1'000'000;
 }
 bool valid(const Config &config);
+// Input is JSON, a YAML subset produced by the host's schema-validation step.
+bool load_config(std::string_view buffer, Config &output);
 } // namespace guard

@@ -56,9 +56,9 @@ bool valid(const Decision &v) {
 bool valid(const RegisterReply &v) { return v.epoch > 0 && v.gate_mode <= 5 && v.reason == 0; }
 bool valid(const Lease &v) {
     return v.lease_id > 0 && v.epoch > 0 && v.lease_seq > 0 && v.proposal_id > 0 &&
-           velocities(v.v_cmd, v.w_cmd) && within(v.v_cap, 0, 1.2) && v.issued_ns >= 0 &&
-           v.expires_ns >= v.issued_ns && v.expires_ns - v.issued_ns >= 50'000'000 &&
-           v.expires_ns - v.issued_ns <= 1'000'000'000;
+           velocities(v.v_cmd, v.w_cmd) && v.v_cmd >= 0 && within(v.v_cap, 0, 1.2) &&
+           v.issued_ns >= 0 && v.expires_ns >= v.issued_ns &&
+           v.expires_ns - v.issued_ns >= 50'000'000 && v.expires_ns - v.issued_ns <= 1'000'000'000;
 }
 bool valid(const LeaseAck &v) {
     return v.lease_id > 0 && v.epoch > 0 && v.gate_mode <= 5 && known(v.reason, 500, 504);
