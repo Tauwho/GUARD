@@ -75,7 +75,7 @@ def main():
     parser.add_argument("--request", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--samples", type=int, default=20)
-    parser.add_argument("--model", default="qwen2.5:3b")
+    parser.add_argument("--model", default="qwen2.5:1.5b-instruct")
     args = parser.parse_args()
     if not 2 <= args.samples <= 100:
         parser.error("samples must be 2..100 (plus one excluded warmup)")

@@ -56,6 +56,9 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install PyYAML==6.0.3 jsonschema==4.26.0
+      - name: Fetch PR heads (D21)
+        if: matrix.check == 'evidence'
+        run: git fetch --no-tags origin '+refs/pull/*/head:refs/remotes/pr/*'
       - run: python tools/check_policy.py ${{ matrix.check }}
   eval:
     runs-on: ubuntu-24.04

@@ -1,0 +1,25 @@
+{
+  "binary": "guard_hog_tests",
+  "status": "SUCCESS",
+  "test_cases": [
+    "hog at 32 starves a priority-10 thread on the same CPU, then lets it run",
+    "parse accepts prio, ms and an optional cpu",
+    "parse rejects bad arguments",
+    "run rejects a zero duration"
+  ],
+  "extra_lines": [
+    "CLI guard-hog 32 50 -c 1 -> exit 0",
+    "CLI guard-hog 64 50 -> exit 2",
+    "CLI guard-hog 32 -> exit 2"
+  ],
+  "test_cases_count": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0
+  },
+  "assertions_count": {
+    "total": 20,
+    "passed": 20,
+    "failed": 0
+  }
+}

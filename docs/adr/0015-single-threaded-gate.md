@@ -8,7 +8,7 @@
 The gate handles `devctl` calls, tick pulses and lease-expiry pulses. With several threads, the order of a lease arriving and a lease expiring could vary between runs.
 
 ## Decision
-The gate runs one dispatch loop on one channel. `devctl` handlers and pulses are processed in arrival order, and every handler is bounded.
+The gate runs one dispatch loop on one channel. `devctl` handlers and pulses are processed in priority order, FIFO within a priority (spike S3 Q5, #89), and every handler is bounded.
 
 ## Alternatives considered
 - **Thread pool** (rejected). Higher throughput, but non-deterministic ordering and locking inside the FSM.
