@@ -85,7 +85,9 @@ def main():
     root = Path(args.root)
     description = root / "docs/devpost/description.md"
     screenshots = root / "docs/devpost/screenshots.md"
-    missing = [str(path.relative_to(root)) for path in (description, screenshots) if not path.exists()]
+    missing = [
+        str(path.relative_to(root)) for path in (description, screenshots) if not path.exists()
+    ]
     if missing:
         print("submission: FAIL missing " + ", ".join(missing))
         return 1

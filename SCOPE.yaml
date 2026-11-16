@@ -3,6 +3,7 @@
 #   DONE     - every check passes
 #   OPEN     - not done, cut date not reached
 #   DROPPED  - not done and the cut date for its tier has passed (SHOULD: cut_1, STRETCH: cut_2)
+#              Early cut: after cp2, if B4 (F0 on target) is not DONE every SHOULD item is DROPPED.
 #   AT-RISK  - MUST item not done after its due date (the fallback in "fallback" applies automatically)
 # Check kinds: file (glob must match), grep (regex must match in a file), cmd (exit 0),
 # evidence: manual (reported MANUAL, never DONE; a progress file is never a done-check).

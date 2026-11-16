@@ -1,4 +1,5 @@
-"""scope_gate.py: argv done-checks (audit 1) and honest MANUAL items (audit 3)."""
+"""scope_gate.py: argv done-checks (audit 1), honest MANUAL items (audit 3),
+B4 early-cut rule for SHOULD items (audit 7)."""
 
 import datetime
 import importlib.util
@@ -69,6 +70,45 @@ def test_manual_item_with_a_failing_check_still_shows_open():
 def test_passing_file_check_is_done():
     state, _ = scope_gate.item_state(item(checks=[{"file": "README.md"}]), NOW, DATES)
     assert state == "DONE"
+
+
+AFTER_CP2 = datetime.datetime(2026, 11, 30, 9, 0)
+
+
+def fake_scope(b4_checks):
+    return {
+        "items": [
+            {"id": "B4", "tier": "MUST", "owner": "B", "due": "cp2", "checks": b4_checks},
+        ]
+    }
+
+
+def test_f0_early_cut_is_active_after_cp2_without_b4():
+    assert scope_gate.b4_early_cut(fake_scope([{"file": "no-such-f0/*"}]), AFTER_CP2, DATES)
+
+
+def test_f0_early_cut_is_inactive_when_b4_is_done():
+    assert not scope_gate.b4_early_cut(fake_scope([{"file": "README.md"}]), AFTER_CP2, DATES)
+
+
+def test_f0_early_cut_is_inactive_before_cp2():
+    missing = fake_scope([{"file": "no-such-f0/*"}])
+    assert not scope_gate.b4_early_cut(missing, NOW, DATES)
+
+
+def test_should_item_drops_after_cp2_when_f0_is_missing():
+    should = item("A6", tier="SHOULD", due="cut_1", checks=[{"file": "no-such-advisor/*"}])
+    assert scope_gate.item_state(should, AFTER_CP2, DATES, early_cut=True)[0] == "DROPPED"
+
+
+def test_should_item_survives_before_cp2_even_without_f0():
+    should = item("A6", tier="SHOULD", due="cut_1", checks=[{"file": "no-such-advisor/*"}])
+    assert scope_gate.item_state(should, NOW, DATES, early_cut=False)[0] == "OPEN"
+
+
+def test_f0_early_cut_leaves_must_items_alone():
+    must = item("P1", tier="MUST", due="package_done", checks=[{"file": "no-such-readme/*"}])
+    assert scope_gate.item_state(must, AFTER_CP2, DATES, early_cut=True)[0] == "OPEN"
 
 
 def test_summary_counts_manual_separately(capsys):

@@ -57,7 +57,8 @@ def test_missing_section_is_reported():
 
 
 def test_tagline_over_60_characters_is_reported():
-    errors = submission.check_text(GOOD.replace("Stale decisions can't move the robot.", "x" * 61), SHOTS)
+    too_long = GOOD.replace("Stale decisions can't move the robot.", "x" * 61)
+    errors = submission.check_text(too_long, SHOTS)
     assert any("tagline" in error for error in errors)
 
 
