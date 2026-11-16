@@ -3,7 +3,7 @@
 Brief: [BRIEF-P.md](../docs/streams/BRIEF-P.md). Resume from this file after any restart. Live scope: `python tools/scope_gate.py --stream P`.
 
 ## Now
-- P0, P1, P2 and P5 closed; P6 draft next, then P3 (10 Dec) and P4 (13 Dec).
+- P0, P1, P2, P5 and P6 closed; P4 package gate next, then P3 (10 Dec) and P4 video (13 Dec).
 
 ## Done (with evidence: command + last lines, commit or run link)
 
@@ -149,6 +149,31 @@ claims-lint: PASS
 $ python tools/check.py --fast
 RESULT: GREEN
 $ python tools/scope_gate.py --stream P   ->   P5 ... DONE
+```
+
+### P6 — submission draft (2026-11-16)
+
+- `docs/devpost/description.md`: the 12 required sections, each statement sourced on
+  `main` or marked `planned (<SCOPE id>)`. Describes GUARD as a design whose logic
+  runs in the portable core and host harness today; QNX processes planned (B2-B5).
+  Host-only numbers (run 43876818251, n=1 per scenario/config). AI-use disclosure
+  matches the README.
+- `docs/devpost/screenshots.md`: diagram (on main), two dashboard frames and the GIF
+  (planned (P4)), README Results.
+- README intro and Why-QNX paragraph now say the same (no running-process claim).
+- Fresh-context fact check: 2 blockers (QNX processes described as built; stale-epoch
+  leases described as a stop instead of a refusal) and 15 shoulds, all fixed.
+  Supersedes the draft in #66.
+
+Evidence:
+
+```
+$ python tools/check_submission.py
+submission: PASS (description, screenshots, video link, AI-use; upload stays human)
+$ python tools/check_policy.py claims-lint
+claims-lint: PASS
+$ python tools/check.py --fast
+RESULT: GREEN
 ```
 
 ## Next

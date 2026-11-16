@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Check the Devpost draft against the REF-DEVPOST requirements (#8, audit 7).
+"""Check the Devpost draft against BRIEF-P milestone P6 (#8, audit 7).
+
+The required sections are the REQUIRED list below; it is the only copy.
 
 The upload itself is human PO only; this only proves the draft is complete enough
 to paste. No TBD survives P6, the tagline fits 60 characters, every required
