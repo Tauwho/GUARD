@@ -79,7 +79,21 @@ Before committing:
 - No binaries: `hello` itself is never committed. The bundle must stay under 1 MiB.
 - Run `python3 tools/check_policy.py all`.
 
-## 8. Troubleshooting
+## 8. Core tests on the target (B-2, spike S2)
+The same doctest binary must pass on the host and on the target. Toolchain: `cmake/qnx-x86_64.cmake`, preset `qnx-x86_64`.
+```sh
+cmake --preset host-debug && cmake --build --preset host-debug && ctest --preset host-debug
+source ~/qnx800/qnxsdp-env.sh
+python3 tools/env-check.py --build-only
+cmake --preset qnx-x86_64 && cmake --build --preset qnx-x86_64
+scp build/qnx-x86_64/guard_core_tests qnxuser@<target-ip>:/tmp/
+ssh qnxuser@<target-ip> /tmp/guard_core_tests
+```
+The target run must end with doctest's `Status: SUCCESS!` line. Capture `evidence/<yyyymmdd>-<sha7>-core-on-target/` as in §7. Put `binaries.txt` for `build/qnx-x86_64/guard_core_tests`. Put the doctest summary counts (test cases, assertions, failures) for host and target into `results.json`.
+
+If the preset fails, try `qcc -Vgcc_ntox86_64 -lang-c++ -std=c++17` by hand and report the error in #31. The fallback is a `qcc` Makefile under `qnx/`.
+
+## 9. Troubleshooting
 | Symptom | Fix |
 |---|---|
 | `qcc: command not found` | Source `qnxsdp-env.sh` in this shell |
