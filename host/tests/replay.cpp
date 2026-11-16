@@ -48,6 +48,13 @@ int main() {
                 baseline.str().find("\"kind\":\"decision\"") != std::string::npos)
                 throw std::runtime_error("baseline must bypass supervisor decisions");
         }
+        scenario.faults[0].fault = 2;
+        scenario.faults[0].duration_ms = 400;
+        std::ostringstream stalled;
+        guard::host::replay(map, scenario, {}, 42, stalled);
+        if (stalled.str().find("\"primary_reason\":\"REJ_GATE_NOT_READY\"") == std::string::npos ||
+            stalled.str().find("\"primary_reason\":\"GATE_NOT_READY\"") != std::string::npos)
+            throw std::runtime_error("gate refusal must use the C1 decision reason");
         return 0;
     } catch (const std::exception &error) {
         std::cerr << error.what() << '\n';

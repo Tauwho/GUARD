@@ -228,8 +228,13 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                                 telemetry.out() << ",\"x\":" << source->x << ",\"y\":" << source->y
                                                 << ",\"theta\":" << source->theta;
                             telemetry.end();
-                        } else
-                            reason = ack.reason;
+                        } else {
+                            reason = static_cast<unsigned>(Reason::REJ_GATE_NOT_READY);
+                            telemetry.begin(now, "lease");
+                            telemetry.out() << "\"lease_id\":" << lease.lease_id << ",\"reason\":\""
+                                            << reason_name(ack.reason) << "\"";
+                            telemetry.end();
+                        }
                     }
                     if (!accepted)
                         ++result.rejected;
@@ -249,6 +254,8 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                             telemetry.out() << '"' << reason_name(code) << '"';
                             comma = true;
                         }
+                    if (reason == static_cast<unsigned>(Reason::REJ_GATE_NOT_READY))
+                        telemetry.out() << '"' << reason_name(reason) << '"';
                     telemetry.out() << "],\"lease_id\":" << (accepted ? active.lease_id : 0)
                                     << ",\"epoch\":" << registration.epoch;
                     telemetry.end();
