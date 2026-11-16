@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "sha": "50ccebe500aeb8d216d39478c7e25a2fa39e4e9e",
+  "date": "2026-11-16T06:16:54Z",
+  "topic": "core-on-target",
+  "runner_role": "b",
+  "host_os": "Ubuntu 24.04.5 LTS on WSL2 (Windows)",
+  "sdp_version": "8.0.0",
+  "qcc_version": "Toolchain:  12.2.0\tVersion:  gcc_ntox86_64",
+  "image_id": "mkqnximage --type=qemu --arch=x86_64 (QSTI); 8.0.0 2026/10/30-09:10:05EDT x86pc",
+  "contracts": "contracts-v1.0",
+  "files": [
+    "transcript.txt",
+    "uname.txt",
+    "pidin.txt",
+    "binaries.txt",
+    "slog2.txt",
+    "results.json"
+  ],
+  "notes": "Same commit built for host (host-debug, g++) and target (qnx-x86_64 preset). Target run over ssh as root on QEMU with KVM. Run by the agent on @baofrovn's machine at their request."
+}
