@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "sha": "50ccebe500aeb8d216d39478c7e25a2fa39e4e9e",
+  "sha": "161b1e85c1a1780265511bd35bb2a86d759d2880",
   "date": "2026-11-16T06:16:54Z",
   "topic": "core-on-target",
   "runner_role": "b",
@@ -17,5 +17,5 @@
     "slog2.txt",
     "results.json"
   ],
-  "notes": "Same commit built for host (host-debug, g++) and target (qnx-x86_64 preset). Target run over ssh as root on QEMU with KVM. Run by the agent on @baofrovn's machine at their request."
+  "notes": "Run from PR branch commit 50ccebe; squash-merged as 161b1e8 with no source change outside evidence/. Rebuilding guard_core_tests from 161b1e8 gives the same sha256 as binaries.txt. Same commit built for host (host-debug, g++) and target (qnx-x86_64). Target over ssh as root, QEMU+KVM. Run by the agent on @baofrovn's machine at their request."
 }
