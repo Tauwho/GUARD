@@ -14,12 +14,14 @@ The bounded backing array supports all valid configurations (up to 6000 metadata
 entries); the supervisor object reserves roughly 192 KiB more storage even at the
 default capacity. Target adapters should provision this object outside small thread
 stacks. No heap allocation occurs in observation or route admission.
-The binary RouteProposal transport remains deferred until contracts v1.3.
+D26 cuts binary RouteProposal transport: the planner checks advisory routes with
+`guard::check_route`, then emits ordinary C1 motion proposals.
 
 ## Recorded response mode
 
 ```sh
-python host/llm_advisor.py --trace out/advisor-recording.jsonl
+python host/llm_advisor.py
+python host/llm_advisor.py --recorded out/advisor-recording.jsonl
 ```
 
 Each JSONL record has `request` and `response` objects exactly per C9, `delay_ns`
@@ -84,3 +86,16 @@ script stops after two failures and exits non-zero. Numeric timing files stay lo
 and internal. Keep recordings for deterministic replay; do not rely on the live
 response always arriving within the route-age limit. Other members' laptop measurements
 and QNX acceptance remain pending.
+
+
+The default is the bundled `host/fixtures/advisor-recorded.jsonl`, explicitly
+`synthetic-test`: a deterministic wiring/demo fixture, not an actual model run or
+latency measurement. `--trace` remains an alias for `--recorded`. Real model data
+is retained locally as described above. Send the exact fixture request to TCP 7701.
+
+For explicit live mode with a recording fallback:
+`python host/llm_advisor.py --ollama --fallback-recorded out/advisor-recording.jsonl`.
+Only timeout/unavailable service errors fall back, and only for an exact recorded
+request. Invalid model output is not hidden. The original response and delay remain
+unchanged; a response whose source expired during the live timeout is still rejected
+by the core. Recorded default mode works without Ollama or a network connection.

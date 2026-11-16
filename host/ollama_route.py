@@ -32,6 +32,10 @@ OUTPUT_SCHEMA = {
 }
 
 
+class ModelUnavailableError(OSError):
+    """Only model transport/generation availability may trigger a recorded fallback."""
+
+
 class OllamaGenerator:
     def __init__(self, model=DEFAULT_MODEL, timeout=30):
         self.model, self.timeout = model, timeout
@@ -98,7 +102,10 @@ class OllamaAdvisor:
         if request["type"] != "obs_request":
             raise ValueError("expected observation request")
         started = self.clock()
-        generated = await asyncio.wait_for(asyncio.to_thread(self.generator, request), 30)
+        try:
+            generated = await asyncio.wait_for(asyncio.to_thread(self.generator, request), 30)
+        except (OSError, asyncio.TimeoutError) as error:
+            raise ModelUnavailableError("model timeout or unavailable transport") from error
         elapsed = self.clock() - started
         if elapsed < 0 or elapsed > 60_000_000_000:
             raise ValueError("invalid or excessive compute duration")

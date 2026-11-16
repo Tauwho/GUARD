@@ -3,12 +3,10 @@
 Brief: `docs/streams/BRIEF-A.md`. Resume from this file after any restart. Live scope: `python tools/scope_gate.py --stream A`.
 
 ## Now
-- A5: preserve physical JSONL framing after corrupt bridge lines, validate browser-finite numbers, smoke UI headlessly.
-- A3: implement local/SSH C14 runner, validate real F0/F3, review cleanup/deadline behavior.
-- A1/A2: verify existing fixes against frozen v1.2, add passthrough refusal regression.
-- A4: continuous Linux matrix, explicit B2 gate, unmeasured margin handling and isolated fresh-clone CI.
-- Run full tools/check.py and F5/F6 acceptance commands.
-- Fresh-context adversarial review, fix findings, self-merge on green CI.
+- Resumed at user request on 2026-11-16; GitHub identity/access verified as phatdat220707.
+- A5 PR #163 merged 82ba25a, host-ci/governance/stream-a GREEN.
+- A6: recorded mode default, --trace compatibility, exact timeout fallback; full checks and self-review underway.
+- Next: A7 real seed variation, then A8 property tests. A9 second-laptop evidence remains manual.
 
 ## Done (with evidence: command + last lines, commit or run link)
 
@@ -50,3 +48,11 @@ A5: done (host acceptance)
 - Fresh-context findings fixed: oversized physical-line framing and huge integer rejection.
 
 - A5 integrated `python tools/check.py`: RESULT: GREEN (out/d26-a5-integrated.txt); temporary A scope adapter removed after upstream P fix.
+
+
+A6: done (host acceptance)
+- `python -m pytest eval/tests/test_recorded_advisor.py -q`: 11 passed, including bundled recorded TCP -> actual core/F6 -> REJ_MAP_VERSION.
+- `python host/llm_advisor.py --help`: --recorded default, --trace alias, explicit --ollama and optional exact recorded fallback.
+- `python tools/check.py`: RESULT: GREEN (out/d26-a6-final.txt; Git Bash selected before Windows WSL alias).
+- self-review: 0 blocker, 0 should, 0 nit after restricting fallback to ModelUnavailableError; recording write failures do not fall back.
+- Bundled fixture is synthetic-test; real 1.5B evidence remains private under out/s7-1p5b. A9 second-laptop evidence is not claimed.
