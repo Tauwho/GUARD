@@ -40,7 +40,7 @@ GUARD is an independent runtime supervisor for a *simulated* autonomous mobile r
 - [docs/architecture.md](docs/architecture.md)
 
 ## AI-assistance disclosure
-Three people build this project with AI coding assistants. A human code owner reviews and merges every change. The final README will describe how assistants were used.
+Three people build this project with AI coding assistants. A human team member merges every change once CI is green. The final README will describe how assistants were used.
 
 ## Licence
 MIT. The QNX SDP is not included or redistributed. Each developer installs it under their own licence.

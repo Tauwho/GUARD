@@ -21,7 +21,7 @@ This file is binding for every contributor and every AI agent acting for one. If
 ## 3. Engineering rules
 - **Read order before any work:** this file → the issue → linked contracts and ADRs → the code.
 - **Scope.** Touch only the paths listed in your issue's Deliverables, plus their tests. Anything else needs a new issue.
-- **Contracts.** Never guess a wire format. Ask in the contract issue with a comment starting `CONTRACT-Q:`. After v1.0, changes need the `contract-change` label, an ADR, and approval from both @phatdat220707 and @baofrovn.
+- **Contracts.** Never guess a wire format. Ask in the contract issue with a comment starting `CONTRACT-Q:`. After v1.0, changes need the `contract-change` label, an ADR, and an @-mention of both @phatdat220707 and @baofrovn on the PR (no approval required, D12).
 - **Dependencies.** No new dependency without an ADR. Allowed now:
   - C++: doctest
   - Python: stdlib, pytest, hypothesis, websockets, PyYAML, jsonschema, ruff
@@ -46,7 +46,7 @@ All communication happens in GitHub issues and PRs (hard rule 5). Decisions made
 | Question about an interface | Comment on the contract issue starting `CONTRACT-Q:`. Do not proceed on a guess |
 | Need something from another stream | Open a new issue with the work-package template, assign the owning stream, and link both ways. Never edit another stream's paths |
 | A decision is needed | Open a `decision` issue (ADR proposal). The PO accepts or rejects; the result goes to `docs/adr/` and `DECISIONS.md` |
-| PR opened | Title `<type>(<area>): <summary> (#issue)`. Fill in the template. Request CODEOWNER review. Add `status:needs-review` |
+| PR opened | Title `<type>(<area>): <summary> (#issue)`. Fill in the template. Reviews are optional (D12): when CI is green and every conversation is resolved, squash-merge it yourself |
 | Review received | Respond within 24 h. Resolve every conversation before merging |
 | End of every agent session | Comment `HANDOFF:` with done / next / open risks / evidence paths |
 | Freeze active (see `docs/architecture.md` REF-FREEZES) | Only fixes and docs. Anything else needs `freeze-exception` and PO approval |
