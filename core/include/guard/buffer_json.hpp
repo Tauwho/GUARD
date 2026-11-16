@@ -48,12 +48,10 @@ class BufferJson {
         const auto raw = text(index);
         if (raw.size() >= 64)
             return false;
-        std::array<char, 64> buffer{};
-        for (std::size_t i = 0; i < raw.size(); ++i)
-            buffer[i] = raw[i];
-        char *end = nullptr;
-        const double parsed = std::strtod(buffer.data(), &end);
-        if (end != buffer.data() + raw.size() || !std::isfinite(parsed))
+        double parsed = 0;
+        const auto result = std::from_chars(raw.data(), raw.data() + raw.size(), parsed);
+        if (result.ec != std::errc{} || result.ptr != raw.data() + raw.size() ||
+            !std::isfinite(parsed))
             return false;
         output = parsed;
         return true;
