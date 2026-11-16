@@ -51,6 +51,7 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
     if (!gate.register_supervisor(registration))
         throw std::runtime_error("register failed");
     Lease active;
+    Lease zombie;
     std::uint64_t lease_sequence = 0;
     bool boot = true, dead = false, previous_contact = false, previous_zone = false;
     std::array<bool, 9> faults{};
@@ -76,8 +77,20 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                     dead = true;
                     gate.supervisor_lost();
                 }
-                if (fault == 7 && enabled)
-                    throw std::runtime_error("F7 model not implemented yet");
+                if (fault == 7 && enabled) {
+                    zombie = active;
+                    if (!gate.register_supervisor(registration))
+                        throw std::runtime_error("replacement registration failed");
+                    supervisor = Supervisor(config);
+                }
+                if (fault == 7 && !enabled && zombie.lease_id) {
+                    const auto ack = gate.lease(zombie, now);
+                    telemetry.begin(now, "lease");
+                    telemetry.out()
+                        << "\"lease_id\":" << zombie.lease_id << ",\"epoch\":" << zombie.epoch
+                        << ",\"reason\":\"" << reason_name(ack.reason) << "\"";
+                    telemetry.end();
+                }
                 faults[fault] = enabled;
             }
         }
@@ -104,10 +117,12 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
         }
         if (ms % (1000 / config.obs_rate_hz) == 0) {
             auto observation = plant.sample(now, world.scene());
-            if (!faults[4] && !dead && !supervisor.observe(observation, now))
+            const auto *dropout = world.active_fault(4, now);
+            if (!(dropout && dropout->supervisor_feed) && !dead &&
+                !supervisor.observe(observation, now))
                 throw std::runtime_error("supervisor observation failed");
             observation.feed = 1;
-            if (!planner.observe(observation))
+            if (!(dropout && !dropout->supervisor_feed) && !planner.observe(observation))
                 throw std::runtime_error("planner observation failed");
             telemetry.begin(now, "observation");
             telemetry.out() << "\"obs_id\":" << observation.obs_id << ",\"seq\":" << observation.seq

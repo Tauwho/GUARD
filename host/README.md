@@ -1,7 +1,8 @@
 # Host replay
 
 Build with `cmake --preset host-debug` and `cmake --build --preset host-debug`.
-Install the pinned Python dependencies from `requirements-dev.txt`.
+Install the pinned Python dependencies used by `.github/workflows/ci.yml`
+(PyYAML 6.0.3 and jsonschema 4.26.0 for this CLI).
 
 Run from the repository root:
 
@@ -17,8 +18,9 @@ On Windows with a portable compiler, put that compiler's runtime directory on PA
 
 The engine runs the actual core classes with injected virtual time. F2 is an abstract
 supervisor stall; F3 closes its gate session and stops supervisor decisions/rechecks.
-These host models do not test QNX scheduling or process wiring. F7 currently returns
-an explicit model error. Baselines and the full matrix remain separate work under #25/#23.
+F7 registers a replacement supervisor, then submits A's old lease after the configured
+pause. These host models do not test QNX scheduling or process wiring.
+Baselines and the full matrix remain separate work under #25/#23.
 
 The seed is recorded for reproducibility; current scenario timelines have no random
 perturbations, so different seeds currently produce the same physical trajectory.

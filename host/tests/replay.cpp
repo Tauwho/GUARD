@@ -29,6 +29,15 @@ int main() {
             killed.str().find("GATE_SUPERVISOR_LOST") == std::string::npos ||
             killed.str().find("\"final_state\":\"LATCHED\"") == std::string::npos)
             throw std::runtime_error("supervisor loss did not stop and latch");
+        scenario.faults[0].fault = 7;
+        scenario.faults[0].duration_ms = 2000;
+        std::ostringstream zombie;
+        const auto replaced = guard::host::replay(map, scenario, {}, 42, zombie);
+        if (replaced.goal || replaced.contacts ||
+            zombie.str().find("GATE_EPOCH_CHANGED") == std::string::npos ||
+            zombie.str().find("GATE_EPOCH_STALE") == std::string::npos ||
+            zombie.str().find("\"final_state\":\"LATCHED\"") == std::string::npos)
+            throw std::runtime_error("zombie lease did not preserve the latch");
         return 0;
     } catch (const std::exception &error) {
         std::cerr << error.what() << '\n';

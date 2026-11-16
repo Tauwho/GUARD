@@ -3,7 +3,7 @@
 import runpy
 from pathlib import Path
 
-API = runpy.run_path(str(Path(__file__).parents[1] / "guard-replay"))
+API = runpy.run_path(str(Path(__file__).parents[2] / "host" / "guard-replay"))
 
 
 def test_required_and_forbidden_reasons_are_enforced():
