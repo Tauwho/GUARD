@@ -151,3 +151,21 @@ TEST_CASE("matching lease revokes stop and baseline motor faults recover without
     request.request_id = 1;
     CHECK(baseline.recover(request, {true, true, true}).reason == 512);
 }
+
+TEST_CASE("heartbeat refusal while braking does not consume passthrough sequence") {
+    guard::Config config;
+    config.mode = guard::Mode::heartbeat;
+    guard::Gate gate(config);
+    guard::PassthruCmd value;
+    value.cmd_seq = 1;
+    value.v = 0.4;
+    REQUIRE(gate.passthrough(value, 0) == guard::Reason::GATE_PASSTHRU_ACCEPTED);
+    value.cmd_seq = 2;
+    value.stamp_ns = 500'000'000;
+    REQUIRE(gate.passthrough(value, value.stamp_ns) == guard::Reason::GATE_NOT_READY);
+    for (unsigned i = 50; i <= 60; ++i)
+        gate.tick(i * 10'000'000, 0);
+    REQUIRE(gate.status(600'000'000).mode == guard::GateMode::ready);
+    value.stamp_ns = 600'000'000;
+    CHECK(gate.passthrough(value, value.stamp_ns) == guard::Reason::GATE_PASSTHRU_ACCEPTED);
+}
