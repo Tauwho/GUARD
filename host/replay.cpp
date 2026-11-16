@@ -100,6 +100,7 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
             if (!plant.step(now, world.scene()))
                 throw std::runtime_error("plant step failed");
             const auto truth = plant.ground_truth();
+            result.minimum_margin = std::min(result.minimum_margin, truth.clearance);
             for (unsigned event = 0; event < 2; ++event) {
                 const bool enabled = event == 0 ? truth.contact : truth.zone_breach;
                 bool &previous = event == 0 ? previous_contact : previous_zone;
@@ -133,7 +134,15 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                             << ",\"v_meas\":" << observation.v_meas
                             << ",\"w_meas\":" << observation.w_meas
                             << ",\"map_version\":" << observation.map_version
-                            << ",\"sensor_ok\":true";
+                            << ",\"sensor_ok\":true,\"obstacles\":[";
+            for (unsigned i = 0; i < observation.obstacle_count; ++i) {
+                if (i)
+                    telemetry.out() << ',';
+                const auto &obstacle = observation.obstacles[i];
+                telemetry.out() << "{\"x\":" << obstacle.x << ",\"y\":" << obstacle.y
+                                << ",\"r\":" << obstacle.r << '}';
+            }
+            telemetry.out() << ']';
             telemetry.end();
         }
         if (!guarded || (!dead && !faults[2])) {
@@ -279,7 +288,13 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                     << (result.goal ? "GOAL" : mode_name(gate.status(result.ended_ns).mode))
                     << "\",\"contacts\":" << result.contacts
                     << ",\"zone_breaches\":" << result.zone_breaches
-                    << ",\"proposals\":" << result.proposals << ",\"rejected\":" << result.rejected;
+                    << ",\"proposals\":" << result.proposals << ",\"rejected\":" << result.rejected
+                    << ",\"minimum_margin_m\":" << result.minimum_margin;
+    telemetry.out() << ",\"time_to_goal_s\":";
+    if (result.goal)
+        telemetry.out() << result.ended_ns / 1e9;
+    else
+        telemetry.out() << "null";
     telemetry.end();
     return result;
 }
