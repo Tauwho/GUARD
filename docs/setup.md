@@ -15,7 +15,7 @@ Never copy anything from the SDP install folder (`qnx800/`, `qnxsdp-env.*`, head
 | Host | Status | Notes |
 |---|---|---|
 | Ubuntu 22.04/24.04 with KVM | Primary | Fastest. Needs a bridge for ssh (§3) |
-| Windows 11 + WSL2 (Ubuntu) | Supported | Follow the official QNX WSL2 codelab. Nested virtualisation gives `/dev/kvm` in WSL2 **(verify)** |
+| Windows 11 + WSL2 (Ubuntu) | Supported | Follow the official QNX WSL2 codelab. `/dev/kvm` works in WSL2 (verified 16 Nov, #81). If you can't set up the bridge, use §5 Option C |
 | VMware / VirtualBox Ubuntu VM | Fallback | Enable nested VT-x/AMD-V. Without it QEMU runs in TCG mode, which is slow but works |
 
 ## 3. Host packages and bridge (Ubuntu or WSL2)
@@ -54,6 +54,24 @@ Find the target IP from the target console (`ifconfig`), then:
 ssh qnxuser@<target-ip>          # default users depend on the image (verify)
 scp ./hello qnxuser@<target-ip>:/tmp/
 ```
+
+**Option C, no sudo: QEMU user-mode networking** (verified by the PO on Windows 11 + WSL2 Ubuntu 24.04 with KVM, 16 Nov, #81). `mkqnximage --run` also needs `dnsmasq` on `br0` (or libvirt's `virbr0`) and the `arp` command. If you can't install those, build the image with `mkqnximage` and start QEMU yourself:
+```sh
+ssh-keygen -q -t ed25519 -N '' -f ~/.ssh/guard_target_ed25519     # key only for the target
+mkdir -p ~/guard-target && cd ~/guard-target
+mkqnximage --type=qemu --arch=x86_64 --hostname=guard-<you> --sshd-pregen=yes \
+  --ssh-ident="$HOME/.ssh/guard_target_ed25519.pub" --build
+setsid qemu-system-x86_64 -enable-kvm -cpu host -smp 2 -m 1G \
+  -drive file=output/disk-qemu.vmdk,if=ide,id=drv0 \
+  -netdev user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22 -device virtio-net-pci,netdev=net0 \
+  -object rng-random,filename=/dev/urandom,id=rng0 -device virtio-rng-pci,rng=rng0 \
+  -kernel output/ifs.bin -serial file:output/qemu.out -display none < /dev/null > /dev/null 2>&1 &
+sleep 45 && tail -3 output/qemu.out                                  # expect "Startup complete"
+ssh -i ~/.ssh/guard_target_ed25519 -p 2222 root@127.0.0.1 uname -a
+```
+- Drop `-enable-kvm -cpu host` if `/dev/kvm` is missing (slower, TCG mode).
+- `scp` fails on this image (no sftp server). Copy files with ssh instead: `ssh -i ~/.ssh/guard_target_ed25519 -p 2222 root@127.0.0.1 'cat > /tmp/hello && chmod +x /tmp/hello' < /tmp/hello`.
+- In §6-§8, replace `ssh qnxuser@<target-ip>` with `ssh -i ~/.ssh/guard_target_ed25519 -p 2222 root@127.0.0.1`.
 
 ## 6. First program (S1)
 ```sh
