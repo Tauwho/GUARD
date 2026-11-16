@@ -3,7 +3,7 @@ const $ = id => document.getElementById(id);
 const canvas = $("world"), ctx = canvas.getContext("2d");
 let events = [], metadata, cursor = 0, playing = false, previous = 0, lastDraw = 0;
 let state;
-let followLive=true, dropped=0;
+let followLive=true, dropped=0, livePending=[];
 function reset() { state = {observation:null, lease:null, mode:"UNKNOWN", epoch:0, decisions:0, rejected:0, reasons:[], path:[]}; }
 reset();
 function apply(event) {
@@ -75,9 +75,29 @@ function draw() {
 }
 $("play").onclick=()=>{if(metadata?.live){followLive=!followLive;$("play").textContent=followLive ? "Pause":"Follow live";if(followLive)seek(events.at(-1)?.t_ns || 0);return;}if(cursor>=Number($("seek").max))seek(0);playing=!playing;$("play").textContent=playing ? "Pause":"Play";};
 $("seek").oninput=event=>{if(metadata?.live){followLive=false;$("play").textContent="Follow live";}seek(Number(event.target.value));};
-function frame(now){const dt=previous ? now-previous:0;previous=now;if(playing){cursor+=dt*1e6*Number($("speed").value);if(now-lastDraw>33){seek(cursor);lastDraw=now;if(cursor>=Number($("seek").max)){playing=false;$("play").textContent="Play";}}}requestAnimationFrame(frame);}
+function receiveLive(incoming) {
+  if(!Array.isArray(incoming)||!incoming.length)return;
+  const message="Live · read-only";
+  if($("connection").textContent!==message)$("connection").textContent=message;
+  livePending.push(...incoming.slice(-20000));
+  if(livePending.length>20000)livePending.splice(0,livePending.length-20000);
+}
+function flushLive() {
+  if(!livePending.length)return;
+  events.push(...livePending);livePending=[];
+  events.sort((a,b)=>a.t_ns-b.t_ns);
+  if(events.length>20000)events.splice(0,events.length-20000);
+  $("seek").min=events[0]?.t_ns || 0;$("seek").max=events.at(-1)?.t_ns || 0;
+  if(followLive)seek(Number($("seek").max));
+}
+function frame(now){
+  const dt=previous ? now-previous:0;previous=now;
+  if(metadata?.live && now-lastDraw>33){flushLive();lastDraw=now;}
+  else if(playing){cursor+=dt*1e6*Number($("speed").value);if(now-lastDraw>33){seek(cursor);lastDraw=now;if(cursor>=Number($("seek").max)){playing=false;$("play").textContent="Play";}}}
+  requestAnimationFrame(frame);
+}
 async function start(){metadata=await (await fetch("/meta.json")).json();$("map-title").textContent=metadata.map.title;$("source").textContent=metadata.source;const socket=new WebSocket(`ws://${location.hostname}:${metadata.websocket_port}/events`);
-  socket.onmessage=event=>{const packet=JSON.parse(event.data);if(packet.type==="error")$("connection").textContent=packet.message;if(packet.type==="drop"){dropped+=packet.count || 1;$("drops").textContent=`Dropped malformed records: ${dropped}`;}if(packet.type==="events"){events.push(...packet.events);if(metadata.live){events.sort((a,b)=>a.t_ns-b.t_ns);if(events.length>20000)events.splice(0,events.length-20000);$("seek").min=events[0]?.t_ns || 0;$("seek").max=events.at(-1)?.t_ns || 0;$("connection").textContent="Live · read-only";if(followLive)seek(Number($("seek").max));}}if(packet.type==="end"){events.sort((a,b)=>a.t_ns-b.t_ns);$("seek").max=events.at(-1)?.t_ns || 0;$("connection").textContent=metadata.live ? "Live feed ended":"Replay ready";if(!metadata.live)seek(events[0]?.t_ns || 0);}};
+  socket.onmessage=event=>{const packet=JSON.parse(event.data);if(packet.type==="error")$("connection").textContent=packet.message;if(packet.type==="drop"){dropped+=packet.count || 1;$("drops").textContent=`Dropped malformed records: ${dropped}`;}if(packet.type==="events"){if(metadata.live)receiveLive(packet.events);else events.push(...packet.events);}if(packet.type==="end"){if(metadata.live)flushLive();events.sort((a,b)=>a.t_ns-b.t_ns);$("seek").max=events.at(-1)?.t_ns || 0;$("connection").textContent=metadata.live ? "Live feed ended":"Replay ready";if(!metadata.live)seek(events[0]?.t_ns || 0);}};
   if(metadata.live){$("play").textContent="Pause";$("speed").disabled=true;}
   socket.onerror=()=>{$("connection").textContent="Relay unavailable";};
   requestAnimationFrame(frame);

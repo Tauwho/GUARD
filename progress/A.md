@@ -68,3 +68,8 @@ A7: in progress; seeded host trials
 - C8 dispatcher: 4 differential tests pass, including unsupported root/reference contexts falling back to full schema; 63-case producer matrix has 0 errors and all B2 pass.
 - `python tools/check.py`: RESULT: GREEN (out/d26-a7-check.txt); post-review rerun RESULT: GREEN (out/d26-a7-final.txt).
 - self-review: 0 blocker/should after report wording and resolver-context fallback fixes.
+
+## Live-view burst follow-up
+- Found live viewer redrawing/replaying full history for every bridge message; coalesce work to animation frames with bounded pending/history buffers.
+- `python -m pytest eval/tests/test_dashboard_relay.py -q`: 7 passed; headless burst asserts 1000 arrivals -> one frame redraw, 20k cap, pause preserved.
+- Review/full check pending; no measured rendering-rate claim.
