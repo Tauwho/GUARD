@@ -44,7 +44,7 @@ Questions Q1–Q8 are in issue PO-1.
 | Q1 | Bonus stacking | ≤ 16 Nov 2026 | Organisers unable to answer; assumption A1: a project wins at most one Bonus prize, and no second submission to carry the codelab. | None; codelab stays P1, decided at CK-M3 (#13). |
 | Q2 | QEMU as "the device" | ≤ 16 Nov 2026 | Organisers unable to answer; assumption A2: QSTI in QEMU on x86_64 is an acceptable target device. | None; say "QNX 8.0 quick-start target image in QEMU (x86_64)". |
 | Q3 | AI assistants | ≤ 16 Nov 2026 | Organisers unable to answer; assumption A3: allowed, with disclosure. | None; keep the AI-use disclosure (#5, #8). |
-| Q4 | AI Creativity scoring | ≤ 16 Nov 2026 | Organisers unable to answer; assumption A4: judges reward visible AI. | LLM route advisor becomes P1 rank 1 at CK-M3 (#13). |
+| Q4 | AI Creativity scoring | ≤ 16 Nov 2026 | Organisers unable to answer; assumption A4: judges reward visible AI. | LLM route advisor becomes P1 rank 2 at CK-M3, after secpol (#13, #61). |
 | Q5 | Licence §4.6(i) benchmarks | ≤ 16 Nov 2026 | Organisers unable to answer; assumption A5: no written approval, treated as denied. | No QNX-measured numbers in public; numeric results only from the host (Linux) harness. |
 | Q6 | Licence §4.2.5 high-risk | ≤ 16 Nov 2026 | Organisers unable to answer; assumption A6: simulation-only is not a High-Risk Application. | Wording: "simulation-only research prototype" (#5, #7, #8). |
 | Q7 | Codelab PR / hosting | ≤ 16 Nov 2026 | Organisers unable to answer; assumption A7: an unmerged qnx/codelabs PR may not count. | Submit our own GitHub Pages copy; qnx/codelabs PR optional (#10, #50). |
