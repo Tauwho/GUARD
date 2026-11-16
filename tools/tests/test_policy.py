@@ -100,6 +100,53 @@ def test_evidence_checks_ancestry_and_files(repo):
     assert len(policy.check(repo, "evidence")) == 3
 
 
+def git_commit(root, message):
+    subprocess.run(
+        [
+            "git",
+            "-c",
+            "user.name=Test",
+            "-c",
+            "user.email=test@example.org",
+            "commit",
+            "-qm",
+            message,
+        ],
+        cwd=root,
+        check=True,
+    )
+    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
+
+
+def test_evidence_accepts_pr_head_after_squash(repo):
+    """D21: a bundle naming a PR head passes even when that commit is not an ancestor."""
+    base = git_commit(repo, "base")
+    subprocess.run(["git", "checkout", "-qb", "feature"], cwd=repo, check=True)
+    put(repo, "feature.txt", "work")
+    pr_head = git_commit(repo, "pr head")
+    subprocess.run(["git", "checkout", "-q", base], cwd=repo, check=True)
+    subprocess.run(["git", "checkout", "-qb", "main2"], cwd=repo, check=True)
+    put(repo, "evidence/bundle/results.json", "{}")
+    manifest = {"sha": pr_head, "files": ["results.json"]}
+    put(repo, "evidence/bundle/manifest.json", json.dumps(manifest))
+    errors = policy.check(repo, "evidence")
+    assert any("PR head" in error for error in errors)
+    subprocess.run(["git", "update-ref", "refs/remotes/pr/1", pr_head], cwd=repo, check=True)
+    assert not policy.check(repo, "evidence")
+
+
+def test_evidence_rejects_unknown_sha_even_with_pr_refs(repo):
+    head = git_commit(repo, "base")
+    subprocess.run(["git", "update-ref", "refs/remotes/pr/1", head], cwd=repo, check=True)
+    put(repo, "evidence/bundle/results.json", "{}")
+    put(
+        repo,
+        "evidence/bundle/manifest.json",
+        json.dumps({"sha": "1" * 40, "files": ["results.json"]}),
+    )
+    assert any("PR head" in error for error in policy.check(repo, "evidence"))
+
+
 def test_nested_evidence_counts_towards_size_limit(repo):
     put(repo, "evidence/bundle/manifest.json", json.dumps({"sha": "0" * 40, "files": []}))
     put(repo, "evidence/bundle/nested/large.txt", "x" * (1024 * 1024 + 1))
