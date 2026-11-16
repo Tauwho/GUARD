@@ -1,0 +1,15 @@
+{
+  "message": "passthru_cmd",
+  "type": "0x0014",
+  "size": 40,
+  "valid": false,
+  "expect_error": "EINVAL",
+  "why": "cmd_seq is 0 (must be >= 1)",
+  "fields": {
+    "cmd_seq": 0,
+    "v": 0.5,
+    "w": 0.0,
+    "stamp_ns": 5000000000
+  },
+  "hex": "47441400010028000000000000000000000000000000e03f000000000000000000f2052a01000000"
+}

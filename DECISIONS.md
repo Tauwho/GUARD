@@ -8,14 +8,23 @@
 | D2 | 2026-11-15 | Target: QSTI x86_64 on QEMU only. No Raspberry Pi 5 |
 | D3 | 2026-11-15 | Repository: Tauwho/GUARD. PO has admin |
 | D4 | 2026-11-15 | Eligibility confirmed by all members. PO is the Devpost Representative |
-| D5 | 2026-11-15 | Public metrics are functional only until BlackBerry gives written approval (licence §4.6(i)) |
+| D5 | 2026-11-15 | Public metrics are functional only until BlackBerry gives written approval (licence §4.6(i)). Superseded by D11 |
 | D6 | 2026-11-15 | Planner: rule-based + fault modes in P0. Local LLM route advisor (Ollama) in P1 |
 | D7 | 2026-11-15 | Framing: hospital logistics |
 | D8 | 2026-11-15 | Schedule: P0 complete Wed 9 Dec (the exam window ends 4 Dec). Code freeze Thu 10 Dec. File Sun 13 Dec |
-| D9 | 2026-11-15 | Each CODEOWNERS path has a primary and a secondary owner, so authors never need to self-approve |
+| D9 | 2026-11-15 | Each CODEOWNERS path has a primary and a secondary owner, so authors never need to self-approve. The approval part is replaced by D12 |
 | D10 | 2026-11-15 | Anyone who needs the PO or a teammate asks in the relevant issue or PR with an @-mention. No DMs or private messages for project work (AGENTS.md hard rule 5) |
 | D11 | 2026-11-16 | Supersedes D5 under assumption A5 (#2, #62): publish nothing measured on QNX (no timing numbers, no QNX-vs-Linux comparison, no numeric result tables from the target); numeric results come only from the host harness, labelled "host (Linux) harness" |
 | D12 | 2026-11-16 | Reviews are optional: the author merges a PR when it is finished, CI is green and every conversation is resolved. Branch protection on `main` needs 0 approvals. CODEOWNERS stays for ownership and automatic review requests only; this replaces the approval part of D9 |
+| D13 | 2026-11-16 | Required status checks on `main`: the 11 host CI jobs from GitHub Actions (4 builds, format, 5 policy checks, eval). Not strict, so a PR does not have to be re-synced with `main` before merging. Reviews stay optional (D12) |
+| D14 | 2026-11-16 | M0 fallback (PO): PO setup (#1) is deferred until Sat 5 Dec, with the licence request held by the PO. Until then the PO works on the host path only, and target footage for reviews comes from B's own target session (B uses only B's own licence) |
+| D15 | 2026-11-16 | No weekly sync call. The team works asynchronously in issues and PRs (D10); the Sync log below is not used |
+| D16 | 2026-11-16 | Contracts (#56) and scenarios (#57) were merged to `main` early so both streams can build on them. The freeze and the `contracts-v1.0` tag stay at Fri 20 Nov 18:00 SGT, or earlier if A and B both comment "no more CONTRACT-Q" on #3. Until then, contract fixes are normal PRs. B's open checklist items from #56 keep the documented defaults unless B raises a `CONTRACT-Q:` |
+| D17 | 2026-11-16 | CONTRACT-Q answers (#3): a lease takes effect only after its `LeaseAck` is delivered, otherwise it is discarded with `GATE_ACK_UNDELIVERED` (516); the stopping-distance check starts from the measured speed and uses obstacles inflated by `r_robot + margin`; v1 authorizes no reverse motion |
+| D18 | 2026-11-16 | Under D12, a QNX-path PR (`core/`, `qnx/`, `image/`, `cmake/`, `contracts/`) is finished only when its target evidence bundle is committed (AGENTS.md hard rule 4), unless its issue exempts it. #74 merged without it, so #31 was reopened for a follow-up evidence PR |
+| D19 | 2026-11-16 | M0 fallback (A): @phatdat220707's setup evidence (#15) is deferred until Sun 22 Nov. Until then A works on the host path only (core, harness, CI); A-track QNX-path PRs still need target evidence before they are finished (D18) |
+| D20 | 2026-11-16 | M0 fallback (B): @baofrovn's setup evidence (#30) is deferred until Sun 22 Nov. Until then the toolchain work in #31 counts as setup progress; B's QNX-path PRs still need target evidence before they are finished (D18) |
+| D21 | 2026-11-16 | Evidence SHA rule under squash merges: a bundle's manifest `sha` passes the `evidence` check if it is an ancestor of HEAD **or** the head commit of any PR in this repo (CI fetches `refs/pull/*/head`). Squash merging no longer breaks bundles, and nobody rewrites a manifest after merging. Owner: @baofrovn (`tools/check_policy.py`, `.github/workflows/ci.yml`) |
 
 ## ADR index
 All entries were accepted on 2026-11-15. Full write-ups go in `docs/adr/` (issue PO-5).
@@ -38,6 +47,7 @@ All entries were accepted on 2026-11-15. Full write-ups go in `docs/adr/` (issue
 | [0014](docs/adr/0014-simulation-only.md) | Simulation only | Hardware | Licence §4.2.5; no hardware; $0 budget |
 | [0015](docs/adr/0015-single-threaded-gate.md) | Single-threaded gate dispatch | Thread pool | Deterministic ordering; bounded handlers |
 | [0016](docs/adr/0016-mit-licence.md) | MIT licence | Apache-2.0 | Simplest; codelab can reuse code |
+| [0017](docs/adr/0017-lease-ack-on-resmgr-channel.md) | **Accepted 2026-11-16 (#89).** Gate replies `LeaseAck` in the same handler; `ETIMEDOUT` means not received; a late ack is binding | Defer the reply and `MsgError(ETIMEDOUT)` on unblock | Spike S3: resmgr channels keep a reply-blocked client waiting, so the v1.0 `ESRCH` path never happens |
 
 ## Clarification log
 Questions Q1–Q8 are in issue PO-1.
@@ -57,19 +67,22 @@ Questions Q1–Q8 are in issue PO-1.
 | Spike | Question | Owner | Due | Result | Decision |
 |---|---|---|---|---|---|
 | S1 | QSTI boot + `qcc` hello on each host | all | 18 Nov | — | — |
-| S2 | CMake QNX toolchain + core tests on target | B | 19 Nov | — | — |
-| S3 | resmgr delayed reply, OCB close on death, mutex priority inheritance | B | 21 Nov | — | — |
+| S2 | CMake QNX toolchain + core tests on target | B | 19 Nov | Pass. `qnx-x86_64` preset builds `guard_core_tests` with SDP 8.0 after setting `DOCTEST_CONFIG_USE_STD_HEADERS` (libc++ `std::__2`). Same commit passes on host and QSTI: 1/1 test cases, 1/1 assertions. Evidence `evidence/20261116-161b1e8-core-on-target/` | Keep the CMake toolchain (`cmake/qnx-x86_64.cmake`); no `qcc` Makefile fallback needed (#31, #80) |
+| S3 | resmgr delayed reply, OCB close on death, mutex priority inheritance; delayed `LeaseAck` (gate waits 10 ms before `MsgReply`, supervisor `TimerTimeout` 5 ms: expect `ETIMEDOUT`, `MsgReply` fails with `ESRCH`, lease not installed, `GATE_ACK_UNDELIVERED`) | B | 21 Nov | `__DIOTF` round trip: yes. Late `MsgReply` on a saved `rcvid`: yes. OCB close after `kill -9`: yes, but a reply-blocked client only dies once the server answers its unblock pulse; with `iofunc_unblock_default` that waits for the late reply. Default mutex protocol is `PRIO_INHERIT` and boosts the holder (10 → 30). One channel serves pulses and `devctl`s by priority, FIFO within a priority. Delayed `LeaseAck`: the client does **not** get `ETIMEDOUT` on its own (resmgr channels use `_NTO_CHF_UNBLOCK`); by default it waits and gets the late reply, and with an unblock handler it gets whatever `MsgError` the gate sends. `MsgReply` never fails with `ESRCH` in either case. Evidence `spike/s3:evidence/20261116-6e0eb27-spike-s3/` | Keep resmgr (ADR 0005/0006). `qnx/common` (#37) must answer unblock pulses for saved `rcvid`s. messages.md 3.2 step 4 (`ESRCH` path) does not match QNX; needs a contract change, owner to raise |
 | S4 | secpol denial errno; abilities across `setuid` | B | 22 Nov | — | — |
-| S5 | Instrumented `procnto` for tracelogger | B | 7 Dec | — | — |
-| S6 | Host ↔ target TCP 7700 | B | 19 Nov | — | — |
+| S5 | Instrumented `procnto` for tracelogger | B | 7 Dec | Yes. QSTI boots `procnto-smp-instr`; a 2 s `tracelogger -s 2` run decodes to `KER_CALL`, `KER_EXIT`, `THREAD`, `INT` and `PROCESS` events. The default image has no `traceprinter` (copied from the SDP), and `/tmp` is the 64 MiB `/data` partition, so traces must stay short or go elsewhere. Evidence `spike/s5:evidence/20261116-ae4410c-spike-s5/` | B-12c (#48) is GO: ship `traceprinter` in the image or decode on the host |
+| S6 | Host ↔ target TCP 7700 | B | 19 Nov | Yes. Target `10.10.10.2` on bridge `br0` sent 1000 JSON lines to host `10.10.10.1:7700`; all 1000 arrived in order. `nc` is not on the default image, so `spike/s6/s6.c` (needs `-lsocket`) sent them. Evidence `spike/s6:evidence/20261116-a915ee1-spike-s6/` | Bridge streams C8 over TCP 7700; no file + `scp` fallback needed |
 | S7 | Ollama Qwen2.5-3B latency | A | 7 Dec | — | — |
-| S8 | `mkqnximage` snippet with GUARD binaries | B | 26 Nov | — | — |
+| S8 | `mkqnximage` snippet with GUARD binaries | B | 26 Nov | `--extra-dirs=<dir>` with `snippets/system_files.guard` (adds files to `/system`) and `snippets/post_start.guard` (runs at the end of `post_startup.sh`) works on QSTI. The same files named `*.custom` in an extra dir are overwritten by the local placeholders. `ifs_start` runs before `/system` is mounted. SDP 8.0 macros are `START_P` / `STARTU_P(type,uid)` and only take effect with `--secpol`; `on -u <uid>:<uid>` sets a uid without it. Evidence `spike/s8:evidence/20261116-1d7c171-spike-s8/` | B-9 (#43): `--extra-dirs=image/mkqnximage` with `*.guard` snippets; processes start as root and drop privileges themselves |
 
 ## Contract log
 | Version | Date | Change | Approved by |
 |---|---|---|---|
-| v1.0 | (pending, 20 Nov) | Initial freeze | — |
+| v1.0 | 2026-11-16 | Initial freeze at 5aac574 (tag `contracts-v1.0`); CONTRACT-Q answers D17; B's checklist defaults kept (D16) | -- (reviews optional, D12) |
+| v1.1 | 2026-11-16 | C2 LeaseAck delivery on a resmgr channel (ADR 0017, #89); no wire-format change | -- (reviews optional, D12) |
 
 ## Sync log
+Not used: there is no weekly sync call (D15).
+
 | Date | Decisions | Owner |
 |---|---|---|

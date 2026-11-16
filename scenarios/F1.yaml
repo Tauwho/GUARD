@@ -1,0 +1,25 @@
+# Validated by contracts/scenario.schema.json. Expected outcomes are hypotheses; eval reports actual outcomes.
+kind: scenario
+version: 1
+id: F1
+title: "Stale planner while staff step in"
+description: "At t = 10 s the planner's feed lags 600 ms, so it keeps proposing cruise speed from old observations while a nurse steps into the lane."
+map: hospital_corridor
+seed: 1001
+duration_s: 75
+planner: {mode: rule, cruise_v: 0.8, lease_req_ms: 250, rate_hz: 20}
+target_semantics: model
+obstacles:
+  - {t_s: 10.3, id: nurse1, action: start_crossing, crossing: staff_ward}
+zones: []
+faults:
+  - {t_s: 10.0, fault: F1, duration_ms: 3000, params: {lag_ms: 600, feed: planner}}
+expected:
+  B0: {violations: {min: 1}, final_state: GOAL, note: "Stale command is held; contact with the nurse is expected"}
+  B1: {violations: {min: 1}, final_state: GOAL, note: "Planner is alive, so the heartbeat never trips"}
+  B2:
+    violations: 0
+    final_state: GOAL
+    latches: 0
+    required_reasons: [REJ_STALE_OBSERVATION]
+    note: "Robot stops before the nurse, then resumes after the lag ends"
