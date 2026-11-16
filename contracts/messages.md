@@ -122,7 +122,7 @@ Bits 5-31 are reserved and always 0.
 | Field out of range, NaN or Inf | C1: `Decision` with `REJ_SCHEMA` | `EINVAL` |
 | Caller uid not allowed | `MsgError(rcvid, EPERM)` | `EPERM` (gate also counts `GATE_UNAUTHORIZED_CLIENT`) |
 
-A client that gets `ETIMEDOUT` from its `TimerTimeout` treats the call as failed. **A failed call never authorizes or extends motion.**
+A client that gets `ETIMEDOUT` from its `TimerTimeout` treats the call as failed. **A failed call never authorizes or extends motion.** For `DCMD_GUARD_LEASE` the gate makes this hold even when the timeout fires after the gate has accepted the lease: see the delivery rule in section 3.2.
 
 ### 1.5 `devctl` command numbers
 
@@ -206,7 +206,7 @@ Values outside the schema bounds give `REJ_SCHEMA`. Values inside the schema bou
 | Purpose | The supervisor registers an epoch, hands leases to the gate and revokes them |
 | Sender -> receiver | `guard-supervisor` -> `guard-gate` |
 | Mechanism | `open("/dev/guard/gate", O_RDWR)`, then `devctl` (section 1.5) |
-| Timeout | Client `TimerTimeout` of **5 ms** on each `devctl`. On `ETIMEDOUT` the supervisor treats the lease as not granted |
+| Timeout | Client `TimerTimeout` of **5 ms** on each `devctl`. On `ETIMEDOUT` the supervisor treats the lease as not granted; the delivery rule (section 3.2) guarantees the gate did not install it. The next lease uses a new, larger `lease_seq` |
 | Allowed callers | uid `guard_sup` (1103) or root. Others get `EPERM` and the gate counts `GATE_UNAUTHORIZED_CLIENT` |
 | Session rule | The gate tracks the OCB that registered. When that OCB closes while MOVING, the gate goes to STOPPING and latches `SUPERVISOR_LOST` |
 
@@ -232,7 +232,7 @@ No input. Each successful call starts a **new epoch** (`epoch = previous + 1`). 
 | 20 | `reserved0` | u32 | - | 0 |
 | 24 | `lease_seq` | u64 | - | ≥ 1, strictly increasing across all epochs |
 | 32 | `proposal_id` | u64 | - | ≥ 1 |
-| 40 | `v_cmd` | f64 | m/s | -1.2 to 1.2 (`v_max`) |
+| 40 | `v_cmd` | f64 | m/s | 0 to 1.2 (`v_max`). v1 authorizes no reverse motion (REF-CHECKERS check 9); the gate returns `EINVAL` for a negative value |
 | 48 | `w_cmd` | f64 | rad/s | -1.0 to 1.0 (`w_max`) |
 | 56 | `v_cap` | f64 | m/s | 0 to 1.2; the gate clamps abs(v) to `v_cap` |
 | 64 | `issued_ns` | i64 | ns | ≥ 0 |
@@ -249,6 +249,14 @@ No input. Each successful call starts a **new epoch** (`epoch = previous + 1`). 
 | 20 | `epoch` | u32 | - | Gate's current epoch |
 
 `devctl` returns `EOK` whenever a `LeaseAck` was written, including refusals. The refusal is in `reason`. Gate checks run in the REF-FSM order R11, R12, R13, R14.
+
+**Delivery rule: a lease takes effect only after its ack is delivered.** This closes the timeout-after-apply gap (#3).
+1. The gate runs R11-R14. A refusal is replied as usual and changes nothing.
+2. For an accepted lease, the gate first records `lease_seq` as seen, then replies `LeaseAck` with `GATE_LEASE_ACCEPTED` itself (`MsgReply`, with the handler returning `_RESMGR_NOREPLY`).
+3. Only if that reply succeeds does the gate install the lease (R4 or R5).
+4. If the reply fails (`ESRCH`: the supervisor's `TimerTimeout` fired and it is no longer reply-blocked), the gate discards the lease, keeps its mode and its current lease, and emits `GATE_ACK_UNDELIVERED` (516). Re-sending the same `lease_seq` gets `GATE_LEASE_REPLAY`.
+
+The kernel delivers the reply or the timeout, never both, so the supervisor's view and the gate's view always agree: `ETIMEDOUT` means the lease is not installed. Revokes, registers and recovers are applied before their reply, because they only reduce motion. Baselines B0/B1 (section 3.4) do not use this rule. Target evidence: spike S3 (#33).
 
 **Ablation `expiry` (C12 `ablate.expiry: true`, B2 only).** The wire format does not change: the supervisor still fills `expires_ns` within its range. The gate ignores `expires_ns` for R6 and R13, so a lease holds until it is replaced or revoked. Eval-only; never used in the demo.
 

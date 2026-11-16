@@ -245,6 +245,12 @@ codes:
     meaning: "Baseline B1: no planner command for heartbeat_timeout_ms; STOPPING (messages.md 3.4, P3)"
     emitted_by: gate
     operator_hint: "Expected in B1 when the planner stalls longer than the heartbeat timeout"
+  GATE_ACK_UNDELIVERED:
+    number: 516
+    group: gate
+    meaning: "Lease passed R11-R14 but its LeaseAck could not be delivered (supervisor timed out); lease discarded, mode unchanged (messages.md 3.2 delivery rule)"
+    emitted_by: gate
+    operator_hint: "Supervisor-to-gate call exceeded 5 ms; check CPU load and thread priorities"
   SIM_ACTUATOR_WATCHDOG:
     number: 600
     group: sim
