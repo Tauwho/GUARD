@@ -9,7 +9,7 @@ add_custom_command(
   COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tools/generate_contracts.py"
           "${PROJECT_SOURCE_DIR}/contracts" "${GUARD_GENERATED}"
   DEPENDS tools/generate_contracts.py contracts/reason_codes.yaml ${GUARD_FIXTURES})
-add_library(guard_core STATIC core/src/codec/validation.cpp core/src/config/config.cpp
+add_library(guard_core STATIC core/src/codec/validation.cpp core/src/config/config.cpp core/src/config/loader.cpp
                core/src/plant/geometry.cpp core/src/plant/plant.cpp core/src/fsm/gate_fsm.cpp
                core/src/safety/stopping.cpp core/src/safety/supervisor.cpp core/src/safety/recheck.cpp
                "${GUARD_GENERATED}/reason_codes.hpp")
@@ -41,7 +41,7 @@ if(BUILD_TESTING)
   add_executable(guard_core_tests core/tests/smoke.cpp core/tests/contracts_edges.cpp
                  core/tests/plant_geometry.cpp core/tests/plant_dynamics.cpp core/tests/gate_fsm_rows.cpp
                  core/tests/gate_fsm_integration.cpp core/tests/supervisor_checks.cpp
-                 core/tests/supervisor_recheck.cpp
+                 core/tests/supervisor_recheck.cpp core/tests/contracts_config.cpp
                  "${GUARD_GENERATED}/contracts_fixtures.cpp")
   target_link_libraries(guard_core_tests PRIVATE guard_core doctest::doctest)
   add_test(NAME guard_core_smoke COMMAND guard_core_tests)
