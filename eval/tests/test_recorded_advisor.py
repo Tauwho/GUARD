@@ -11,6 +11,11 @@ import pytest
 API = runpy.run_path(str(Path(__file__).parents[2] / "host/llm_advisor.py"))
 
 
+@pytest.fixture(autouse=True)
+def host_imports(monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).parents[2] / "host"))
+
+
 def record():
     return {
         "request": {
@@ -102,9 +107,11 @@ def test_recorded_is_default_and_trace_alias_stays_compatible(monkeypatch):
 
 
 def test_timeout_fallback_preserves_exact_response_and_refuses_new_provenance():
+    from ollama_route import ModelUnavailableError
+
     class Live:
         async def reply(self, request):
-            raise asyncio.TimeoutError
+            raise ModelUnavailableError("transport timeout")
 
     item = record()
     item["delay_ns"] = 0
@@ -167,3 +174,15 @@ def test_bundled_recorded_tcp_and_core_changed_map_demo(tmp_path):
     )
     assert result.returncode == 1, result.stderr
     assert json.loads(result.stdout)["reason"] == "REJ_MAP_VERSION"
+
+
+def test_recording_write_failure_never_triggers_a_stale_fallback(tmp_path):
+    from ollama_route import OllamaAdvisor
+
+    item = record()
+    item["request"]["goal"] = [5, 0]
+    live = OllamaAdvisor(
+        lambda request: {"waypoints": [[5, 0]]}, clock=lambda: 100, record_path=tmp_path
+    )
+    with pytest.raises(OSError):
+        asyncio.run(API["FallbackAdvisor"](live, [item]).reply(item["request"]))

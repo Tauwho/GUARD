@@ -48,3 +48,11 @@ A5: done (host acceptance)
 - Fresh-context findings fixed: oversized physical-line framing and huge integer rejection.
 
 - A5 integrated `python tools/check.py`: RESULT: GREEN (out/d26-a5-integrated.txt); temporary A scope adapter removed after upstream P fix.
+
+
+A6: done (host acceptance)
+- `python -m pytest eval/tests/test_recorded_advisor.py -q`: 11 passed, including bundled recorded TCP -> actual core/F6 -> REJ_MAP_VERSION.
+- `python host/llm_advisor.py --help`: --recorded default, --trace alias, explicit --ollama and optional exact recorded fallback.
+- `python tools/check.py`: RESULT: GREEN (out/d26-a6-final.txt; Git Bash selected before Windows WSL alias).
+- self-review: 0 blocker, 0 should, 0 nit after restricting fallback to ModelUnavailableError; recording write failures do not fall back.
+- Bundled fixture is synthetic-test; real 1.5B evidence remains private under out/s7-1p5b. A9 second-laptop evidence is not claimed.

@@ -17,3 +17,5 @@ Decide, log one line, continue (D26). Never edit `DECISIONS.md`.
 | 2026-11-16 | Scope-only Linux make adapter returns pending for recursive P package-check probe | P Makefile check -> scope -> package-check -> check recurses; all A checks still run unchanged. |
 
 | 2026-11-16 | Remove temporary scope make adapter after P fixes f21aab4/2011b07 reach main | Use plain tools/check.py again; P-owned recursion is now fixed upstream. |
+
+| 2026-11-16 | Recorded mode is the offline default; live fallback requires an exact request and dedicated model-availability error | Never refresh old provenance or mask recording I/O/invalid model output. |

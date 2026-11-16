@@ -87,9 +87,11 @@ class FallbackAdvisor:
         self.live, self.records = live, records
 
     async def reply(self, request):
+        from ollama_route import ModelUnavailableError
+
         try:
             return await self.live.reply(request)
-        except (OSError, asyncio.TimeoutError):
+        except ModelUnavailableError:
             # An expired recording stays expired: never rewrite provenance or timestamps.
             for record in self.records:
                 if record["request"] == request:
