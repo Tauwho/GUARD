@@ -53,11 +53,16 @@ python host/llm_advisor.py --ollama --model qwen2.5:1.5b-instruct --record out/a
 This requires an already-running local Ollama service with the model installed.
 Requests must include a goal. Response waiting is bounded to 30 seconds; inference
 uses two CPU threads with GPU layers disabled for the host CPU spike.
-Historical local CPU inference used 3B on Dat's host (S7, #29); the D23-selected 1.5B model has not yet been measured. The original
-prompt missed the goal; the revised short prompt plus endpoint validation produced
-goal-reaching routes. Actual recorded responses were passed through World/F6 and
-the core checker: changed-map responses are rejected; slower responses reject as stale.
-This is a stationary-pose host experiment, not target integration. The route
+The D23-selected 1.5B model was measured on Dat's CPU (two threads, no GPU):
+one warmup plus 20 goal-reaching valid samples. Actual retained responses were
+passed through the D24 supervisor API with World/F6: changed-map responses reject
+as `REJ_MAP_VERSION`, while the cold/slow response rejects as stale. Live C9 TCP
+preserves the goal/provenance; recorded TCP replay preserves the exact response
+and delay across fresh connections. Numeric timings and raw recordings remain in
+ignored local `out/s7-1p5b/`; other laptops are pending.
+The earlier 3B experiments are historical only. This remains a stationary-pose
+host experiment; target integration is pending.
+The route
 checker treats creation time as opaque metadata and derives age from its own source
 observation. The recorded service never synthesizes a new creation time.
 
