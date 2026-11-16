@@ -16,6 +16,8 @@ Files in this folder:
 | `README.md` (this) | Investigation, audit, Phase 0, harness, integration plan, risks |
 | `phase0/` | Files P copies into the repo in Phase 0 (contracts of the process, checks, scope) |
 | `BRIEF-A.md`, `BRIEF-B.md`, `BRIEF-P.md` | First message for each stream's agent. Self-contained |
+| `SELF_REVIEW.md` | Shared adversarial review each stream runs before merging |
+| `REMEDIATION.md` | The eight phase-0 audit defects, their fixes and PRs |
 
 ---
 
