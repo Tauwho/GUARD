@@ -10,7 +10,7 @@ add_custom_command(
           "${PROJECT_SOURCE_DIR}/contracts" "${GUARD_GENERATED}"
   DEPENDS tools/generate_contracts.py contracts/reason_codes.yaml ${GUARD_FIXTURES})
 add_library(guard_core STATIC core/src/codec/validation.cpp core/src/config/config.cpp
-               core/src/plant/geometry.cpp core/src/plant/plant.cpp
+               core/src/plant/geometry.cpp core/src/plant/plant.cpp core/src/fsm/gate_fsm.cpp
                "${GUARD_GENERATED}/reason_codes.hpp")
 target_compile_features(guard_core PUBLIC cxx_std_17)
 target_include_directories(guard_core PUBLIC "${PROJECT_SOURCE_DIR}/core/include"
