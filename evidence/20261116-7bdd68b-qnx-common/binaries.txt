@@ -1,0 +1,10 @@
+build/qnx-common/guard_qnx_common_tests: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /usr/lib/ldqnx-64.so.2, BuildID[md5/uuid]=87ad53d8fe87f3098b1b2a6c894007f4, with debug_info, not stripped
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Position-Independent Executable file)
+b275790257c8efd2356fd512c85b95a8a73d4d33d20452d2fc7119b8853fc30c  build/qnx-common/guard_qnx_common_tests
