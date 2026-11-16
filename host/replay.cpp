@@ -36,9 +36,9 @@ class Telemetry {
 } // namespace
 ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config config,
                     std::uint64_t seed, std::ostream &output) {
-    if (!valid(config) || config.mode != Mode::guarded || !std::isfinite(scenario.duration) ||
-        scenario.duration <= 0 || scenario.duration > 600 || scenario.rate_hz == 0 ||
-        1000 % config.obs_rate_hz || 1000 % config.t_tick_ms)
+    if (!valid(config) || !std::isfinite(scenario.duration) || scenario.duration <= 0 ||
+        scenario.duration > 600 || scenario.rate_hz == 0 || 1000 % config.obs_rate_hz ||
+        1000 % config.t_tick_ms)
         throw std::runtime_error("invalid replay configuration");
     World world(map, scenario);
     Plant plant(config, map.start);
@@ -48,18 +48,20 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
     Telemetry telemetry(output);
     ReplayResult result;
     RegisterReply registration;
-    if (!gate.register_supervisor(registration))
+    const bool guarded = config.mode == Mode::guarded;
+    if (guarded && !gate.register_supervisor(registration))
         throw std::runtime_error("register failed");
     Lease active;
     Lease zombie;
     std::uint64_t lease_sequence = 0;
-    bool boot = true, dead = false, previous_contact = false, previous_zone = false;
+    bool boot = guarded, dead = false, previous_contact = false, previous_zone = false;
     std::array<bool, 9> faults{};
     GateMode previous_mode = gate.status(0).mode;
     auto previous_counters = gate.status(0).counters;
     telemetry.begin(0, "run_start");
     telemetry.out() << "\"scenario\":\"F" << scenario.id << "\",\"seed\":" << seed
-                    << ",\"mode\":\"B2\",\"model\":\"virtual-time\"";
+                    << ",\"mode\":\"B" << static_cast<unsigned>(config.mode)
+                    << "\",\"model\":\"virtual-time\"";
     telemetry.end();
     const auto duration = static_cast<std::int64_t>(scenario.duration * 1000);
     for (std::int64_t ms = 0; ms <= duration; ++ms) {
@@ -77,7 +79,7 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                     dead = true;
                     gate.supervisor_lost();
                 }
-                if (fault == 7 && enabled) {
+                if (fault == 7 && enabled && guarded) {
                     zombie = active;
                     if (!gate.register_supervisor(registration))
                         throw std::runtime_error("replacement registration failed");
@@ -134,8 +136,8 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                             << ",\"sensor_ok\":true";
             telemetry.end();
         }
-        if (!dead && !faults[2]) {
-            if (gate.status(now).mode == GateMode::moving) {
+        if (!guarded || (!dead && !faults[2])) {
+            if (guarded && gate.status(now).mode == GateMode::moving) {
                 const auto reason = supervisor.recheck(active, world.scene(), now);
                 if (reason) {
                     Revoke revoke;
@@ -172,48 +174,64 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
             Proposal proposal;
             if (!boot && planner.propose(now, options, proposal)) {
                 ++result.proposals;
-                auto evaluation = supervisor.evaluate(proposal, world.scene(), now);
-                bool accepted = false;
-                unsigned reason = static_cast<unsigned>(evaluation.primary_reason);
-                if (evaluation.authorized) {
-                    Lease lease;
-                    lease.lease_id = lease.lease_seq = ++lease_sequence;
-                    lease.proposal_id = proposal.proposal_id;
-                    lease.epoch = registration.epoch;
-                    lease.v_cmd = proposal.v_cmd;
-                    lease.w_cmd = proposal.w_cmd;
-                    lease.v_cap = config.v_max;
-                    lease.issued_ns = now;
-                    lease.expires_ns =
-                        now + milliseconds(std::min(config.t_lease_ms, proposal.lease_req_ms));
-                    const auto ack = gate.lease(lease, now);
-                    accepted = ack.reason == 500;
-                    if (accepted)
-                        active = lease;
-                    else
-                        reason = ack.reason;
-                }
-                if (!accepted)
-                    ++result.rejected;
-                telemetry.begin(now, "decision");
-                telemetry.out() << "\"proposal_id\":" << proposal.proposal_id
-                                << ",\"planner_id\":" << proposal.planner_id << ",\"verdict\":\""
-                                << (accepted                        ? "AUTHORIZED"
-                                    : reason >= 300 && reason < 400 ? "UNVERIFIABLE"
-                                                                    : "REJECTED")
-                                << "\",\"primary_reason\":\"" << reason_name(reason)
-                                << "\",\"reasons\":[";
-                bool comma = false;
-                for (const auto code : evaluation.reasons)
-                    if (code) {
-                        if (comma)
-                            telemetry.out() << ',';
-                        telemetry.out() << '"' << reason_name(code) << '"';
-                        comma = true;
+                if (!guarded) {
+                    PassthruCmd command;
+                    command.cmd_seq = proposal.seq;
+                    command.v = proposal.v_cmd;
+                    command.w = proposal.w_cmd;
+                    command.stamp_ns = now;
+                    const auto reason = gate.passthrough(command, now);
+                    if (reason != Reason::GATE_PASSTHRU_ACCEPTED)
+                        ++result.rejected;
+                    telemetry.begin(now, "proposal");
+                    telemetry.out() << "\"cmd_seq\":" << command.cmd_seq << ",\"v\":" << command.v
+                                    << ",\"w\":" << command.w << ",\"reason\":\""
+                                    << reason_name(static_cast<unsigned>(reason)) << "\"";
+                    telemetry.end();
+                } else {
+                    auto evaluation = supervisor.evaluate(proposal, world.scene(), now);
+                    bool accepted = false;
+                    unsigned reason = static_cast<unsigned>(evaluation.primary_reason);
+                    if (evaluation.authorized) {
+                        Lease lease;
+                        lease.lease_id = lease.lease_seq = ++lease_sequence;
+                        lease.proposal_id = proposal.proposal_id;
+                        lease.epoch = registration.epoch;
+                        lease.v_cmd = proposal.v_cmd;
+                        lease.w_cmd = proposal.w_cmd;
+                        lease.v_cap = config.v_max;
+                        lease.issued_ns = now;
+                        lease.expires_ns =
+                            now + milliseconds(std::min(config.t_lease_ms, proposal.lease_req_ms));
+                        const auto ack = gate.lease(lease, now);
+                        accepted = ack.reason == 500;
+                        if (accepted)
+                            active = lease;
+                        else
+                            reason = ack.reason;
                     }
-                telemetry.out() << "],\"lease_id\":" << (accepted ? active.lease_id : 0)
-                                << ",\"epoch\":" << registration.epoch;
-                telemetry.end();
+                    if (!accepted)
+                        ++result.rejected;
+                    telemetry.begin(now, "decision");
+                    telemetry.out()
+                        << "\"proposal_id\":" << proposal.proposal_id
+                        << ",\"planner_id\":" << proposal.planner_id << ",\"verdict\":\""
+                        << (accepted                        ? "AUTHORIZED"
+                            : reason >= 300 && reason < 400 ? "UNVERIFIABLE"
+                                                            : "REJECTED")
+                        << "\",\"primary_reason\":\"" << reason_name(reason) << "\",\"reasons\":[";
+                    bool comma = false;
+                    for (const auto code : evaluation.reasons)
+                        if (code) {
+                            if (comma)
+                                telemetry.out() << ',';
+                            telemetry.out() << '"' << reason_name(code) << '"';
+                            comma = true;
+                        }
+                    telemetry.out() << "],\"lease_id\":" << (accepted ? active.lease_id : 0)
+                                    << ",\"epoch\":" << registration.epoch;
+                    telemetry.end();
+                }
             }
         }
         if (ms % config.t_tick_ms == 0) {
@@ -233,11 +251,14 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                 if (status.mode == GateMode::ready && previous_mode == GateMode::latched)
                     reason = 512;
                 if (status.mode == GateMode::moving)
-                    reason = 500;
+                    reason = guarded ? 500 : 514;
                 if (status.mode == GateMode::stopping)
                     for (unsigned code = 506; code <= 510; ++code)
                         if (status.counters[code] > previous_counters[code])
                             reason = code;
+                if (status.mode == GateMode::stopping &&
+                    status.counters[515] > previous_counters[515])
+                    reason = 515;
                 telemetry.begin(now, "gate_transition");
                 telemetry.out() << "\"from\":\"" << mode_name(previous_mode) << "\",\"to\":\""
                                 << mode_name(status.mode) << "\",\"reason\":\""

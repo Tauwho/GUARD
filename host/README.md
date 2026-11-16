@@ -20,7 +20,11 @@ The engine runs the actual core classes with injected virtual time. F2 is an abs
 supervisor stall; F3 closes its gate session and stops supervisor decisions/rechecks.
 F7 registers a replacement supervisor, then submits A's old lease after the configured
 pause. These host models do not test QNX scheduling or process wiring.
-Baselines and the full matrix remain separate work under #25/#23.
+B0 and B1 command the gate directly, without supervisor decisions. `--mode` also accepts
+`B2-freshness`, `B2-stopping`, `B2-expiry`, `B2-epoch`; these translate into the shared
+C12 configuration flags. Alternatively use `--config path.yaml`, with the same file
+as the target binaries. Ablation outcomes are compared with the B2 reference hypotheses,
+so a mismatch can be an expected consequence of removing that check. Full matrix: #23.
 
 The seed is recorded for reproducibility; current scenario timelines have no random
 perturbations, so different seeds currently produce the same physical trajectory.

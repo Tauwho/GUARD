@@ -38,6 +38,16 @@ int main() {
             zombie.str().find("GATE_EPOCH_STALE") == std::string::npos ||
             zombie.str().find("\"final_state\":\"LATCHED\"") == std::string::npos)
             throw std::runtime_error("zombie lease did not preserve the latch");
+        for (const auto mode : {guard::Mode::passthrough, guard::Mode::heartbeat}) {
+            guard::Config config;
+            config.mode = mode;
+            std::ostringstream baseline;
+            const auto moving = guard::host::replay(map, scenario, config, 42, baseline);
+            if (moving.goal || moving.contacts ||
+                baseline.str().find("\"final_state\":\"MOVING\"") == std::string::npos ||
+                baseline.str().find("\"kind\":\"decision\"") != std::string::npos)
+                throw std::runtime_error("baseline must bypass supervisor decisions");
+        }
         return 0;
     } catch (const std::exception &error) {
         std::cerr << error.what() << '\n';
