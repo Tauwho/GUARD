@@ -47,6 +47,7 @@ static void test_a(void) {
     int rc = procmgr_ability(
         0, PROCMGR_ADN_NONROOT | PROCMGR_AOP_ALLOW | PROCMGR_AID_PUBLIC_CHANNEL, PROCMGR_AID_EOL);
     report("A", "after setuid: re-allow locked ability", rc, 0);
+    report("A", "after re-allow: public channel (lock held?)", try_channel(0), 0);
     rc = procmgr_ability(0, PROCMGR_ADN_NONROOT | PROCMGR_AOP_ALLOW | PROCMGR_AID_SETUID,
                          PROCMGR_AID_EOL);
     report("A", "after setuid: widen SETUID", rc, 0);
@@ -69,10 +70,24 @@ static void test_c(void) {
     int rc = procmgr_ability(
         0, PROCMGR_ADN_NONROOT | PROCMGR_AOP_ALLOW | PROCMGR_AID_PUBLIC_CHANNEL, PROCMGR_AID_EOL);
     report("C", "after lock: re-allow it", rc, 0);
+    report("C", "after re-allow: public channel (lock held?)", try_channel(0), 0);
     if (chid != -1) {
         report("C", "channel made as root still usable", ChannelDestroy(chid) == -1 ? errno : EOK,
                1);
     }
+}
+
+/* D: same as A but deny and lock in two separate calls. */
+static void test_d(void) {
+    report("D", "root: deny nonroot PUBLIC_CHANNEL", deny_public_nonroot(0), 1);
+    int rc = procmgr_ability(0, PROCMGR_ADN_NONROOT | PROCMGR_AOP_LOCK | PROCMGR_AID_PUBLIC_CHANNEL,
+                             PROCMGR_AID_EOL);
+    report("D", "root: lock it (separate call)", rc, 1);
+    report("D", "setuid(1104)", setuid(TEST_UID) == 0 ? EOK : errno, 1);
+    rc = procmgr_ability(0, PROCMGR_ADN_NONROOT | PROCMGR_AOP_ALLOW | PROCMGR_AID_PUBLIC_CHANNEL,
+                         PROCMGR_AID_EOL);
+    report("D", "after setuid: re-allow locked ability", rc, 0);
+    report("D", "after re-allow: public channel (lock held?)", try_channel(0), 0);
 }
 
 static void run(void (*fn)(void)) {
@@ -94,5 +109,6 @@ int main(void) {
     run(test_a);
     run(test_b);
     run(test_c);
+    run(test_d);
     return 0;
 }
