@@ -26,4 +26,4 @@ jobs:
       - name: Reproduce from an isolated fresh clone
         env:
           GUARD_REPO_URL: ${{ github.workspace }}
-        run: setsid bash tools/fresh_clone_demo.sh '${{ github.sha }}'
+        run: setsid --wait bash tools/fresh_clone_demo.sh '${{ github.sha }}'
