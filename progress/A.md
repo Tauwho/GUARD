@@ -70,3 +70,7 @@ A8: done 9458c26 (local executable acceptance; CI/merge pending)
 - Target evidence is B-owned. No QNX SDK/licences/weights or QNX performance numbers committed.
 - Host reports use simulation-only functional results. Operator recovery trials still unavailable.
 - No task-owned Ollama/advisor process left running; tests close their sockets/processes.
+
+## A9 preparation only
+- Benchmark now defaults to a committed validated request, so another laptop needs no private request file. Custom C9 JSON still supported.
+- host/ADVISOR.md documents the one-command actual model run. A9 remains unverified until another physical laptop runs it; no timing or device evidence fabricated.

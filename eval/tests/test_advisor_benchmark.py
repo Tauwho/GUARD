@@ -43,3 +43,19 @@ def test_spike_keeps_timeout_in_latency_population(tmp_path, monkeypatch):
     assert summary["median_s"] == pytest.approx(15.5)
     assert summary["p95_s"] == pytest.approx(28.55)
     assert summary["samples"][-1]["success"] is False
+
+
+def test_default_benchmark_task_is_portable_and_custom_requests_still_validate(
+    tmp_path, monkeypatch
+):
+    monkeypatch.syspath_prepend(str(Path(__file__).parents[2] / "host"))
+    api = runpy.run_path(str(Path(__file__).parents[2] / "host/benchmark_advisor.py"))
+    default = api["load_request"]()
+    assert default["goal"] == [20, 8]
+    custom = dict(default, req_id=99)
+    path = tmp_path / "request.json"
+    path.write_text(json.dumps(custom))
+    assert api["load_request"](path) == custom
+    path.write_text(json.dumps({key: value for key, value in custom.items() if key != "goal"}))
+    with pytest.raises(ValueError, match="goal"):
+        api["load_request"](path)

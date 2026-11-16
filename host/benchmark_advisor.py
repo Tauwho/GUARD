@@ -11,7 +11,7 @@ import time
 from pathlib import Path
 
 import jsonschema
-from llm_advisor import VALIDATOR, strict_json
+from llm_advisor import DEFAULT_RECORDING, VALIDATOR, load_recording, strict_json
 from ollama_route import DEFAULT_MODEL, OllamaAdvisor, OllamaGenerator
 
 
@@ -70,16 +70,30 @@ async def benchmark(request, output, samples, model):
     return 0 if all(item["success"] for item in measurements) else 1
 
 
+def load_request(path=None):
+    request = (
+        strict_json(path.read_text(encoding="utf-8"))
+        if path
+        else load_recording(DEFAULT_RECORDING)[0]["request"]
+    )
+    VALIDATOR.validate(request)
+    if "goal" not in request:
+        raise ValueError("benchmark request requires an explicit goal")
+    return request
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--request", type=Path, required=True)
+    parser.add_argument(
+        "--request", type=Path, help="C9 request JSON; default is the bundled synthetic demo task"
+    )
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--samples", type=int, default=20)
     parser.add_argument("--model", default=DEFAULT_MODEL)
     args = parser.parse_args()
     if not 2 <= args.samples <= 100:
         parser.error("samples must be 2..100 (plus one excluded warmup)")
-    request = strict_json(args.request.read_text(encoding="utf-8"))
+    request = load_request(args.request)
     raise SystemExit(asyncio.run(benchmark(request, args.out, args.samples, args.model)))
 
 
