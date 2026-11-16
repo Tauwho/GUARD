@@ -118,6 +118,14 @@ ssh root@10.10.10.2 /tmp/guard_core_tests
 ```
 The target run must end with doctest's `Status: SUCCESS!` line. Capture `evidence/<yyyymmdd>-<sha7>-core-on-target/` as in §7. Put `binaries.txt` for `build/qnx-x86_64/guard_core_tests`. Put the doctest summary counts (test cases, assertions, failures) for host and target into `results.json`. First run: `evidence/20261116-161b1e8-core-on-target/`.
 
+## 8a. GUARD image (B-9)
+`image/run-demo.sh` builds the GUARD image if needed (`image/build-image.sh`), boots it in the background and waits for ssh. No sudo with the default user-mode networking (Option C ports: ssh on `127.0.0.1:2222`, key `~/.ssh/guard_target_ed25519`):
+```sh
+source ~/qnx800/qnxsdp-env.sh
+image/run-demo.sh                 # --net bridge for br0 (Option B), --test adds guard-hog, --stop
+```
+Build output stays in `image/out/` (git-ignored). Processes not in the repo yet are skipped; see `image/README.md`.
+
 ## 9. Troubleshooting
 | Symptom | Fix |
 |---|---|
