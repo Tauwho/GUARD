@@ -1,0 +1,59 @@
+# Who may change which files. Enforced on every PR by tools/check_ownership.py (required check "ownership").
+# A PR's stream comes from its head branch prefix: a/ -> A, b/ -> B, po/ -> P.
+# First matching rule wins. A file that matches no rule is owned by P.
+# "frozen" paths need a P branch AND the label phase0-override; after Phase 0 nobody uses that label.
+version: 1
+streams:
+  A: {branch_prefix: "a/", person: "@phatdat220707", scope: "host vertical: portable core, host harness, eval, dashboard, advisor, scenarios"}
+  B: {branch_prefix: "b/", person: "@baofrovn", scope: "target vertical: QNX processes, image, target evidence, setup"}
+  P: {branch_prefix: "po/", person: "@dngvmnh", scope: "package vertical: README, docs, demo, video, release, governance"}
+rules:
+  # frozen interfaces (additive changes go to contracts/ext/)
+  - {path: "contracts/ext/A-*", owner: A}
+  - {path: "contracts/ext/CHANGES-A.md", owner: A}
+  - {path: "contracts/ext/B-*", owner: B}
+  - {path: "contracts/ext/CHANGES-B.md", owner: B}
+  - {path: "contracts/**", owner: P, frozen: true}
+  # stream A
+  - {path: "core/**", owner: A}
+  - {path: "host/**", owner: A}
+  - {path: "eval/**", owner: A}
+  - {path: "dashboard/**", owner: A}
+  - {path: "scenarios/**", owner: A}
+  - {path: "tools/generate_contracts.py", owner: A}
+  - {path: "CMakeLists.txt", owner: A}
+  - {path: "CMakePresets.json", owner: A}
+  - {path: "pyproject.toml", owner: A}
+  - {path: ".github/workflows/ci-a.yml", owner: A}
+  - {path: ".github/workflows/host-evaluation.yml", owner: A}
+  - {path: "progress/A.md", owner: A}
+  - {path: "progress/RESEARCH-A.md", owner: A}
+  - {path: "docs/decisions/A.md", owner: A}
+  # stream B
+  - {path: "qnx/**", owner: B}
+  - {path: "image/**", owner: B}
+  - {path: "cmake/**", owner: B}
+  - {path: "evidence/**", owner: B}
+  - {path: "spike/**", owner: B}
+  - {path: "tools/capture-evidence.py", owner: B}
+  - {path: "tools/env-check.py", owner: B}
+  - {path: "tools/tests/test_env_check.py", owner: B}
+  - {path: "docs/setup.md", owner: B}
+  - {path: ".github/workflows/ci-b.yml", owner: B}
+  - {path: "progress/B.md", owner: B}
+  - {path: "progress/RESEARCH-B.md", owner: B}
+  - {path: "docs/decisions/B.md", owner: B}
+  # stream P (and everything not listed)
+  - {path: "README.md", owner: P}
+  - {path: "docs/**", owner: P}
+  - {path: "demo/**", owner: P}
+  - {path: "DECISIONS.md", owner: P, frozen: true}
+  - {path: "AGENTS.md", owner: P, frozen: true}
+  - {path: "CONTRIBUTING.md", owner: P, frozen: true}
+  - {path: "OWNERSHIP.yaml", owner: P, frozen: true}
+  - {path: "SCOPE.yaml", owner: P, frozen: true}
+  - {path: "INTERFACES.md", owner: P, frozen: true}
+  - {path: ".github/**", owner: P}
+  - {path: "tools/**", owner: P}
+  - {path: "Makefile", owner: P}
+  - {path: "progress/P.md", owner: P}

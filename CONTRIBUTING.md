@@ -1,4 +1,6 @@
 <!-- managed-by: guard-bootstrap v1 -->
+
+> **Since 16 Nov 2026 (D26): zero-handoff model.** Where this file conflicts with AGENTS.md §1a, `OWNERSHIP.yaml`, `INTERFACES.md` or `SCOPE.yaml`, those win: no `START:`/`BLOCKED:` comments, no @-mentions for help, no review, contracts frozen at `contracts-v1.2` (extensions only in `contracts/ext/`). Your stream brief is in `docs/streams/`.
 # Contributing to GUARD
 
 ## Setup
