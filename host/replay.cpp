@@ -239,7 +239,7 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                         if (accepted) {
                             active = lease;
                             telemetry.begin(now, "lease");
-                            const auto *source = supervisor.latest();
+                            const auto *source = supervisor.find(proposal.based_on.obs_id);
                             telemetry.out()
                                 << "\"lease_id\":" << lease.lease_id << ",\"epoch\":" << lease.epoch
                                 << ",\"issued_ns\":" << lease.issued_ns
@@ -248,7 +248,8 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                                 << ",\"d_req\":" << evaluation.required_distance;
                             if (source)
                                 telemetry.out() << ",\"x\":" << source->x << ",\"y\":" << source->y
-                                                << ",\"theta\":" << source->theta;
+                                                << ",\"theta\":" << source->theta
+                                                << ",\"source_obs_id\":" << source->obs_id;
                             telemetry.end();
                         } else {
                             reason = static_cast<unsigned>(Reason::REJ_GATE_NOT_READY);

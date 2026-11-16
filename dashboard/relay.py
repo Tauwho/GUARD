@@ -3,6 +3,8 @@
 import argparse
 import asyncio
 import json
+import math
+import sys
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -14,6 +16,27 @@ ROOT = Path(__file__).resolve().parents[1]
 STATIC = Path(__file__).resolve().parent
 
 
+def decode_event(line, validator):
+    def finite(text):
+        value = float(text)
+        if not math.isfinite(value):
+            raise ValueError("non-finite telemetry number")
+        return value
+
+    def integer(text):
+        value = int(text)
+        if abs(value) > int(sys.float_info.max):
+            raise ValueError("telemetry integer exceeds browser number range")
+        return value
+
+    def constant(_text):
+        raise ValueError("non-finite JSON constant")
+
+    event = json.loads(line, parse_float=finite, parse_int=integer, parse_constant=constant)
+    validator.validate(event)
+    return event
+
+
 def load_events(path):
     if path.stat().st_size > 32 * 1024 * 1024:
         raise ValueError("replay exceeds the 32 MiB limit")
@@ -22,8 +45,7 @@ def load_events(path):
     )
     events = []
     for line in path.read_text(encoding="utf-8").splitlines():
-        event = json.loads(line)
-        validator.validate(event)
+        event = decode_event(line, validator)
         events.append(event)
     if not events:
         raise ValueError("empty replay")
@@ -141,6 +163,20 @@ def main():
     asyncio.run(run(args))
 
 
+async def bridge_line(reader):
+    oversized = False
+    while True:
+        try:
+            line = await reader.readuntil(b"\n")
+        except asyncio.LimitOverrunError as error:
+            await reader.readexactly(error.consumed)
+            oversized = True
+            continue
+        except asyncio.IncompleteReadError as error:
+            return b"", oversized or bool(error.partial), True
+        return line, oversized, False
+
+
 async def stream_bridge(connection, host, port):
     validator = jsonschema.Draft202012Validator(
         json.loads((ROOT / "contracts/telemetry.schema.json").read_text())
@@ -148,13 +184,23 @@ async def stream_bridge(connection, host, port):
     reader, writer = await asyncio.wait_for(asyncio.open_connection(host, port, limit=65536), 5)
     try:
         while True:
-            line = await asyncio.wait_for(reader.readline(), 30)
-            if not line:
+            line, invalid, ended = await asyncio.wait_for(bridge_line(reader), 30)
+            if not invalid and line:
+                try:
+                    event = decode_event(line, validator)
+                except (ValueError, UnicodeError, RecursionError, jsonschema.ValidationError):
+                    invalid = True
+            if invalid:
+                await connection.send(
+                    json.dumps(
+                        {"type": "drop", "count": 1, "message": "Malformed bridge record ignored"}
+                    )
+                )
+            elif line:
+                await connection.send(json.dumps({"type": "events", "events": [event]}))
+            if ended:
                 await connection.send(json.dumps({"type": "end"}))
                 return
-            event = json.loads(line)
-            validator.validate(event)
-            await connection.send(json.dumps({"type": "events", "events": [event]}))
     finally:
         writer.close()
         await writer.wait_closed()
