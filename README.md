@@ -37,7 +37,7 @@ flowchart LR
 4. The gate sends a motor command every tick. When the lease expires, is revoked or comes from an old epoch, the gate brings the robot to a stop and, for some causes, latches until an operator recovers it.
 5. If the gate itself dies, the simulated drive brakes after its own watchdog timeout.
 
-Starving the planner path, for example with a busy process above the supervisor, can only let leases lapse, which stops the robot. It never extends motion.
+Starving the planner path, for example with a busy process above the supervisor, can only let leases lapse, which stops the robot. It never extends motion. A shorter lease allows more speed near hazards, because the gate reacts sooner (see `d_req` in [docs/parameters.md](docs/parameters.md)).
 
 Details: [docs/architecture.md](docs/architecture.md), contracts in [contracts/](contracts/), decisions in [DECISIONS.md](DECISIONS.md).
 
@@ -59,16 +59,17 @@ Every row links to the code and to target evidence once it exists.
 | `slog2` logging | `qnx/common/log` | planned (#45) |
 | Shared-memory telemetry rings | `qnx/common/ring` | planned (#45) |
 | `mkqnximage` image | `image/` | planned (#45) |
+| Portable core tests run on the QNX target | `core/tests`, `cmake/qnx-x86_64.cmake` | [evidence/20261116-161b1e8-core-on-target](evidence/20261116-161b1e8-core-on-target/) |
 
 ## Quick start
 
-All commands below are **planned**; they work once the linked issues land.
+Commands marked `planned` work once the linked issues land; the others run on `main` today.
 
 **Host-only path** (no QNX needed; deterministic replay):
 
 ```sh
 git clone https://github.com/Tauwho/GUARD.git && cd GUARD
-cmake --preset host && cmake --build --preset host          # planned (#16)
+cmake --preset host-debug && cmake --build --preset host-debug && ctest --preset host-debug
 ./build/host/guard-replay scenarios/F3.yaml --mode B2       # planned (#22)
 python dashboard/relay.py --replay run.jsonl                # planned (#24)
 ```
@@ -77,11 +78,11 @@ python dashboard/relay.py --replay run.jsonl                # planned (#24)
 
 ```sh
 source ~/qnx800/qnxsdp-env.sh                               # your own SDP install
-image/build-image.sh                                        # planned (#43)
+cmake --preset qnx-x86_64 && cmake --build --preset qnx-x86_64   # core tests for the target (#31)
 image/run-demo.sh                                           # planned (#43)
 ```
 
-Setup steps: `docs/setup.md` (planned, #30).
+Setup steps: [docs/setup.md](docs/setup.md).
 
 ## Results (functional only)
 
