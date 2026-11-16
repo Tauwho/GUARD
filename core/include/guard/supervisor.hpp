@@ -25,6 +25,8 @@ class Supervisor {
     explicit Supervisor(Config config = {}) : config_(config) {}
     bool observe(const Observation &observation, std::int64_t now);
     SafetyEvaluation evaluate(const Proposal &proposal, const Scene &scene, std::int64_t now);
+    // Returns a 4xx reason when the caller must revoke, or zero when the lease may continue.
+    std::uint16_t recheck(const Lease &lease, const Scene &scene, std::int64_t now);
     const Observation *latest() const;
     const Observation *find(std::uint64_t id) const;
 
@@ -40,5 +42,6 @@ class Supervisor {
     std::size_t count_ = 0, next_ = 0;
     std::array<PlannerState, 16> planners_{};
     std::int64_t last_evaluation_ = -1;
+    std::uint32_t unverifiable_count_ = 0;
 };
 } // namespace guard
