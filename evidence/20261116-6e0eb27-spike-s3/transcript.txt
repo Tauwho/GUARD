@@ -1,0 +1,65 @@
+Script started on 2026-11-16 01:24:54-05:00 [COMMAND="ssh -o BatchMode=yes -o ConnectTimeout=5 root@10.10.10.2 'uname -a; cd /tmp && timeout 120 sh run.sh'" <not executed on terminal>]
+QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+######## s3_server 
+s3_server: ready on /dev/s3 (unblock handler default)
+== echo
+Q1 __DIOTF round trip works: yes (rc=0 value=42)
+s3_server: close_ocb #1
+== read
+Q2 blocked read replied later via saved rcvid: yes
+s3_server: late MsgReply ok
+s3_server: close_ocb #2
+== kill
+s3_server: late MsgReply ok
+s3_server: close_ocb #3
+Q3 resmgr saw OCB close after kill -9: yes
+Q3 close seen within 100 ms of the kill: no
+s3_server: close_ocb #4
+== pi
+Q4 default mutexattr protocol: PRIO_INHERIT
+Q4 default mutex boosted holder 10 -> 30: yes (seen 30)
+== order
+Q5 pulse(10) sent before devctl(10)   order=SPD
+Q5 devctl(10) sent before pulse(10)   order=SDP
+Q5 devctl(10) sent before pulse(20)   order=SPD
+Q5 pulse(10) sent before devctl(20)   order=SDP
+Q5 key: S=stall started, then events in the order the server handled them
+s3_server: close_ocb #5
+== slow
+s3_server: delayed ack MsgReply ok
+ACK client devctl result: EOK (got the late reply)
+ACK client got ETIMEDOUT: no
+s3_server: close_ocb #6
+######## s3_server -u
+s3_server: ready on /dev/s3 (unblock handler on)
+== echo
+Q1 __DIOTF round trip works: yes (rc=0 value=42)
+s3_server: close_ocb #1
+== read
+s3_server: late MsgReply ok
+Q2 blocked read replied later via saved rcvid: yes
+s3_server: close_ocb #2
+== kill
+s3_server: unblock pulse answered with MsgError(EINTR)
+s3_server: close_ocb #3
+Q3 resmgr saw OCB close after kill -9: yes
+Q3 close seen within 100 ms of the kill: yes
+s3_server: close_ocb #4
+== pi
+Q4 default mutexattr protocol: PRIO_INHERIT
+Q4 default mutex boosted holder 10 -> 30: yes (seen 30)
+== order
+Q5 pulse(10) sent before devctl(10)   order=SPD
+Q5 devctl(10) sent before pulse(10)   order=SDP
+Q5 devctl(10) sent before pulse(20)   order=SPD
+Q5 pulse(10) sent before devctl(20)   order=SDP
+Q5 key: S=stall started, then events in the order the server handled them
+s3_server: close_ocb #5
+== slow
+s3_server: unblock pulse answered with MsgError(EINTR)
+ACK client devctl result: Interrupted function call
+ACK client got ETIMEDOUT: no
+s3_server: delayed ack: client already gone, no MsgReply attempted
+s3_server: close_ocb #6
+
+Script done on 2026-11-16 01:25:03-05:00 [COMMAND_EXIT_CODE="0"]
