@@ -19,3 +19,5 @@ Decide, log one line, continue (D26). Never edit `DECISIONS.md`.
 | 2026-11-16 | Remove temporary scope make adapter after P fixes f21aab4/2011b07 reach main | Use plain tools/check.py again; P-owned recursion is now fixed upstream. |
 
 | 2026-11-16 | Recorded mode is the offline default; live fallback requires an exact request and dedicated model-availability error | Never refresh old provenance or mask recording I/O/invalid model output. |
+
+| 2026-11-16 | A8 optional collection requires Hypothesis plus the production C++ probe; dedicated A CI requires both | P-owned baseline jobs do not install optional Hypothesis. Absence selects no tests (exit5), never fabricated property success. |

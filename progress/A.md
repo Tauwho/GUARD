@@ -56,3 +56,10 @@ A6: done (host acceptance)
 - `python tools/check.py`: RESULT: GREEN (out/d26-a6-final.txt; Git Bash selected before Windows WSL alias).
 - self-review: 0 blocker, 0 should, 0 nit after restricting fallback to ModelUnavailableError; recording write failures do not fall back.
 - Bundled fixture is synthetic-test; real 1.5B evidence remains private under out/s7-1p5b. A9 second-laptop evidence is not claimed.
+
+
+A8: properties implemented; CI pending
+- Hypothesis 6.170.15 drives actual C++ codec/gate via guard-core-probe; 5 property tests pass, 100 examples each plus explicit regressions.
+- Includes valid wire byte roundtrip, non-finite fields, arbitrary bytes, valid-header truncated/oversized lengths, ACK fencing, non-vacuous MOVING/expiry/braking/READY assertions.
+- Hypothesis found std::stod subnormal rejection in host test driver; strtod preserves representable finite subnormals, explicit counterexample retained.
+- Optional collection never reports coverage without real backend/probe; dedicated A CI installs/builds/requires both. No existing tests skipped or weakened.

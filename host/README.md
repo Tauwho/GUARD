@@ -52,3 +52,24 @@ Run summaries also emit the C8 fields proposed in #127 (`authorized`, `rejected`
 traces. These decision counts cover the guarded C1 path. B0/B1 issue pass-through
 commands instead; their command/drop counts appear in a separate `status` event and
 their C1 decision counts are zero. No supervisor authorization is implied for baselines.
+
+
+## Generated C++ properties (A8)
+
+```sh
+python -m pip install hypothesis==6.170.15
+cmake --build --preset host-debug
+python -m pytest eval/tests -q -k hypothesis
+```
+
+The host-only `guard-core-probe` calls the production Lease codec and gate FSM.
+Hypothesis generates 100 examples per property (plus retained regressions), with
+deterministic generation and no persistent example database. Tests cover exact
+wire roundtrip, non-finite rejection, arbitrary packet handling, ACK fencing,
+refusal sequence preservation, lease expiry and non-increasing braking commands.
+They exercise an injected-time model, not hardware or a proof of correctness.
+
+The property module is collected only when both Hypothesis and the built probe
+are present. Ordinary tests are unchanged. Without that backend, `-k hypothesis`
+selects no tests and exits 5; it does not report property coverage. Stream A CI
+installs the pinned backend, builds the probe, and explicitly requires this suite.
