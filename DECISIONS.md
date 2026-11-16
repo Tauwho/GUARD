@@ -22,6 +22,8 @@
 | D16 | 2026-11-16 | Contracts (#56) and scenarios (#57) were merged to `main` early so both streams can build on them. The freeze and the `contracts-v1.0` tag stay at Fri 20 Nov 18:00 SGT, or earlier if A and B both comment "no more CONTRACT-Q" on #3. Until then, contract fixes are normal PRs. B's open checklist items from #56 keep the documented defaults unless B raises a `CONTRACT-Q:` |
 | D17 | 2026-11-16 | CONTRACT-Q answers (#3): a lease takes effect only after its `LeaseAck` is delivered, otherwise it is discarded with `GATE_ACK_UNDELIVERED` (516); the stopping-distance check starts from the measured speed and uses obstacles inflated by `r_robot + margin`; v1 authorizes no reverse motion |
 | D18 | 2026-11-16 | Under D12, a QNX-path PR (`core/`, `qnx/`, `image/`, `cmake/`, `contracts/`) is finished only when its target evidence bundle is committed (AGENTS.md hard rule 4), unless its issue exempts it. #74 merged without it, so #31 was reopened for a follow-up evidence PR |
+| D19 | 2026-11-16 | M0 fallback (A): @phatdat220707's setup evidence (#15) is deferred until Sun 22 Nov. Until then A works on the host path only (core, harness, CI); A-track QNX-path PRs still need target evidence before they are finished (D18) |
+| D20 | 2026-11-16 | M0 fallback (B): @baofrovn's setup evidence (#30) is deferred until Sun 22 Nov. Until then the toolchain work in #31 counts as setup progress; B's QNX-path PRs still need target evidence before they are finished (D18) |
 
 ## ADR index
 All entries were accepted on 2026-11-15. Full write-ups go in `docs/adr/` (issue PO-5).
