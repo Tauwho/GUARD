@@ -20,6 +20,17 @@ delays, and requires an exact request match. Every connection starts at record z
 It never updates an old observation stamp to make a replay look fresh. Synthetic
 tests are not evidence of an actual LLM run. QNX connection wiring belongs to #49.
 
+For a retained single-record JSON object from an actual call, run the same core checker:
+
+```sh
+build/host-debug/host/guard-route-demo out/runtime-inputs/maps/mri_suite.yaml out/runtime-inputs/F6.yaml out/one-advisor-record.json
+```
+
+The demo keeps the robot at the retained pose while the advisor computes and advances
+the real scenario World from the request stamp to the computed response stamp. It
+reports the actual map/age rejection. Exit 0 means the advisory route is usable,
+1 means rejected, 2 means an input error. Motion is never authorized by this tool.
+
 ## Live model and clock status
 
 The C9 clock question was answered in #3: creation time is the source observation
