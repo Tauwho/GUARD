@@ -15,6 +15,7 @@ add_compile_options(-Wall -Wextra)
 
 add_library(guard_qnx_common STATIC
   src/ipc.cpp
+  src/resmgr.cpp
   src/sched.cpp
   src/timer.cpp)
 target_include_directories(guard_qnx_common PUBLIC include)
@@ -27,5 +28,5 @@ FetchContent_Declare(doctest
 FetchContent_MakeAvailable(doctest)
 
 add_executable(guard_qnx_common_tests tests/main.cpp tests/test_sched.cpp tests/test_ipc.cpp
-  tests/test_timer.cpp)
+  tests/test_timer.cpp tests/test_resmgr.cpp)
 target_link_libraries(guard_qnx_common_tests PRIVATE guard_qnx_common doctest::doctest)

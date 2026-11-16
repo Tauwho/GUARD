@@ -7,6 +7,7 @@ Thin QNX 8.0 wrappers that the GUARD processes share. No GUARD decisions live he
 | `guard/qnx/sched.hpp` | `SCHED_FIFO` at priority 1..63 |
 | `guard/qnx/ipc.hpp` | `name_attach` / `name_open`, `MsgSend` bounded by `TimerTimeout` (`SIGEV_UNBLOCK`), side-channel self connect |
 | `guard/qnx/timer.hpp` | `timer_create` + `SIGEV_PULSE_INIT`, periodic and one-shot |
+| `guard/qnx/resmgr.hpp` | Single-threaded resmgr skeleton (`dispatch_create`, `resmgr_attach`, iofunc defaults, `pulse_attach`, side-channel coid); `DelayedReplies<N>`: saved `rcvid`s replied later, answered on unblock, dropped on close |
 
 On a channel with `_NTO_CHF_UNBLOCK` (resmgr and `name_attach` channels), a `TimerTimeout` that fires while the client is reply-blocked only ends when the server answers the unblock pulse (spike S3, ADR 0017). `send_bounded` documents this; the test `reply-blocked timeout ends via the server's unblock answer` shows it.
 
