@@ -3,9 +3,9 @@
 Brief: `docs/streams/BRIEF-A.md`; frozen contracts-v1.2; D26/D27. Resume here.
 
 ## Now
-- A1-A8 executable host outputs complete. Latest follow-up: [PR #181](https://github.com/Tauwho/GUARD/pull/181); inspect its state before resuming.
-- Full local check GREEN; CI/merge evidence lives on PR #181. No more feature work without a concrete uncovered need.
-- Only A9 manual second-laptop evidence remains outside this machine; do not fabricate it.
+- A1-A8 executable host outputs complete; A9 accepted evidence documented below under the updated PO decision.
+- Full local check GREEN (out/d26-a9-close-check.txt); finish close-out CI/merge, then retain evidence. No more feature work without a concrete uncovered need.
+- A9 close-out: document the accepted actual-inference plus Linux offline/recorded evidence; another laptop is optional (PO decision #29).
 
 ## Done with executable evidence
 
@@ -62,11 +62,11 @@ A8: done 6ac05ec (#179; actual C++ property CI https://github.com/Tauwho/GUARD/a
 - Dedicated stream-a CI pins backend, builds probe and explicitly requires -k hypothesis. Existing tests unchanged.
 
 ## Next
-- Verify final main CI and newest Linux artifact; then stop feature churn and retain the evidence. A9 needs a physical second laptop.
+- Verify A9 close-out main CI and newest Linux artifact; retain evidence and stop feature churn. No additional laptop is required.
 
 ## Known limits
 - A4/A7 remain MANUAL in scope_gate by design: remote evidence linked above, never inferred from progress text.
-- A9 remains MANUAL: real 1.5B tested on Dat laptop only; second-laptop verification is not fabricated.
+- A9 remains MANUAL in frozen scope: PO acceptance uses real inference on Dat laptop plus Linux offline/recorded CI; no second-device inference is claimed.
 - Target evidence is B-owned. No QNX SDK/licences/weights or QNX performance numbers committed.
 - Host reports use simulation-only functional results. Operator recovery trials still unavailable.
 - No task-owned Ollama/advisor process left running; tests close their sockets/processes.
@@ -80,9 +80,17 @@ A8: done 6ac05ec (#179; actual C++ property CI https://github.com/Tauwho/GUARD/a
 - Full integrated `python tools/check.py`: RESULT: GREEN (out/d26-live-bursts-final.txt); no measured rendering-rate claim.
 
 
-## A9 preparation only
+## A9 preparation (historical)
 - Benchmark defaults to a committed validated task; custom C9 --request remains compatible. No private input handoff needed.
 - `python -m pytest eval/tests/test_advisor_benchmark.py -q`: 2 passed.
 - `python tools/check.py`: RESULT: GREEN (out/d26-a9-guide-check.txt); self-review 0 blocker/should/nit.
 - host/ADVISOR.md gives second-laptop commands. The synthetic task input is not an inference result; new results still come from actual local model calls.
-- A9 remains MANUAL/unverified until a second physical laptop is actually used; no second-device or timing evidence fabricated.
+- At preparation time A9 still required another laptop; the PO decision below supersedes that requirement. No second-device or timing evidence fabricated.
+
+
+## A9 verification close-out
+- [PO acceptance](https://github.com/Tauwho/GUARD/issues/29#issuecomment-6921570197): another physical laptop is optional; frozen scope remains MANUAL.
+- Actual Qwen2.5-1.5B inference on Dat laptop: one warmup + 20 schema/goal-valid responses, CPU two threads, GPU zero; live C9 TCP + replay and World/F6 changed-map/expired-source rejection. Internal evidence: out/s7-1p5b/; no timings published.
+- Main Linux [eval job: success](https://github.com/Tauwho/GUARD/actions/runs/43895106219/job/133396405455) at b3c10273c1e95b0c8371ed28116bd77dba63b072: recorded advisor, timeout fallback, provenance tests. This is offline/recorded verification, not second-machine inference.
+- `python tools/check.py`: all checks PASS, including host configure/build/test and pytest; `RESULT: GREEN` (out/d26-a9-close-check.txt).
+- Fresh-context adversarial self-review: 0 blocker, 0 should, 0 nit; PO decision and linked Linux eval job independently verified.

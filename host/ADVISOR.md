@@ -61,7 +61,7 @@ passed through the D24 supervisor API with World/F6: changed-map responses rejec
 as `REJ_MAP_VERSION`, while the cold/slow response rejects as stale. Live C9 TCP
 preserves the goal/provenance; recorded TCP replay preserves the exact response
 and delay across fresh connections. Numeric timings and raw recordings remain in
-ignored local `out/s7-1p5b/`; other laptops are pending.
+ignored local `out/s7-1p5b/`; inference on other laptops is optional.
 The earlier 3B experiments are historical only. This remains a stationary-pose
 host experiment; target integration is pending.
 The route
@@ -85,7 +85,7 @@ One warmup is excluded from median/p95. Failed requests remain in the samples; t
 script stops after two failures and exits non-zero. Numeric timing files stay local
 and internal. Keep recordings for deterministic replay; do not rely on the live
 response always arriving within the route-age limit. Other members' laptop measurements
-and QNX acceptance remain pending.
+are optional; QNX acceptance belongs to stream B.
 
 
 The default is the bundled `host/fixtures/advisor-recorded.jsonl`, explicitly
@@ -101,10 +101,30 @@ unchanged; a response whose source expired during the live timeout is still reje
 by the core. Recorded default mode works without Ollama or a network connection.
 
 
-## Second-laptop reproduction (A9, manual evidence)
+## Verification
 
-No private request file or teammate handoff is needed. On the second physical
-laptop, use its own local Ollama service and pull the D23 model, then run:
+[A9 acceptance decision](https://github.com/Tauwho/GUARD/issues/29#issuecomment-6921570197)
+replaces the physical second-laptop requirement with these two evidence sources:
+
+- Actual inference on Dat's laptop: Qwen2.5-1.5B, one warmup plus 20
+  schema-valid, goal-reaching samples, two CPU threads and no GPU. Live C9 TCP
+  and recorded replay preserve the response and provenance. Retained real
+  responses reject through World/F6 when the map changes or the source expires.
+  Internal recordings and metadata remain in ignored `out/s7-1p5b/`.
+- Cross-environment offline/recorded verification: the successful Linux
+  [main `eval` job](https://github.com/Tauwho/GUARD/actions/runs/43895106219/job/133396405455)
+  at `b3c10273c1e95b0c8371ed28116bd77dba63b072` tests the recorded advisor,
+  timeout fallback and provenance preservation. This is offline/recorded
+  verification, not inference on a second machine.
+
+Numeric timings remain internal (D11). A9 remains MANUAL in the frozen scope
+checker; the linked PO decision defines its acceptance. Another physical laptop
+is optional and does not block A9.
+
+## Optional inference on another laptop
+
+No private request file or teammate handoff is needed. On another laptop,
+use its own local Ollama service and pull the D23 model, then run:
 
 ```sh
 ollama pull qwen2.5:1.5b-instruct
@@ -117,5 +137,5 @@ recorded as actual Ollama calls. The output directory must be new. Keep timing
 files/internal raw recordings local; retain failed calls, commit and platform
 metadata. Use `--ollama --fallback-recorded <recording.jsonl>` to verify exact
 recorded fallback separately, without freshening provenance. A label or a repeated
-run on the same laptop is not second-device evidence. Until a second physical
-laptop is actually used, A9 remains unverified; this guide does not complete it.
+run on the same laptop is not second-device evidence. Add actual additional-device
+results to Verification only if that optional experiment is performed.
