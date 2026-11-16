@@ -23,3 +23,5 @@ Decide, log one line, continue (D26). Never edit `DECISIONS.md`.
 | 2026-11-16 | A8 optional collection requires Hypothesis plus the production C++ probe; dedicated A CI requires both | P-owned baseline jobs do not install optional Hypothesis. Absence selects no tests (exit5), never fabricated property success. |
 | 2026-11-16 | Preserve the reference seed; vary staff start +/-100 ms and proposal cadence +0..5 ms for other seeds, retain flood cadence | Reproducible bounded host trials, paired staff inputs across modes, no change to fault/zone schedules or B2 expectations. |
 | 2026-11-16 | Dispatch C8 envelope plus exact kind payload schema using jsonschema | Remove repeated mutually exclusive condition work while retaining every frozen constraint; differential tests and full-schema fallback. |
+
+| 2026-11-16 | Coalesce live dashboard work per animation frame with bounded ingestion | F8 telemetry must not trigger a full history render per message; preserve recorded-time pause/seek semantics. |

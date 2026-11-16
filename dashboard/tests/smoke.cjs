@@ -5,8 +5,9 @@ const path = require('node:path');
 const vm = require('node:vm');
 const elements = new Map();
 const dashedPoints = [];
-let dashed = false;
+let dashed = false, draws = 0;
 const canvasContext = new Proxy({}, {get(_target, name) {
+  if (name === 'clearRect') return () => {draws++;};
   if (name === 'setLineDash') return values => {dashed = values.length > 0;};
   if (name === 'moveTo') return (...point) => {if (dashed) dashedPoints.push(point);};
   return () => {};
@@ -44,3 +45,30 @@ assert.match(element('journal').children[0].children[1].textContent, /Supervisor
 vm.runInContext('seek(0);', context);
 assert.equal(element('mode').textContent, 'MOVING');
 console.log('Dashboard headless smoke: PASS (seek, lease, source arc, latch, reason feed)');
+
+// A flood is ingested immediately but drawn once per animation frame.
+draws = 0;
+vm.runInContext(`
+metadata.live=true; events=[]; livePending=[];
+for(let i=0;i<1000;i++) receiveLive([{t_ns:i,kind:'status',payload:{}}]);
+`, context);
+assert.equal(draws, 0);
+vm.runInContext('frame(1000);', context);
+assert.equal(draws, 1);
+assert.equal(vm.runInContext('events.length', context), 1000);
+vm.runInContext(`receiveLive(Array.from({length:25000},(_,i)=>({t_ns:i,kind:'status',payload:{}})));frame(1100);`, context);
+assert.equal(vm.runInContext('events.length', context), 20000);
+assert.equal(Number(element('seek').max), 24999);
+vm.runInContext(`followLive=false;receiveLive([{t_ns:25000,kind:'status',payload:{}}]);`, context);
+const pausedDraws = draws;
+vm.runInContext('frame(1200);', context);
+assert.equal(draws, pausedDraws);
+assert.equal(vm.runInContext('events.at(-1).t_ns', context), 25000);
+console.log('Live burst smoke: PASS (bounded ingestion, one redraw/frame, pause preserved)');
+
+// A queued frame must not conceal a newer relay/socket error.
+vm.runInContext(`followLive=true;receiveLive([{t_ns:25001,kind:'status',payload:{}}]);`, context);
+element('connection').textContent = 'Relay unavailable';
+vm.runInContext('frame(1300);', context);
+assert.equal(element('connection').textContent, 'Relay unavailable');
+console.log('Live error ordering: PASS');

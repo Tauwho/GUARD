@@ -36,3 +36,7 @@ smoke for seeking, lease expiry, recorded source-pose arc and latch/reason feed.
 Malformed JSON, schema-invalid lines and non-finite numbers on the live bridge are
 counted as drops and skipped; later valid records still arrive. The UI shows the
 drop count. The arc uses the proposal's retained source pose, never a newer pose.
+
+Live bursts are ingested into a bounded buffer and coalesced to animation frames;
+a proposal flood does not redraw the whole history for every message. Paused
+inspection keeps its cursor while new records arrive; Follow live returns to the end.

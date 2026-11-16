@@ -15,8 +15,7 @@ scope:
 demo-smoke:
 	bash tools/fresh_clone_demo.sh main
 
-# P's final gate. tools/check_readme_links.py and tools/check_package.py are P's (stream P, milestone P4).
+# P's final gate. tools/check_package.py (stream P, milestone P4) also runs the README link check.
 package-check: check
 	bash tools/fresh_clone_demo.sh $${REF:-v1.0-rc1}
-	$(PY) tools/check_readme_links.py
 	$(PY) tools/check_package.py
