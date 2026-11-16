@@ -51,6 +51,7 @@ class OllamaGenerator:
                 "num_predict": 256,
                 "num_ctx": 4096,
                 "num_thread": 2,
+                "num_gpu": 0,
             },
         }
         message = Request(

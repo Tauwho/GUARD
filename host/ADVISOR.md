@@ -31,7 +31,8 @@ python host/llm_advisor.py --ollama --model qwen2.5:3b --record out/advisor-reco
 ```
 
 This requires an already-running local Ollama service with the model installed.
-Requests must include a goal. Calls are bounded to 30 seconds and two model threads.
+Requests must include a goal. Response waiting is bounded to 30 seconds; inference
+uses two CPU threads with GPU layers disabled for the host CPU spike.
 Actual local model execution has not yet been verified; mock tests verify protocol,
 time/provenance and schema handling only. No live model result or target demo is claimed. The route
 checker treats creation time as opaque metadata and derives age from its own source

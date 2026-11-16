@@ -81,4 +81,5 @@ def test_ollama_http_request_is_local_bounded_and_schema_constrained(monkeypatch
     body = json.loads(message.data)
     assert body["stream"] is False
     assert body["format"]["additionalProperties"] is False
+    assert body["options"]["num_gpu"] == 0
     assert timeout == 30
