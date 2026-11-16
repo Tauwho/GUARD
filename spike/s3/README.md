@@ -1,7 +1,7 @@
 # Spike S3 (#33): resmgr devctl, late read reply, OCB close, mutex inheritance, pulse order
 
 Throwaway spike code. It stays on branch `spike/s3` and never goes to `main`.
-It has not been compiled yet: the agent that wrote it has no QNX SDP.
+It builds with SDP 8.0 `qcc -Wall -Wextra` with no warnings. It has not run on a target yet.
 
 ## Build (QNX host, SDP 8.0 env sourced)
 
