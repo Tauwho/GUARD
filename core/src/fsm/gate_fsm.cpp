@@ -60,12 +60,12 @@ LeaseAck Gate::prepare_lease(const Lease &value, std::int64_t now) {
     else if (value.lease_seq <= status_.lease_seq)
         reason = Reason::GATE_LEASE_REPLAY;
     else {
-        status_.lease_seq = value.lease_seq;
         if (!config_.ablate_expiry && now >= value.expires_ns)
             reason = Reason::GATE_LEASE_EXPIRED_ON_ARRIVAL;
         else if (status_.mode != GateMode::ready && status_.mode != GateMode::moving)
             reason = Reason::GATE_NOT_READY;
         else {
+            status_.lease_seq = value.lease_seq;
             pending_ = value;
             pending_valid_ = true;
         }

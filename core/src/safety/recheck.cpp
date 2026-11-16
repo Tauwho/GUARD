@@ -15,8 +15,8 @@ std::uint16_t Supervisor::recheck(const Lease &lease, const Scene &scene, std::i
                    ? static_cast<std::uint16_t>(Reason::REVOKE_UNVERIFIABLE)
                    : 0;
     }
-    if (observation->v_meas < -0.02 || observation->v_meas > config_.v_max ||
-        std::abs(observation->w_meas) > config_.w_max) {
+    if (lease.v_cmd < 0 || lease.v_cmd > config_.v_max || std::abs(lease.w_cmd) > config_.w_max ||
+        observation->v_meas < -0.02) {
         unverifiable_count_ = 0;
         return static_cast<std::uint16_t>(Reason::REVOKE_ENVELOPE);
     }
@@ -29,7 +29,9 @@ std::uint16_t Supervisor::recheck(const Lease &lease, const Scene &scene, std::i
     proposal.created_ns = now;
     proposal.v_cmd = lease.v_cmd;
     proposal.w_cmd = lease.w_cmd;
-    proposal.lease_req_ms = config_.t_lease_ms;
+    // Round up sub-millisecond durations rather than understating the granted horizon.
+    proposal.lease_req_ms =
+        static_cast<std::uint32_t>((lease.expires_ns - lease.issued_ns + 999'999) / 1'000'000);
     Scene world = scene;
     world.obstacle_count = observation->obstacle_count;
     world.obstacles = observation->obstacles;

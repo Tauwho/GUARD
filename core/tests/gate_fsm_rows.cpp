@@ -109,10 +109,20 @@ TEST_CASE("R11 R12 R13 R14 refused leases cannot change motion") {
     CHECK(gate.lease(expired, 60'000'000).reason ==
           code(guard::Reason::GATE_LEASE_EXPIRED_ON_ARRIVAL));
     CHECK(gate.status(60'000'000).lease_id == 1);
+    CHECK(gate.status(60'000'000).lease_seq == 1);
+    CHECK(gate.lease(lease(2), 60'000'000).reason == code(guard::Reason::GATE_LEASE_ACCEPTED));
     guard::Gate boot;
     guard::RegisterReply reply;
     REQUIRE(boot.register_supervisor(reply));
     CHECK(boot.lease(lease(), 50'000'000).reason == code(guard::Reason::GATE_NOT_READY));
+    CHECK(boot.status(50'000'000).lease_seq == 0);
+    for (unsigned i = 0; i < 5; ++i)
+        boot.tick(i * 10'000'000, 0);
+    guard::RecoverRequest recover;
+    recover.request_id = 1;
+    REQUIRE(boot.recover(recover, {true, true, true}).reason ==
+            code(guard::Reason::GATE_RECOVERED));
+    CHECK(boot.lease(lease(), 50'000'000).reason == code(guard::Reason::GATE_LEASE_ACCEPTED));
 }
 
 TEST_CASE("ACK delivery failure leaves lease inactive and fences retries") {
