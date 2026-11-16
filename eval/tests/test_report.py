@@ -23,7 +23,7 @@ def test_report_keeps_failures_and_emits_valid_png(tmp_path, monkeypatch):
                 "summary": {
                     "contacts": 0,
                     "zone_breaches": 0,
-                    "minimum_margin_m": 1.5,
+                    "minimum_margin_m": None,
                     "final_state": "READY",
                     "braking_durations_s": [],
                     "time_to_goal_s": None,
