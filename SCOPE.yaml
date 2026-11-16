@@ -71,3 +71,5 @@ items:
   - {id: P4, tier: MUST, owner: P, due: package_done, title: "Video under 3:00 linked in README; make package-check passes",
      checks: [{cmd: "python tools/check_package.py"}, {grep: {file: "README.md", re: "(?i)video"}}]}
   - {id: P5, tier: SHOULD, owner: P, due: cut_1, title: "Architecture diagram + Limits page final", checks: [{file: "docs/architecture.svg"}]}
+  - {id: P6, tier: MUST, owner: P, due: package_done, title: "Devpost submission draft (description, screenshots, video link, AI-use); the upload itself is human PO only",
+     checks: [{file: "docs/devpost/description.md"}, {file: "docs/devpost/screenshots.md"}, {cmd: "python tools/check_submission.py"}]}
