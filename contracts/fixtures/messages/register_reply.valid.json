@@ -1,0 +1,13 @@
+{
+  "message": "register_reply",
+  "type": "0x0010",
+  "size": 24,
+  "valid": true,
+  "fields": {
+    "epoch": 1,
+    "gate_mode": 1,
+    "reason": 0,
+    "last_lease_seq": 0
+  },
+  "hex": "474410000100180001000000010000000000000000000000"
+}

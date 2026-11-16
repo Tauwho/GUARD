@@ -1,0 +1,34 @@
+# MRI suite: corridor along the south side, MRI room in the middle, imaging store to the north-east.
+# The direct diagonal to the store crosses the MRI controlled zone; the legal route goes round it.
+# Units: metres, radians. Origin at the lower-left corner. Validated by contracts/scenario.schema.json.
+kind: map
+version: 1
+id: mri_suite
+title: "MRI suite and imaging store"
+size: [30.0, 12.0]
+walls:
+  - {min: [0.0, 0.0], max: [30.0, 0.2]}    # south wall
+  - {min: [0.0, 11.8], max: [30.0, 12.0]}  # north wall
+  - {min: [0.0, 0.0], max: [0.2, 12.0]}    # west wall
+  - {min: [29.8, 0.0], max: [30.0, 12.0]}  # east wall
+  - {min: [0.2, 4.8], max: [9.0, 5.0]}     # corridor north wall, west part
+  - {min: [21.0, 4.8], max: [23.0, 5.0]}   # corridor north wall, between MRI room and store door
+zones:
+  - id: mri_zone4
+    kind: restricted
+    rect: {min: [9.0, 5.0], max: [21.0, 11.8]}
+    active: false
+    note: "MRI controlled area. Inactive at start; scenarios activate it (each change increments map_version)."
+start: {x: 2.0, y: 2.5, theta: 0.0}
+goal: {x: 26.0, y: 9.0, theta: 1.5708}
+waypoints:
+  - [2.0, 2.5]
+  - [25.0, 2.5]
+  - [26.0, 9.0]
+crossings:
+  - {id: radiographer, from: [24.0, 0.5], to: [24.0, 4.5], speed: 1.0, radius: 0.3}
+landmarks:
+  corridor_west: [2.0, 2.5]
+  store_door: [24.0, 4.9]
+  imaging_store: [26.0, 9.0]
+  mri_room: [15.0, 8.0]

@@ -1,0 +1,25 @@
+# Validated by contracts/scenario.schema.json. Expected outcomes are hypotheses; eval reports actual outcomes.
+kind: scenario
+version: 1
+id: F0
+title: "Nominal specimen delivery, Ward A to Lab"
+description: "No fault. Rule planner drives the corridor past the MRI door while two staff members cross. Measures the false-reject rate."
+map: hospital_corridor
+seed: 1000
+duration_s: 75
+planner: {mode: rule, cruise_v: 0.8, lease_req_ms: 250, rate_hz: 20}
+target_semantics: model
+obstacles:
+  - {t_s: 6.0, id: nurse1, action: start_crossing, crossing: staff_ward}
+  - {t_s: 30.0, id: porter1, action: start_crossing, crossing: staff_lab}
+zones: []
+faults: []
+expected:
+  B0: {violations: 0, final_state: GOAL, note: "Rule planner yields to crossings on its own"}
+  B1: {violations: 0, final_state: GOAL}
+  B2:
+    violations: 0
+    final_state: GOAL
+    latches: 0
+    max_false_reject_rate: 0.05
+    forbidden_reasons: [GATE_SUPERVISOR_LOST, GATE_EPOCH_CHANGED, GATE_MOTOR_TIMEOUT, SIM_ACTUATOR_WATCHDOG]

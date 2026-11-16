@@ -1,0 +1,12 @@
+{
+  "v": 1,
+  "t_ns": 5070000000,
+  "src": "gate",
+  "seq": 89,
+  "kind": "gate_transition",
+  "payload": {
+    "from": "MOVING",
+    "to": "PARKED",
+    "reason": "GATE_LEASE_EXPIRED"
+  }
+}

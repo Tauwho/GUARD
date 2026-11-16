@@ -1,0 +1,42 @@
+{
+  "kind": "scenario",
+  "version": 1,
+  "id": "F3",
+  "title": "Supervisor killed",
+  "map": "hospital_corridor",
+  "seed": 3,
+  "duration_s": 30,
+  "planner": {
+    "mode": "rule"
+  },
+  "target_semantics": "process",
+  "host_abstraction": "Harness stops delivering supervisor lease renewals at t=12 s and closes its gate session",
+  "obstacles": [],
+  "zones": [],
+  "faults": [
+    {
+      "t_s": 12,
+      "fault": "F3",
+      "params": {
+        "signal": "SIGKILL"
+      }
+    }
+  ],
+  "expected": {
+    "B0": {
+      "violations": 0,
+      "final_state": "MOVING"
+    },
+    "B1": {
+      "violations": 0,
+      "final_state": "MOVING"
+    },
+    "B2": {
+      "violations": 0,
+      "final_state": "LATCHED",
+      "required_reasons": [
+        "GATE_SUPERVISOR_LOST"
+      ]
+    }
+  }
+}

@@ -15,21 +15,21 @@ Follow `docs/setup.md` (written in issue B-1).
 4. Open a PR of ≤ 400 changed lines (generated files excluded) using the template. It closes the issue (`Closes #N`).
 5. CI must be green. It is host-only and never touches the QNX SDP.
 6. **Evidence:** QNX-path PRs (`core/`, `qnx/`, `image/`, `cmake/`, `contracts/`) attach a bundle per `evidence/README.md`. Until then, add `status:needs-evidence`.
-7. **Review:** 1 approval from a CODEOWNER other than the author. Cross-review is the default: A reviews B, and B reviews A.
+7. **Merge when finished:** reviews are optional (D12). When CI is green, every conversation is resolved and, for QNX-path PRs, the evidence bundle from step 6 is committed (D18), the author merges. If you want a second pair of eyes, ask on the PR with an @-mention.
 8. Squash-merge. The branch is deleted automatically.
 
 ## Contract changes (after `contracts-v1.0`)
 1. Open a `decision` issue.
 2. Write the ADR.
 3. Open a PR labelled `contract-change` that bumps the version in `contracts/CHANGELOG.md`.
-4. It needs approvals from **both** @phatdat220707 and @baofrovn.
+4. @-mention **both** @phatdat220707 and @baofrovn on the PR before merging, so both streams see the change. No approval is required (D12).
 
 ## Decisions
 ADRs live in `docs/adr/NNNN-slug.md` and are indexed in `DECISIONS.md`. The PO accepts or rejects them.
 
 ## Definition of done (every issue)
 - [ ] Acceptance criteria met
-- [ ] PR merged with CODEOWNER approval and green CI
+- [ ] PR merged with green CI
 - [ ] Target evidence attached (QNX path)
 - [ ] Docs and DECISIONS.md updated if behaviour or a decision changed
 - [ ] `HANDOFF:` comment posted
@@ -47,4 +47,4 @@ ADRs live in `docs/adr/NNNN-slug.md` and are indexed in `DECISIONS.md`. The PO a
 | Deadline | Wed 16 Dec 03:00 |
 
 ## Emergency rule
-If a code owner has been unreachable for more than 24 h, the PO may merge using admin rights. Log it in DECISIONS.md.
+Reviews are optional (D12), so nobody waits for an unreachable reviewer, and nobody needs admin rights to merge.
