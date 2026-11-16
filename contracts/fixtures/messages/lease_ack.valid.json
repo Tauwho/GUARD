@@ -1,0 +1,13 @@
+{
+  "message": "lease_ack",
+  "type": "0x0012",
+  "size": 24,
+  "valid": true,
+  "fields": {
+    "lease_id": 42,
+    "reason": 500,
+    "gate_mode": 3,
+    "epoch": 1
+  },
+  "hex": "47441200010018002a00000000000000f401030001000000"
+}

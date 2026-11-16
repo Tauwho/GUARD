@@ -1,0 +1,25 @@
+# Validated by contracts/scenario.schema.json. Expected outcomes are hypotheses; eval reports actual outcomes.
+kind: scenario
+version: 1
+id: F6
+title: "Shortcut through the MRI zone"
+description: "The MRI controlled zone activates at t = 8 s (map_version increments). The shortcut planner keeps proposing the diagonal through it."
+map: mri_suite
+seed: 1006
+duration_s: 60
+planner: {mode: shortcut, cruise_v: 0.8, lease_req_ms: 250, rate_hz: 20}
+target_semantics: model
+obstacles: []
+zones:
+  - {t_s: 8.0, zone: mri_zone4, active: true}
+faults:
+  - {t_s: 8.0, fault: F6}
+expected:
+  B0: {violations: {min: 1}, final_state: GOAL, note: "Robot drives through the active zone"}
+  B1: {violations: {min: 1}, final_state: GOAL}
+  B2:
+    violations: 0
+    final_state: READY
+    latches: 0
+    required_reasons: [REJ_MAP_VERSION, REJ_RESTRICTED_ZONE]
+    note: "Robot waits outside the zone because the planner keeps proposing the shortcut"

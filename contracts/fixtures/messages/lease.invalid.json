@@ -1,0 +1,20 @@
+{
+  "message": "lease",
+  "type": "0x0011",
+  "size": 80,
+  "valid": false,
+  "expect_error": "EMSGSIZE",
+  "why": "only 72 of 80 bytes sent",
+  "fields": {
+    "lease_id": 42,
+    "epoch": 1,
+    "lease_seq": 42,
+    "proposal_id": 7,
+    "v_cmd": 0.8,
+    "w_cmd": 0.0,
+    "v_cap": 1.2,
+    "issued_ns": 5070000000,
+    "expires_ns": 5320000000
+  },
+  "hex": "47441100010050002a0000000000000001000000000000002a0000000000000007000000000000009a9999999999e93f0000000000000000333333333333f33f800f322e01000000"
+}

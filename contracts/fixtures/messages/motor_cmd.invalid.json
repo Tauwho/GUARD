@@ -1,0 +1,16 @@
+{
+  "message": "motor_cmd",
+  "type": "0x0030",
+  "size": 48,
+  "valid": false,
+  "expect_error": "EINVAL",
+  "why": "v is +Inf",
+  "fields": {
+    "cmd_seq": 507,
+    "v": "Infinity",
+    "w": 0.0,
+    "stamp_ns": 5080000000,
+    "gate_mode": 3
+  },
+  "hex": "4744300001003000fb01000000000000000000000000f07f000000000000000000a6ca2e010000000300000000000000"
+}

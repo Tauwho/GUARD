@@ -1,0 +1,35 @@
+# Hospital corridor: Ward A (west) to the Lab (east), past the MRI suite door.
+# Units: metres, radians. Origin at the lower-left corner. Validated by contracts/scenario.schema.json.
+kind: map
+version: 1
+id: hospital_corridor
+title: "Hospital corridor, Ward A to Lab"
+size: [40.0, 6.0]
+walls:
+  - {min: [0.0, 0.0], max: [40.0, 0.2]}    # south wall
+  - {min: [0.0, 5.8], max: [40.0, 6.0]}    # north wall
+  - {min: [0.0, 0.0], max: [0.2, 6.0]}     # west end (Ward A)
+  - {min: [39.8, 0.0], max: [40.0, 6.0]}   # east end (Lab)
+zones:
+  - id: mri_door_controlled
+    kind: restricted
+    rect: {min: [18.0, 4.2], max: [24.0, 5.8]}
+    active: true
+    note: "Controlled area in front of the MRI suite door (north side). The normal lane at y = 2.0 keeps clear of it."
+  - id: ward_a_slow
+    kind: slow
+    rect: {min: [0.2, 0.2], max: [5.0, 5.8]}
+    active: true
+    note: "Information only in v1 (slow zones are not enforced)."
+start: {x: 2.0, y: 2.0, theta: 0.0}
+goal: {x: 38.0, y: 2.0, theta: 0.0}
+waypoints:
+  - [2.0, 2.0]
+  - [38.0, 2.0]
+crossings:
+  - {id: staff_ward, from: [12.0, 0.5], to: [12.0, 5.5], speed: 1.2, radius: 0.3}
+  - {id: staff_lab, from: [30.0, 5.5], to: [30.0, 0.5], speed: 1.0, radius: 0.3}
+landmarks:
+  ward_a: [2.0, 2.0]
+  lab: [38.0, 2.0]
+  mri_door: [21.0, 5.8]
