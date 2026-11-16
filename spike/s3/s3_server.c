@@ -26,6 +26,12 @@ static RESMGR_OCB_T *g_saved_ocb;
 static timer_t g_timer;
 static int g_timer_code;
 
+/* Delayed-ack test (DECISIONS.md S3 row): devctl replied S3_SLOW_REPLY_MS later. */
+static int g_slow_rcvid = -1;
+static struct s3_msg g_slow_msg;
+static timer_t g_slow_timer;
+static int g_handle_unblock; /* -u: answer unblock pulses with MsgError(EINTR) */
+
 static uint64_t now_ns(void) {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -61,6 +67,18 @@ static int io_devctl(resmgr_context_t *ctp, io_devctl_t *msg, RESMGR_OCB_T *ocb)
         memcpy(data, &g_close, sizeof g_close);
         out = sizeof g_close;
         break;
+    case DCMD_S3_SLOWECHO: {
+        if (msg->i.nbytes < sizeof(struct s3_msg) || g_slow_rcvid != -1) {
+            return EBUSY;
+        }
+        memcpy(&g_slow_msg, data, sizeof g_slow_msg);
+        g_slow_msg.value += 1;
+        g_slow_rcvid = ctp->rcvid;
+        struct itimerspec its = {0};
+        its.it_value.tv_nsec = S3_SLOW_REPLY_MS * 1000000L;
+        timer_settime(g_slow_timer, 0, &its, NULL);
+        return _RESMGR_NOREPLY;
+    }
     case DCMD_S3_STALL: {
         log_event('S');
         struct timespec ts = {0, 300 * 1000000L};
@@ -113,6 +131,44 @@ static int on_timer(message_context_t *ctp, int code, unsigned flags, void *hand
     return 0;
 }
 
+static int on_slow_timer(message_context_t *ctp, int code, unsigned flags, void *handle) {
+    (void)ctp, (void)code, (void)flags, (void)handle;
+    if (g_slow_rcvid == -1) {
+        printf("s3_server: delayed ack: client already gone, no MsgReply attempted\n");
+        return 0;
+    }
+    struct _io_devctl_reply o;
+    memset(&o, 0, sizeof o);
+    o.nbytes = sizeof g_slow_msg;
+    iov_t iov[2];
+    SETIOV(&iov[0], &o, sizeof o);
+    SETIOV(&iov[1], &g_slow_msg, sizeof g_slow_msg);
+    if (MsgReplyv(g_slow_rcvid, EOK, iov, 2) == -1) {
+        printf("s3_server: delayed ack MsgReply failed: %s\n", strerror(errno));
+    } else {
+        printf("s3_server: delayed ack MsgReply ok\n");
+    }
+    g_slow_rcvid = -1;
+    return 0;
+}
+
+/* Kernel unblock pulse: a REPLY-blocked client timed out or got a signal (incl. kill -9). */
+static int io_unblock(resmgr_context_t *ctp, io_pulse_t *msg, RESMGR_OCB_T *ocb) {
+    int rcvid = ctp->rcvid;
+    if (g_handle_unblock && (rcvid == g_saved_rcvid || rcvid == g_slow_rcvid)) {
+        MsgError(rcvid, EINTR);
+        printf("s3_server: unblock pulse answered with MsgError(EINTR)\n");
+        if (rcvid == g_saved_rcvid) {
+            g_saved_rcvid = -1;
+            g_saved_ocb = NULL;
+        } else {
+            g_slow_rcvid = -1;
+        }
+        return _RESMGR_NOREPLY;
+    }
+    return iofunc_unblock_default(ctp, msg, ocb);
+}
+
 static int on_client_pulse(message_context_t *ctp, int code, unsigned flags, void *handle) {
     (void)ctp, (void)code, (void)flags, (void)handle;
     log_event('P');
@@ -130,8 +186,9 @@ static int io_close_ocb(resmgr_context_t *ctp, void *reserved, RESMGR_OCB_T *ocb
     return iofunc_close_ocb_default(ctp, reserved, ocb);
 }
 
-int main(void) {
+int main(int argc, char **argv) {
     setvbuf(stdout, NULL, _IOLBF, 0);
+    g_handle_unblock = argc > 1 && strcmp(argv[1], "-u") == 0;
     dispatch_t *dpp = dispatch_create();
     if (dpp == NULL) {
         perror("dispatch_create");
@@ -146,6 +203,7 @@ int main(void) {
     iofuncs.devctl = io_devctl;
     iofuncs.read = io_read;
     iofuncs.close_ocb = io_close_ocb;
+    iofuncs.unblock = io_unblock;
     iofunc_attr_init(&attr, S_IFNAM | 0666, NULL, NULL);
 
     if (resmgr_attach(dpp, &rattr, S3_PATH, _FTYPE_ANY, 0, &cfuncs, &iofuncs, &attr) == -1) {
@@ -167,6 +225,18 @@ int main(void) {
         return 1;
     }
 
+    /* Timer pulse for the delayed ack. */
+    int slow_code = pulse_attach(dpp, MSG_FLAG_ALLOC_PULSE, 0, on_slow_timer, NULL);
+    if (slow_code == -1) {
+        perror("pulse_attach slow");
+        return 1;
+    }
+    SIGEV_PULSE_INIT(&ev, self, SIGEV_PULSE_PRIO_INHERIT, slow_code, 0);
+    if (timer_create(CLOCK_MONOTONIC, &ev, &g_slow_timer) == -1) {
+        perror("timer_create slow");
+        return 1;
+    }
+
     /* Pulses clients send on their resmgr connection (Q5). */
     if (pulse_attach(dpp, 0, S3_PULSE_CODE, on_client_pulse, NULL) == -1) {
         perror("pulse_attach client");
@@ -174,7 +244,8 @@ int main(void) {
     }
 
     dispatch_context_t *ctp = dispatch_context_alloc(dpp);
-    printf("s3_server: ready on %s\n", S3_PATH);
+    printf("s3_server: ready on %s (unblock handler %s)\n", S3_PATH,
+           g_handle_unblock ? "on" : "default");
     for (;;) {
         if ((ctp = dispatch_block(ctp)) == NULL) {
             perror("dispatch_block");

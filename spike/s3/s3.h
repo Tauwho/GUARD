@@ -32,6 +32,11 @@ struct s3_log {
 /* Q5: read and clear the event log. */
 #define DCMD_S3_LOG __DIOF(_DCMD_MISC, 0x54, struct s3_log)
 
+/* Delayed ack: server replies S3_SLOW_REPLY_MS later; client waits at most S3_SLOW_TIMEOUT_MS. */
+#define DCMD_S3_SLOWECHO __DIOTF(_DCMD_MISC, 0x55, struct s3_msg)
+#define S3_SLOW_REPLY_MS 10
+#define S3_SLOW_TIMEOUT_MS 5
+
 /* Q5: pulse code a client sends on its resmgr connection. */
 #define S3_PULSE_CODE (_PULSE_CODE_MINAVAIL + 2)
 /* Q2: a blocked read is replied to this long after it arrived. */

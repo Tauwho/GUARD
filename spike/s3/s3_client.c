@@ -4,6 +4,7 @@
  *   ./s3_client kill    Q3 OCB close after kill -9 of a blocked client
  *   ./s3_client pi      Q4 default mutex protocol and observed inheritance
  *   ./s3_client order   Q5 pulse vs devctl order on one dispatch channel
+ *   ./s3_client slow    delayed ack: 10 ms server reply vs 5 ms client TimerTimeout
  * Prints yes/no answers only, never timing numbers (AGENTS.md section 2). */
 #include <errno.h>
 #include <fcntl.h>
@@ -86,6 +87,19 @@ static int q3_kill(void) {
     printf("Q3 resmgr saw OCB close after kill -9: %s\n", seen ? "yes" : "no");
     printf("Q3 close seen within 100 ms of the kill: %s\n", within_100 ? "yes" : "no");
     return seen ? 0 : 1;
+}
+
+/* Delayed ack (DECISIONS.md S3 row): server replies after 10 ms, client allows 5 ms. */
+static int q_slow(void) {
+    int fd = open_dev();
+    struct s3_msg m = {1, 0};
+    uint64_t limit = (uint64_t)S3_SLOW_TIMEOUT_MS * 1000000u;
+    TimerTimeout(CLOCK_MONOTONIC, _NTO_TIMEOUT_SEND | _NTO_TIMEOUT_REPLY, NULL, &limit, NULL);
+    int rc = devctl(fd, DCMD_S3_SLOWECHO, &m, sizeof m, NULL);
+    printf("ACK client devctl result: %s\n", rc == EOK ? "EOK (got the late reply)" : strerror(rc));
+    printf("ACK client got ETIMEDOUT: %s\n", rc == ETIMEDOUT ? "yes" : "no");
+    sleep_ms(50); /* let the server try its late MsgReply */
+    return 0;
 }
 
 /* ---- Q4: mutex priority inheritance ---- */
@@ -223,6 +237,9 @@ int main(int argc, char **argv) {
     if (strcmp(mode, "order") == 0) {
         return q5_order();
     }
-    fprintf(stderr, "usage: %s echo|read|kill|pi|order\n", argv[0]);
+    if (strcmp(mode, "slow") == 0) {
+        return q_slow();
+    }
+    fprintf(stderr, "usage: %s echo|read|kill|pi|order|slow\n", argv[0]);
     return 2;
 }
