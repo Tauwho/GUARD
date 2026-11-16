@@ -4,6 +4,7 @@ import argparse
 import asyncio
 import json
 import math
+import runpy
 import sys
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -14,6 +15,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = Path(__file__).resolve().parent
+C8Validator = runpy.run_path(str(ROOT / "host/telemetry_validation.py"))["C8Validator"]
 
 
 def decode_event(line, validator):
@@ -40,9 +42,7 @@ def decode_event(line, validator):
 def load_events(path):
     if path.stat().st_size > 32 * 1024 * 1024:
         raise ValueError("replay exceeds the 32 MiB limit")
-    validator = jsonschema.Draft202012Validator(
-        json.loads((ROOT / "contracts/telemetry.schema.json").read_text())
-    )
+    validator = C8Validator(json.loads((ROOT / "contracts/telemetry.schema.json").read_text()))
     events = []
     for line in path.read_text(encoding="utf-8").splitlines():
         event = decode_event(line, validator)
@@ -178,9 +178,7 @@ async def bridge_line(reader):
 
 
 async def stream_bridge(connection, host, port):
-    validator = jsonschema.Draft202012Validator(
-        json.loads((ROOT / "contracts/telemetry.schema.json").read_text())
-    )
+    validator = C8Validator(json.loads((ROOT / "contracts/telemetry.schema.json").read_text()))
     reader, writer = await asyncio.wait_for(asyncio.open_connection(host, port, limit=65536), 5)
     try:
         while True:

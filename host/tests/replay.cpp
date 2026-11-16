@@ -21,6 +21,11 @@ int main() {
         }
         if (result.margin_measured || first.str().find("min_margin_m") != std::string::npos)
             throw std::runtime_error("empty world must not publish a synthetic margin");
+        std::ostringstream varied;
+        guard::host::replay(map, scenario, {}, 43, varied);
+        if (first.str().substr(first.str().find('\n') + 1) ==
+            varied.str().substr(varied.str().find('\n') + 1))
+            throw std::runtime_error("different seeds must change real trace bodies");
         map.goal = {38, 0, 0};
         scenario.duration = 20;
         scenario.fault_count = 1;

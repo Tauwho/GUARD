@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Regenerate the README's Evidence Map, Results and Quick start blocks.
+"""Regenerate the README's Evidence Map, Results, Quick start and Limits blocks.
 
 Sources, all on main:
   evidence/*/manifest.json          Evidence Map (target and host bundles)
   docs/results/host-linux.json      Results, from the newest Linux host-evaluation run
   host/, dashboard/, image/ READMEs Quick start commands
+  docs/limits.md                    Limits (negated bullets only)
 
 Usage:
   python tools/build_readme.py            rewrite the README from the sources
@@ -28,8 +29,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 README = ROOT / "README.md"
 RESULTS = ROOT / "docs/results/host-linux.json"
-BLOCKS = ("evidence-map", "results", "quickstart")
-PLANNED = {"results": "A4", "evidence-map": "B1", "quickstart": "A3"}
+BLOCKS = ("evidence-map", "results", "quickstart", "limits")
+PLANNED = {"results": "A4", "evidence-map": "B1", "quickstart": "A3", "limits": "P5"}
+LIMITS = ROOT / "docs/limits.md"
 
 
 def markers(name):
@@ -131,7 +133,51 @@ def quickstart():
     return "\n".join(parts).strip()
 
 
-RENDERERS = {"evidence-map": evidence_map, "results": results, "quickstart": quickstart}
+NEGATED_BULLET = re.compile(r"^- (No|Not|Never)\b")
+
+
+def limits_bullets(text):
+    """Bullets under `## Limits`, continuation lines folded in. Raises on a malformed list.
+
+    Every bullet must be a negation (`- No`, `- Not`, `- Never`): the generated block
+    carries a claims-ok marker, so an un-negated claim must not slip in under it.
+    """
+    pattern = r"^## Limits[ \t]*\n(.*?)(?=^## |\Z)"
+    match = re.search(pattern, text.lstrip("﻿"), re.S | re.M)
+    if not match:
+        raise SystemExit("build_readme: docs/limits.md has no '## Limits' section")
+    bullets = []
+    for line in match.group(1).splitlines():
+        if not line.strip() or line.strip() == "<!-- claims-ok: negated -->":
+            continue
+        if line.startswith("- "):
+            bullets.append(line.rstrip())
+        elif line.startswith((" ", "\t")) and bullets:
+            bullets[-1] += " " + line.strip()
+        else:
+            raise SystemExit(f"build_readme: docs/limits.md: not a '- ' bullet: {line!r}")
+    if not bullets:
+        raise SystemExit("build_readme: docs/limits.md: the Limits list is empty")
+    for bullet in bullets:
+        if not NEGATED_BULLET.match(bullet):
+            raise SystemExit(f"build_readme: docs/limits.md: bullet is not a negation: {bullet!r}")
+    return bullets
+
+
+def limits():
+    """The Limits list from docs/limits.md, with its claims-ok marker."""
+    if not LIMITS.exists():
+        return planned("limits")
+    bullets = limits_bullets(LIMITS.read_text(encoding="utf-8"))
+    return "\n".join(["<!-- claims-ok: negated -->", *bullets])
+
+
+RENDERERS = {
+    "evidence-map": evidence_map,
+    "results": results,
+    "quickstart": quickstart,
+    "limits": limits,
+}
 
 
 def render(text):
@@ -210,7 +256,7 @@ def main():
             return 1
         print("build_readme: PASS (README blocks match their sources on main)")
         return 0
-    README.write_text(expected, encoding="utf-8")
+    README.write_text(expected, encoding="utf-8", newline="\n")
     print("build_readme: README blocks regenerated")
     return 0
 

@@ -3,7 +3,7 @@
 Brief: [BRIEF-P.md](../docs/streams/BRIEF-P.md). Resume from this file after any restart. Live scope: `python tools/scope_gate.py --stream P`.
 
 ## Now
-- P0 and P1 closed; P2 (demo script, storyboard and command check) next.
+- P0, P1, P2 and P5 closed; P6 draft next, then P3 (10 Dec) and P4 (13 Dec).
 
 ## Done (with evidence: command + last lines, commit or run link)
 
@@ -80,13 +80,80 @@ RESULT: GREEN
 - `python tools/scope_gate.py --stream P` shows P1 DONE.
 - `--check` and `check_readme_links.py` never touch the network; only `--fetch`
   calls `gh`.
-- **Outstanding:** the nightly `fresh-clone-and-tag` job still needs a run on this
-  merge commit before P1's second half (fresh-clone nightly green) is evidenced.
+- Merged as #173 (`c9a79a0`). Nightly on that commit: run
+  [43883766653](https://github.com/Tauwho/GUARD/actions/runs/43883766653) success
+  (`make check` + `fresh_clone_demo.sh` + scope report); tag `green-20261116` now
+  points at `c9a79a0`. This also refreshes P0's fresh-clone-passing commit.
+
+### P2 — demo script, command check and storyboard (2026-11-16)
+
+- `demo/DEMO.md`: host setup, target setup (planned (B5)), then five timed steps:
+  1 F3 host replay B2 vs B1, 2 dashboard replay, 3 F6 refusal `REJ_MAP_VERSION`
+  (B2 vs B0, with `--map`), 4 the same F3 fault on target with `guardctl`
+  (planned (B5); output filtered to mode and latch cause), 5 README Results and
+  Limits. Slots end at 2:55.
+- `tools/check_demo_commands.py`: `--help` of every Python entry point plus each
+  `--flag` the demo uses, `bash -n` for shell scripts, `qnx/<name>/` sources for
+  target programs, CMake preset names; compound lines, `\` continuations, ssh
+  options and non-`sh` fences handled; a planned step fails once its SCOPE id is
+  DONE. Not a `make check` stage, and its pytest never runs real CLIs, so it cannot
+  fail A's or B's CI.
+- `docs/video/storyboard.md`, `shot-list.md`, `captions.md`: scenes mapped to DEMO
+  steps, narration, claims table with sources on `main`, shots, captions plan.
+  Supersedes the draft in #65.
+- Self-review in a fresh context: 2 blockers (QNX numbers from `guardctl status`
+  on screen; pytest running real CLIs) and 16 shoulds, all fixed or logged in
+  `docs/decisions/P.md`.
+
+Evidence:
+
+```
+$ python tools/check_demo_commands.py
+check_demo_commands: PASS (every ready command exists on main)
+$ python -m pytest tools/tests/test_check_demo_commands.py -q
+21 passed
+$ python tools/check.py --fast
+RESULT: GREEN
+$ python tools/scope_gate.py --stream P   ->   P2 ... DONE
+```
+
+### P5 — architecture diagram and Limits final (2026-11-16)
+
+- `docs/architecture.svg`: hand-written SVG (no generator, no QNX logo). Processes
+  on the target (planner, supervisor, gate, simulator, bridge, guardctl) with their
+  REF-PRIORITIES priorities and the C1-C8 contract arrows; dashboard and
+  guard-replay on the host. Embedded in README "How it works".
+- Limits: `docs/limits.md` is now the single source. README Limits is a generated
+  block (`gen:limits`), so `build_readme.py --check` fails on drift. The README had
+  drifted ("No timing guarantee" vs "No hard real-time guarantee"); the limits.md
+  wording wins. `docs/architecture.md` REF-CLAIMS points at limits.md instead of a
+  third copy.
+- `build_readme.py` writes LF on Windows (it wrote CRLF before).
+- Fresh-context review: 2 blockers (AI disclosure ignored the bootstrap commit and
+  implied human review; diagram showed unbuilt processes as if running) and 10
+  shoulds (priority labels, C4 direction, telemetry producers, CSS markers,
+  Limits parser strictness, README-current pytest breaking A/B CI). All fixed;
+  new `tools/check_architecture_svg.py` (6 tests), 13 build_readme tests.
+- README AI disclosure corrected: agents open and merge PRs under D12/D26; the old
+  text said a human merged every change.
+
+Evidence:
+
+```
+$ python tools/build_readme.py --check
+build_readme: PASS (README blocks match their sources on main)
+$ python -m pytest tools/tests/test_build_readme.py -q
+9 passed
+$ python tools/check_policy.py claims-lint
+claims-lint: PASS
+$ python tools/check.py --fast
+RESULT: GREEN
+$ python tools/scope_gate.py --stream P   ->   P5 ... DONE
+```
 
 ## Next
-- P2: `demo/DEMO.md`, `tools/check_demo_commands.py` (+ tests),
-  `docs/video/storyboard.md` with shot list and captions plan.
-- Then P5 (architecture SVG + Limits), P6, P3, P4.
+- P5 (architecture SVG + Limits), then P6, P3 (10 Dec), P4 (13 Dec).
+- Mon 7 Dec: if B5 is not DONE, switch DEMO step 4 to the host fallback by hand.
 
 ## Decisions
 - Logged in [docs/decisions/P.md](../docs/decisions/P.md).
