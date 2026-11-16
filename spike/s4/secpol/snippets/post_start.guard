@@ -1,0 +1,2 @@
+# Spike S4 (#34) secpol test: the server runs as its own type at boot.
+on -d -T s4srv_t /system/bin/s4_uid serve

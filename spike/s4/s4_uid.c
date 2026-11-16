@@ -70,10 +70,59 @@ static void child(uid_t uid, int mode) {
     _exit(ok ? 0 : 1);
 }
 
+/* serve: answer clients for up to 10 minutes (secpol test: run as its own type). */
+static int serve_main(void) {
+    name_attach_t *att = name_attach(NULL, S4_NAME, 0);
+    if (att == NULL) {
+        printf("serve: name_attach failed: %s\n", strerror(errno));
+        return 1;
+    }
+    printf("serve: attached %s\n", S4_NAME);
+    for (;;) {
+        union {
+            struct _pulse pulse;
+            struct _io_connect connect;
+            struct s4_req req;
+            uint16_t type;
+        } msg;
+        struct _msg_info info;
+        uint64_t limit_ns = 600000000000ull;
+        TimerTimeout(CLOCK_MONOTONIC, _NTO_TIMEOUT_RECEIVE, NULL, &limit_ns, NULL);
+        int rcvid = MsgReceive(att->chid, &msg, sizeof msg, &info);
+        if (rcvid == -1) {
+            break;
+        }
+        if (rcvid == 0) {
+            continue;
+        }
+        if (msg.type == _IO_CONNECT) {
+            MsgReply(rcvid, EOK, NULL, 0);
+            continue;
+        }
+        struct s4_rep rep = {0, 0};
+        struct _client_info ci;
+        if (msg.type == S4_MSG_TYPE && ConnectClientInfo(info.scoid, &ci, 0) != -1) {
+            rep.ruid = ci.cred.ruid;
+            rep.euid = ci.cred.euid;
+        }
+        MsgReply(rcvid, EOK, &rep, sizeof rep);
+    }
+    name_detach(att, 0);
+    return 0;
+}
+
 int main(int argc, char **argv) {
     setvbuf(stdout, NULL, _IOLBF, 0);
     if (argc > 1 && strcmp(argv[1], "client") == 0) {
         return client_main();
+    }
+    if (argc > 1 && strcmp(argv[1], "serve") == 0) {
+        return serve_main();
+    }
+    if (argc > 1 && strcmp(argv[1], "idle") == 0) {
+        /* secpol develop run: give a type a policy entry without connecting to s4uid. */
+        printf("idle: uid=%d\n", (int)getuid());
+        return 0;
     }
     if (getuid() != 0) {
         fprintf(stderr, "run as root (or use: s4_uid client)\n");

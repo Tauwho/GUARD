@@ -1,0 +1,2 @@
+# Spike S4 (#34) secpol test: s4_uid in /system. run_secpol.sh fills __S4_BIN__.
+[perms=555] bin/s4_uid=__S4_BIN__/s4_uid
