@@ -1,0 +1,13 @@
+{
+  "spike": "S8",
+  "commit": "1d7c171bcb335ab04517a5a3cf2ae4b18f5ac6eb",
+  "answer_lines": [
+    "S8 image built with --extra-dirs: yes",
+    "s8_hello started at boot: uid=0 euid=0",
+    "s8_hello started at boot: uid=1101 euid=1101",
+    "post_startup.sh errors: none",
+    "S8 binary added to /system via system_files.guard: yes",
+    "S8 started at boot via post_start.guard (STARTU_P, no secpol, runs as root): yes",
+    "S8 started at boot as uid 1101 via 'on -u': yes"
+  ]
+}

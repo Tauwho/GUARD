@@ -1,0 +1,12 @@
+Script started on 2026-11-16 01:51:19-05:00 [COMMAND="bash ~/guard-ev/s8/src/spike/s8/run.sh" <not executed on terminal>]
+S8 image built with --extra-dirs: yes
+QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+-r-xr-xr-x  1 root root 9336 2026-11-16 06:51 /system/bin/s8_hello
+s8_hello started at boot: uid=0 euid=0
+s8_hello started at boot: uid=1101 euid=1101
+post_startup.sh errors: none
+S8 binary added to /system via system_files.guard: yes
+S8 started at boot via post_start.guard (STARTU_P, no secpol, runs as root): yes
+S8 started at boot as uid 1101 via 'on -u': yes
+
+Script done on 2026-11-16 01:51:34-05:00 [COMMAND_EXIT_CODE="0"]
