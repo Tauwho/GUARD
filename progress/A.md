@@ -3,9 +3,9 @@
 Brief: `docs/streams/BRIEF-A.md`; frozen contracts-v1.2; D26/D27. Resume here.
 
 ## Now
-- A8 generated production-C++ properties: local acceptance complete, CI/merge pending.
-- Account phatdat220707 verified after user-requested pause/resume; no secrets exposed.
-- Continue useful independent host work; no QNX target needed by stream A.
+- A1-A8 executable host outputs complete. Latest follow-up: [PR #181](https://github.com/Tauwho/GUARD/pull/181); inspect its state before resuming.
+- Full local check GREEN; CI/merge evidence lives on PR #181. No more feature work without a concrete uncovered need.
+- Only A9 manual second-laptop evidence remains outside this machine; do not fabricate it.
 
 ## Done with executable evidence
 
@@ -52,7 +52,7 @@ A7: done b016a04 (#177), manual Linux evidence https://github.com/Tauwho/GUARD/a
 - Local copies: out/a7-linux-full/linux-matrix/results.json and linux-report/report.md.
 
 ## A8 acceptance
-A8: done 9458c26 (local executable acceptance; CI/merge pending)
+A8: done 6ac05ec (#179; actual C++ property CI https://github.com/Tauwho/GUARD/actions/runs/43890921100)
 - Hypothesis 6.170.15 + actual guard-core-probe: 5 tests, 100 generated examples per property + explicit regressions.
 - Valid wire bytes, nonfinite fields, arbitrary bytes, valid-header wrong lengths, ACK/refusal fencing, MOVING/expiry/braking/READY.
 - Found and fixed test-driver subnormal stod issue; finite strtod regression retained.
@@ -62,7 +62,7 @@ A8: done 9458c26 (local executable acceptance; CI/merge pending)
 - Dedicated stream-a CI pins backend, builds probe and explicitly requires -k hypothesis. Existing tests unchanged.
 
 ## Next
-- Finish A8 check/review/CI/merge, then improve independently reproducible host demo/live-burst viewing if valuable.
+- Verify final main CI and newest Linux artifact; then stop feature churn and retain the evidence. A9 needs a physical second laptop.
 
 ## Known limits
 - A4/A7 remain MANUAL in scope_gate by design: remote evidence linked above, never inferred from progress text.
@@ -70,3 +70,11 @@ A8: done 9458c26 (local executable acceptance; CI/merge pending)
 - Target evidence is B-owned. No QNX SDK/licences/weights or QNX performance numbers committed.
 - Host reports use simulation-only functional results. Operator recovery trials still unavailable.
 - No task-owned Ollama/advisor process left running; tests close their sockets/processes.
+
+
+## Live-view burst follow-up
+- Queue bounded live arrivals, coalesce rendering per frame, preserve pause/seek and flush on end.
+- `python -m pytest eval/tests/test_dashboard_relay.py -q`: 7 passed, including burst and newer-error ordering regression.
+- Headless: 1000 arrivals -> one redraw per frame; pending/history capped at 20000; paused view preserved.
+- self-review: 0 blocker, 0 should, 0 nit after connection-status ordering and UTF-8 fixes.
+- Full integrated `python tools/check.py`: RESULT: GREEN (out/d26-live-bursts-final.txt); no measured rendering-rate claim.
