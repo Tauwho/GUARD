@@ -173,7 +173,7 @@
     },
     "run_end": {
       "type": "object",
-      "description": "Last event of a run (v1.2). Counts cover the whole run. Functional results only (D11).",
+      "description": "Last event of a run (v1.2). Counts cover the whole run. Functional results only (D11). proposals/authorized/rejected/unverifiable count C1 proposals only, so they are 0 in B0 and B1 (no C1 traffic, messages.md 3.4); pass-through command and drop counts go in a status event, never here.",
       "required": ["final_state", "contacts", "zone_breaches", "proposals", "authorized", "rejected", "unverifiable", "latches"],
       "additionalProperties": false,
       "properties": {
