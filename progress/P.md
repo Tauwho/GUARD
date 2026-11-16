@@ -117,6 +117,35 @@ RESULT: GREEN
 $ python tools/scope_gate.py --stream P   ->   P2 ... DONE
 ```
 
+### P5 — architecture diagram and Limits final (2026-11-16)
+
+- `docs/architecture.svg`: hand-written SVG (no generator, no QNX logo). Processes
+  on the target (planner, supervisor, gate, simulator, bridge, guardctl) with their
+  REF-PRIORITIES priorities and the C1-C8 contract arrows; dashboard and
+  guard-replay on the host. Embedded in README "How it works".
+- Limits: `docs/limits.md` is now the single source. README Limits is a generated
+  block (`gen:limits`), so `build_readme.py --check` fails on drift. The README had
+  drifted ("No timing guarantee" vs "No hard real-time guarantee"); the limits.md
+  wording wins. `docs/architecture.md` REF-CLAIMS points at limits.md instead of a
+  third copy.
+- `build_readme.py` writes LF on Windows (it wrote CRLF before).
+- README AI disclosure corrected: agents open and merge PRs under D12/D26; the old
+  text said a human merged every change.
+
+Evidence:
+
+```
+$ python tools/build_readme.py --check
+build_readme: PASS (README blocks match their sources on main)
+$ python -m pytest tools/tests/test_build_readme.py -q
+9 passed
+$ python tools/check_policy.py claims-lint
+claims-lint: PASS
+$ python tools/check.py --fast
+RESULT: GREEN
+$ python tools/scope_gate.py --stream P   ->   P5 ... DONE
+```
+
 ## Next
 - P5 (architecture SVG + Limits), then P6, P3 (10 Dec), P4 (13 Dec).
 - Mon 7 Dec: if B5 is not DONE, switch DEMO step 4 to the host fallback by hand.

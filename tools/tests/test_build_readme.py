@@ -23,6 +23,10 @@ old results
 {readme.markers("evidence-map")[0]}
 old evidence
 {readme.markers("evidence-map")[1]}
+
+{readme.markers("limits")[0]}
+old limits
+{readme.markers("limits")[1]}
 """
 
 
@@ -69,3 +73,19 @@ def test_quickstart_commands_come_from_component_readmes():
 def test_checked_in_readme_is_current():
     current = readme.README.read_text(encoding="utf-8")
     assert readme.render(current) == current
+
+
+def test_limits_block_mirrors_limits_md_with_claims_marker():
+    out = readme.render(SKELETON)
+    assert "old limits" not in out
+    block = out.split(readme.markers("limits")[0])[1].split(readme.markers("limits")[1])[0]
+    lines = block.strip().splitlines()
+    assert lines[0] == "<!-- claims-ok: negated -->"
+    source = readme.LIMITS.read_text(encoding="utf-8")
+    assert lines[1:] and all(line in source for line in lines[1:])
+    assert all(line.startswith("- ") for line in lines[1:])
+
+
+def test_missing_limits_source_renders_planned(tmp_path, monkeypatch):
+    monkeypatch.setattr(readme, "LIMITS", tmp_path / "absent.md")
+    assert readme.limits() == readme.planned("limits")

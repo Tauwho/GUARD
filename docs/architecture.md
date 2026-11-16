@@ -341,13 +341,7 @@ All times SGT.
 
 **Marker rule:** the `<!-- claims-ok: negated -->` marker exempts everything from its line to the next Markdown heading. Use it only for negated statements, like the Limits list, and for this block.
 
-**Limits** (verbatim in README):
-- No certified functional safety. GUARD claims no compliance with ISO 13849, IEC 61508, ISO 3691-4 or IEC 62304, and no SIL or PL rating.
-- No real actuators, braking or vehicles. This is a simulation-only prototype.
-- No hard real-time guarantee on hardware. QEMU timing is not hardware timing.
-- No formal verification. Assurance comes from unit, scenario and property tests only.
-- No defence against a compromised kernel, supervisor or gate. Only the planner is treated as untrusted.
-- No QNX performance claims and no QNX-vs-Linux comparisons without BlackBerry's written approval.
+**Limits:** the list lives in [limits.md](limits.md); the README Limits block is generated from it (`tools/build_readme.py`).
 
 **Banned phrases** (unless negated and marked `<!-- claims-ok: negated -->`):
 - "is safe"

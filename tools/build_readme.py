@@ -28,8 +28,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 README = ROOT / "README.md"
 RESULTS = ROOT / "docs/results/host-linux.json"
-BLOCKS = ("evidence-map", "results", "quickstart")
-PLANNED = {"results": "A4", "evidence-map": "B1", "quickstart": "A3"}
+BLOCKS = ("evidence-map", "results", "quickstart", "limits")
+PLANNED = {"results": "A4", "evidence-map": "B1", "quickstart": "A3", "limits": "P5"}
+LIMITS = ROOT / "docs/limits.md"
 
 
 def markers(name):
@@ -131,7 +132,25 @@ def quickstart():
     return "\n".join(parts).strip()
 
 
-RENDERERS = {"evidence-map": evidence_map, "results": results, "quickstart": quickstart}
+def limits():
+    """The bullet list under `## Limits` in docs/limits.md, with its claims-ok marker."""
+    if not LIMITS.exists():
+        return planned("limits")
+    text = LIMITS.read_text(encoding="utf-8")
+    match = re.search(r"^## Limits\n(.*?)(?=^## |\Z)", text, re.S | re.M)
+    bullets = [line for line in (match.group(1) if match else "").splitlines()
+               if line.startswith("- ")]
+    if not bullets:
+        return planned("limits")
+    return "\n".join(["<!-- claims-ok: negated -->", *bullets])
+
+
+RENDERERS = {
+    "evidence-map": evidence_map,
+    "results": results,
+    "quickstart": quickstart,
+    "limits": limits,
+}
 
 
 def render(text):
@@ -210,7 +229,7 @@ def main():
             return 1
         print("build_readme: PASS (README blocks match their sources on main)")
         return 0
-    README.write_text(expected, encoding="utf-8")
+    README.write_text(expected, encoding="utf-8", newline="\n")
     print("build_readme: README blocks regenerated")
     return 0
 
