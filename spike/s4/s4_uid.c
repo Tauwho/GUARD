@@ -63,7 +63,8 @@ static void child(uid_t uid, int mode) {
                strerror(rc));
         _exit(1);
     }
-    int ok = mode == 0 ? (r == uid && e == uid) : (r == 0 && e == uid);
+    uint32_t want = (uint32_t)uid;
+    int ok = mode == 0 ? (r == want && e == want) : (r == 0 && e == want);
     printf("%-16s uid=%-5d server saw ruid=%-5u euid=%-5u %s\n", mode ? "seteuid" : "setuid",
            (int)uid, r, e, ok ? "match" : "MISMATCH");
     _exit(ok ? 0 : 1);
