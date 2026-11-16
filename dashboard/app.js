@@ -3,6 +3,7 @@ const $ = id => document.getElementById(id);
 const canvas = $("world"), ctx = canvas.getContext("2d");
 let events = [], metadata, cursor = 0, playing = false, previous = 0, lastDraw = 0;
 let state;
+let followLive=true;
 function reset() { state = {observation:null, mode:"LATCHED", epoch:0, decisions:0, rejected:0, reasons:[], path:[]}; }
 reset();
 function apply(event) {
@@ -21,7 +22,7 @@ function seek(time) {
   reset();
   for (const event of events) { if (event.t_ns > cursor) break; apply(event); }
   $("seek").value = cursor;
-  $("time").textContent = (cursor/1e9).toFixed(2)+" s";
+  $("time").textContent = ((cursor-(events[0]?.t_ns || 0))/1e9).toFixed(2)+" s";
   $("mode").textContent = state.mode;
   $("epoch").textContent = state.epoch || "—";
   $("velocity").textContent = state.observation ? state.observation.v_meas.toFixed(2)+" m/s" : "—";
@@ -55,11 +56,12 @@ function draw() {
     const [x,y]=point(o.x,o.y);ctx.strokeStyle="#8adccc";ctx.fillStyle="#47b7a64d";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,0.35*scale,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.cos(o.theta)*0.65*scale,y-Math.sin(o.theta)*0.65*scale);ctx.stroke();}
   const goal=point(map.goal.x,map.goal.y);ctx.strokeStyle="#91a5b1";ctx.strokeRect(goal[0]-6,goal[1]-6,12,12);
 }
-$("play").onclick=()=>{if(cursor>=Number($("seek").max))seek(0);playing=!playing;$("play").textContent=playing ? "Pause":"Play";};
-$("seek").oninput=event=>seek(Number(event.target.value));
+$("play").onclick=()=>{if(metadata?.live){followLive=!followLive;$("play").textContent=followLive ? "Pause":"Follow live";if(followLive)seek(events.at(-1)?.t_ns || 0);return;}if(cursor>=Number($("seek").max))seek(0);playing=!playing;$("play").textContent=playing ? "Pause":"Play";};
+$("seek").oninput=event=>{if(metadata?.live){followLive=false;$("play").textContent="Follow live";}seek(Number(event.target.value));};
 function frame(now){const dt=previous ? now-previous:0;previous=now;if(playing){cursor+=dt*1e6*Number($("speed").value);if(now-lastDraw>33){seek(cursor);lastDraw=now;if(cursor>=Number($("seek").max)){playing=false;$("play").textContent="Play";}}}requestAnimationFrame(frame);}
 async function start(){metadata=await (await fetch("/meta.json")).json();$("map-title").textContent=metadata.map.title;$("source").textContent=metadata.source;const socket=new WebSocket(`ws://${location.hostname}:${metadata.websocket_port}/events`);
-  socket.onmessage=event=>{const packet=JSON.parse(event.data);if(packet.type==="events")events.push(...packet.events);if(packet.type==="end"){events.sort((a,b)=>a.t_ns-b.t_ns);$("seek").max=events.at(-1)?.t_ns || 0;$("connection").textContent="Replay ready";seek(0);}};
+  socket.onmessage=event=>{const packet=JSON.parse(event.data);if(packet.type==="error")$("connection").textContent=packet.message;if(packet.type==="events"){events.push(...packet.events);if(metadata.live){events.sort((a,b)=>a.t_ns-b.t_ns);if(events.length>20000)events.splice(0,events.length-20000);$("seek").min=events[0]?.t_ns || 0;$("seek").max=events.at(-1)?.t_ns || 0;$("connection").textContent="Live · read-only";if(followLive)seek(Number($("seek").max));}}if(packet.type==="end"){events.sort((a,b)=>a.t_ns-b.t_ns);$("seek").max=events.at(-1)?.t_ns || 0;$("connection").textContent=metadata.live ? "Live feed ended":"Replay ready";if(!metadata.live)seek(events[0]?.t_ns || 0);}};
+  if(metadata.live){$("play").textContent="Pause";$("speed").disabled=true;}
   socket.onerror=()=>{$("connection").textContent="Relay unavailable";};
   requestAnimationFrame(frame);
 }

@@ -17,7 +17,12 @@ Shared scenario zone schedules are displayed when the trace identifies F0–F8 a
 the selected map matches. Geometry/schedules are supplied scenario metadata, not
 measurements inferred from the robot.
 
+Live input: `python dashboard/relay.py --bridge 127.0.0.1:7700`.
+Forward a target bridge to localhost first; the relay accepts only loopback sources.
+It only reads the bridge and sends no commands. Live history is bounded to 20,000
+events; pause/seek inspects that local buffer and Follow live returns to its end.
+
 Current view: map, zone schedules, observed obstacles, robot footprint/trajectory,
-gate mode/epoch, decision counts and reason journal. Live bridge input, lease bar,
+gate mode/epoch, decision counts and reason journal. Lease bar,
 recorded stopping arc and target-trace acceptance are still work in progress (#24).
 No target numeric evaluation or QNX timings should be published (ADR0011/D11).

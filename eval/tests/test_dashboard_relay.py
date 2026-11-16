@@ -1,3 +1,4 @@
+import asyncio
 import json
 import runpy
 import threading
@@ -43,3 +44,33 @@ def test_http_serves_only_static_allowlist_and_metadata():
     finally:
         server.shutdown()
         server.server_close()
+
+
+def test_live_bridge_is_receive_only_and_validates_records():
+    async def exercise():
+        received = []
+        upstream = []
+        event = {"v": 1, "t_ns": 123, "src": "gate", "seq": 1, "kind": "status", "payload": {}}
+
+        class Connection:
+            async def send(self, message):
+                received.append(json.loads(message))
+
+        async def bridge(reader, writer):
+            writer.write(json.dumps(event).encode() + b"\n")
+            await writer.drain()
+            try:
+                upstream.append(await asyncio.wait_for(reader.read(1), 0.1))
+            except asyncio.TimeoutError:
+                upstream.append(b"")
+            writer.close()
+            await writer.wait_closed()
+
+        async with await asyncio.start_server(bridge, "127.0.0.1", 0) as server:
+            await API["stream_bridge"](
+                Connection(), "127.0.0.1", server.sockets[0].getsockname()[1]
+            )
+        assert received == [{"type": "events", "events": [event]}, {"type": "end"}]
+        assert upstream == [b""]
+
+    asyncio.run(exercise())
