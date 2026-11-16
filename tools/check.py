@@ -25,6 +25,7 @@ def stages(fast):
     yield "policy", [PY, "tools/check_policy.py", "all"]
     yield "contract-compat", [PY, "tools/check_contract_compat.py", "--base", "contracts-v1.2"]
     yield "ownership", [PY, "tools/check_ownership.py", "--base", "origin/main", "--local"]
+    yield "doc-links", [PY, "tools/check_doc_links.py"]
     if not fast:
         if not shutil.which("cmake"):
             yield "host-build", None

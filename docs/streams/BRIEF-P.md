@@ -32,7 +32,7 @@ Evidence bundles (I9: `evidence/*/manifest.json`, `transcript.txt`), host evalua
 3. **Research** (README examples of strong hackathon entries, video structure, judging criteria) and note it in `progress/P.md` "Research".
 4. **Build** on `po/<id>-<slug>` from the newest green commit.
 5. **Verify:** `python tools/check.py` GREEN plus the milestone check.
-6. **Adversarial self-review** in a fresh context with §6, fix findings.
+6. **Adversarial self-review** in a fresh context with [SELF_REVIEW.md](SELF_REVIEW.md) plus §6, fix findings.
 7. **Merge yourself** when the required checks pass. Log in `progress/P.md`. Next.
 
 ## 6. Self-review checklist

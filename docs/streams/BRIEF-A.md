@@ -46,7 +46,7 @@ Check the live state any time with `python tools/scope_gate.py --stream A`. Afte
 4. **Plan** in 3-6 bullets at the top of `progress/A.md` under "Now".
 5. **Build** on a branch `a/<id>-<slug>` from the newest green commit (`main`, or the newest `green-*` tag if `main` is red).
 6. **Verify:** `python tools/check.py` must print `RESULT: GREEN`, plus the milestone's acceptance command.
-7. **Adversarial self-review:** run a fresh-context review (a sub-agent or a new session) over `git diff origin/main...HEAD` with the checklist in §6. Fix every finding of severity blocker or should; log nits you skip.
+7. **Adversarial self-review:** run a fresh-context review (a sub-agent or a new session) over `git diff origin/main...HEAD` with [SELF_REVIEW.md](SELF_REVIEW.md) plus the stream checklist in §6. Fix every finding of severity blocker or should; log nits you skip.
 8. **Merge yourself:** open the PR, wait for the required checks, squash-merge. Never merge red. Never touch files you do not own.
 9. **Log:** update `progress/A.md` (Done with evidence, Next, Known issues) and any decisions in `docs/decisions/A.md`; commit them with the work.
 10. **Next.**
