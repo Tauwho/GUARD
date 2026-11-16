@@ -32,6 +32,8 @@ def validate_trace(path, scenario, mode, seed=None):
         or sum(e["kind"] == "run_end" for e in events) != 1
     ):
         raise ValueError("trace contains multiple runs")
+    if len({e["run_id"] for e in events if "run_id" in e}) > 1:
+        raise ValueError("trace contains mixed run_id values")
     start = events[0]["payload"]
     if start["scenario"] != scenario["id"] or start["mode"] != mode:
         raise ValueError("trace scenario/mode differs from requested run")
@@ -103,8 +105,12 @@ class SshTarget:
             raise ValueError("forward the bridge to localhost:port")
         self.alias, self.bridge, self.output = alias, (host, int(port)), output
         self.commands = []
+        self.deadline = None
 
     def control(self, *arguments):
+        timeout = 10 if self.deadline is None else min(10, self.deadline - time.monotonic())
+        if timeout <= 0:
+            raise ValueError("target control deadline exceeded")
         self.commands.append(["guardctl", *arguments])
         result = subprocess.run(
             [
@@ -118,7 +124,7 @@ class SshTarget:
             ],
             capture_output=True,
             text=True,
-            timeout=10,
+            timeout=timeout,
         )
         if result.returncode:
             raise ValueError(f"guardctl exit {result.returncode}: {result.stderr.strip()[:500]}")
@@ -206,6 +212,8 @@ def run_case(
             worker.start()
         adapter.control("scenario", "start")
         started = time.monotonic()
+        if not local:
+            adapter.deadline = started + scenario["duration_s"] + 15
         for fault in faults:
             if not local and finished.wait(max(0, started + fault["t_s"] - time.monotonic())):
                 break
@@ -218,6 +226,8 @@ def run_case(
             raise ValueError("bridge capture failed: " + str(errors[0]))
     finally:
         try:
+            if not local:
+                adapter.deadline = None  # Cleanup has its own bounded command budget.
             if loaded:
                 adapter.control("scenario", "stop")
         finally:
