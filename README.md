@@ -72,7 +72,7 @@ in a fresh clone and is what the nightly job runs.
 <!-- gen:results -->
 ## Results
 
-Source: host (Linux) harness, commit `4f1a18d`, 1 repeat(s) per scenario/config, [run 43876818251](https://github.com/Tauwho/GUARD/actions/runs/43876818251). Simulation only; no QNX numbers.
+Source: host (Linux) harness, commit `6220b91`, 1 repeat(s) per scenario/config, [run 43907070270](https://github.com/Tauwho/GUARD/actions/runs/43907070270). Simulation only; no QNX numbers.
 
 | Scenario | Runs | B2 gate mismatches | Baseline (B0/B1) mismatches | Ablation differences |
 |---|---:|---:|---:|---:|

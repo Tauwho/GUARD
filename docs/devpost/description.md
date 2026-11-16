@@ -88,10 +88,12 @@ machines and are committed as text evidence bundles (`evidence/`).
 
 Numbers come only from the host (Linux) harness: F0-F8 under no supervisor (B0), a
 planner heartbeat (B1), GUARD (B2) and four GUARD ablations. In the snapshot in the
-README Results section (CI run 43876818251, commit 4f1a18d), GUARD's outcome matched
-its written hypothesis in every scenario (0 B2 mismatches). That is one repeat per
-scenario and configuration; the 50-seed matrix is still open (A7). Target runs are
-shown only as behaviour (reason codes, modes, logs; video planned, P4).
+README Results section (CI run 43907070270, commit 6220b91), GUARD's outcome matched
+its written hypothesis in every scenario (0 B2 mismatches), one repeat per scenario and
+configuration. A separate 50-seed host run (CI run 43887605751, 3,150 runs, linked in
+`progress/A.md`) also had 0 B2 mismatches. Seeds vary staff and planner timing within
+small bounds; the report says this alone does not establish statistical independence.
+Target runs are shown only as behaviour (reason codes, modes, logs; video planned, P4).
 
 ## Challenges
 
