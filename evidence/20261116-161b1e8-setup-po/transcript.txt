@@ -1,0 +1,45 @@
+$ uname -a
+QNX guard-po 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+$ /tmp/hello
+hello qnx
+$ pidin -f anp
+     pid name                                                                             prio 
+       1 /proc/boot/procnto-smp-instr                                                       0f 
+       1 /proc/boot/procnto-smp-instr                                                       0f 
+       1 /proc/boot/procnto-smp-instr                                                     255i 
+       1 /proc/boot/procnto-smp-instr                                                     255i 
+       1 /proc/boot/procnto-smp-instr                                                     254i 
+       1 /proc/boot/procnto-smp-instr                                                     254i 
+       1 /proc/boot/procnto-smp-instr                                                       1f 
+       1 /proc/boot/procnto-smp-instr                                                      10r 
+       1 /proc/boot/procnto-smp-instr                                                      10r 
+       1 /proc/boot/procnto-smp-instr                                                      10r 
+       1 /proc/boot/procnto-smp-instr                                                      10r 
+       1 /proc/boot/procnto-smp-instr                                                      10r 
+       1 /proc/boot/procnto-smp-instr                                                      10r 
+       1 /proc/boot/procnto-smp-instr                                                      10r 
+       1 /proc/boot/procnto-smp-instr                                                      21r 
+       1 /proc/boot/procnto-smp-instr                                                      10r 
+   16387 proc/boot/slogger2                                                                10r 
+   28676 proc/boot/pci-server                                                              21r 
+   28676 proc/boot/pci-server                                                              10r 
+   28676 proc/boot/pci-server                                                              10r 
+   28676 proc/boot/pci-server                                                              10r 
+   49157 proc/boot/devc-ser8250                                                            10r 
+   49157 proc/boot/devc-ser8250                                                           254i 
+   49157 proc/boot/devc-ser8250                                                           254i 
+   57351 proc/boot/ksh                                                                     10r 
+   61446 proc/boot/fsevmgr                                                                 10r 
+   61446 proc/boot/fsevmgr                                                                 10r 
+   61446 proc/boot/fsevmgr                                                                 10r 
+   61446 proc/boot/fsevmgr                                                                 10r 
+   65544 proc/boot/devb-eide                                                               10r 
+   65544 proc/boot/devb-eide                                                               21r 
+   65544 proc/boot/devb-eide                                                              254i 
+   65544 proc/boot/devb-eide                                                               21r 
+   65544 proc/boot/devb-eide                                                              254i 
+   65544 proc/boot/devb-eide                                                               21r 
+   65544 proc/boot/devb-eide                                                               10r 
+   65544 proc/boot/devb-eide                                                               10r 
+   65544 proc/boot/devb-eide                                                               10r 
+   65544 proc/boot/devb-eide                                                               10r 
