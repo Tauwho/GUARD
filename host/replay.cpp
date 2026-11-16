@@ -214,9 +214,21 @@ ReplayResult replay(const MapSpec &map, const ScenarioSpec &scenario, Config con
                             now + milliseconds(std::min(config.t_lease_ms, proposal.lease_req_ms));
                         const auto ack = gate.lease(lease, now);
                         accepted = ack.reason == 500;
-                        if (accepted)
+                        if (accepted) {
                             active = lease;
-                        else
+                            telemetry.begin(now, "lease");
+                            const auto *source = supervisor.latest();
+                            telemetry.out()
+                                << "\"lease_id\":" << lease.lease_id << ",\"epoch\":" << lease.epoch
+                                << ",\"issued_ns\":" << lease.issued_ns
+                                << ",\"expires_ns\":" << lease.expires_ns
+                                << ",\"v_cmd\":" << lease.v_cmd << ",\"w_cmd\":" << lease.w_cmd
+                                << ",\"d_req\":" << evaluation.required_distance;
+                            if (source)
+                                telemetry.out() << ",\"x\":" << source->x << ",\"y\":" << source->y
+                                                << ",\"theta\":" << source->theta;
+                            telemetry.end();
+                        } else
                             reason = ack.reason;
                     }
                     if (!accepted)
