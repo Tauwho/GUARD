@@ -1,0 +1,32 @@
+name: host-ci
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+concurrency:
+  group: host-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    name: build (${{ matrix.compiler }}, ${{ matrix.preset }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+        preset: [host-debug, host-asan]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select compiler
+        run: |
+          if [ "${{ matrix.compiler }}" = gcc ]; then
+            echo CXX=g++ >> "$GITHUB_ENV"
+          else
+            echo CXX=clang++ >> "$GITHUB_ENV"
+          fi
+      - run: cmake --preset ${{ matrix.preset }}
+      - run: cmake --build --preset ${{ matrix.preset }} --parallel 2
+      - run: ctest --preset ${{ matrix.preset }}
+        env:
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
