@@ -3,8 +3,8 @@
 Brief: `docs/streams/BRIEF-A.md`; frozen contracts-v1.2; D26/D27. Resume here.
 
 ## Now
-- A1-A8 executable host outputs complete; all merged except final live-view follow-up is being submitted.
-- Full local check GREEN; final CI/merge evidence will be linked below.
+- A1-A8 executable host outputs complete. Latest follow-up: [PR #181](https://github.com/Tauwho/GUARD/pull/181); inspect its state before resuming.
+- Full local check GREEN; CI/merge evidence lives on PR #181. No more feature work without a concrete uncovered need.
 - Only A9 manual second-laptop evidence remains outside this machine; do not fabricate it.
 
 ## Done with executable evidence
