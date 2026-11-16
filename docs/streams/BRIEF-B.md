@@ -42,7 +42,7 @@ Check the live state any time with `python tools/scope_gate.py --stream B`. Afte
 4. **Plan** in 3-6 bullets under "Now" in `progress/B.md`.
 5. **Build** on a branch `b/<id>-<slug>` from the newest green commit (`main`, or the newest `green-*` tag if `main` is red).
 6. **Verify on host:** `python tools/check.py` must print `RESULT: GREEN`. **Verify on target:** `bash image/target-check.sh <topic>`; the transcript must show the behaviour, and the bundle must pass `python tools/check_policy.py evidence`.
-7. **Adversarial self-review:** run a fresh-context review (a sub-agent or a new session) over `git diff origin/main...HEAD` and the new transcript, with the checklist in §6. Fix every blocker or should finding; log nits you skip.
+7. **Adversarial self-review:** run a fresh-context review (a sub-agent or a new session) over `git diff origin/main...HEAD` and the new transcript, with [SELF_REVIEW.md](SELF_REVIEW.md) plus the stream checklist in §6. Fix every blocker or should finding; log nits you skip.
 8. **Merge yourself:** PR, required checks green, squash-merge. A QNX-path PR is finished only with its evidence bundle in the same PR (D18).
 9. **Log:** update `progress/B.md` (Done with evidence, Next, Known issues) and decisions in `docs/decisions/B.md`; commit with the work.
 10. **Next.**
