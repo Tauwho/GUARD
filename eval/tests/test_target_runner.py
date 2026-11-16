@@ -121,12 +121,33 @@ def test_fault_duration_comes_from_c11_top_level():
 
 @pytest.mark.parametrize("change", ["seed", "run_id", "duplicate"])
 def test_trace_rejects_wrong_trial_and_mixed_runs(tmp_path, change):
-    start = {"v": 1, "src": "harness", "seq": 0, "t_ns": 0, "kind": "run_start",
-             "run_id": "one", "payload": {"scenario": "F0", "mode": "B2", "seed": 1}}
-    end = {"v": 1, "src": "harness", "seq": 1, "t_ns": 1, "kind": "run_end",
-           "run_id": "one", "payload": {"final_state": "GOAL", "contacts": 0,
-           "zone_breaches": 0, "proposals": 0, "authorized": 0, "rejected": 0,
-           "unverifiable": 0, "latches": 0}}
+    start = {
+        "v": 1,
+        "src": "harness",
+        "seq": 0,
+        "t_ns": 0,
+        "kind": "run_start",
+        "run_id": "one",
+        "payload": {"scenario": "F0", "mode": "B2", "seed": 1},
+    }
+    end = {
+        "v": 1,
+        "src": "harness",
+        "seq": 1,
+        "t_ns": 1,
+        "kind": "run_end",
+        "run_id": "one",
+        "payload": {
+            "final_state": "GOAL",
+            "contacts": 0,
+            "zone_breaches": 0,
+            "proposals": 0,
+            "authorized": 0,
+            "rejected": 0,
+            "unverifiable": 0,
+            "latches": 0,
+        },
+    }
     events = [start, end]
     if change == "seed":
         start["payload"]["seed"] = 2
