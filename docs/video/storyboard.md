@@ -58,12 +58,12 @@ Every claim the video makes, with the README section that backs it (README draft
 | C5 | The gate stops the robot with its own kernel timer, even if the supervisor has died | Intro; How it works, step 4 |
 | C6 | A stale map is rejected; a heartbeat-only baseline does not catch it | The problem; Results (TBD) |
 | C7 | An old-epoch lease is refused | How it works, step 3 |
-| C8 | Starving the checks can only stop motion, never extend it | How it works, step 4 (to add a line in v2 if needed) |
-| C9 | Shorter leases allow more speed near hazards | How it works, step 3 (to add a line in v2 if needed) |
+| C8 | Starving the checks can only stop motion, never extend it | How it works, paragraph after step 5 |
+| C9 | Shorter leases allow more speed near hazards | How it works, step 3 |
 | C10 | Results come from the host (Linux) harness | Results |
 | C11 | Simulation-only research prototype, not for real robots or patients | Intro; Limits |
 
-C8 and C9 are flagged: the README draft implies them but does not state them in one sentence. Add the sentences to the README in v2, or cut the lines here.
+C8 and C9 are now backed by README lines (#64, HO4-11), from `docs/architecture.md` (stopping distance; planner-path starvation rule).
 
 ## 4. Shot list and capture checklist (Fri 11 Dec, tag `v1.0-rc1`)
 
