@@ -3,7 +3,7 @@
 import runpy
 from pathlib import Path
 
-API = runpy.run_path(str(Path(__file__).parents[1] / "guard-replay"))
+API = runpy.run_path(str(Path(__file__).parents[2] / "host" / "guard-replay"))
 
 
 def test_required_and_forbidden_reasons_are_enforced():
@@ -41,3 +41,29 @@ def test_summary_counts_latches_and_uses_fault_to_stopping_interval():
     assert summary["latches"] == 1
     assert summary["stop_time_s"] == 1e-8
     assert summary["false_reject_rate"] == 0.1
+
+
+def test_canonical_run_end_uses_authoritative_counts_and_legacy_report_aliases():
+    events = [
+        {"t_ns": 1_000_000_000, "kind": "run_start", "payload": {}},
+        {
+            "t_ns": 3_000_000_000,
+            "kind": "run_end",
+            "payload": {
+                "final_state": "GOAL",
+                "contacts": 0,
+                "zone_breaches": 0,
+                "proposals": 10,
+                "authorized": 7,
+                "rejected": 1,
+                "unverifiable": 2,
+                "latches": 2,
+                "min_margin_m": 0.5,
+            },
+        },
+    ]
+    result = API["summarize"](events)
+    assert result["latches"] == 2
+    assert result["minimum_margin_m"] == 0.5
+    assert result["time_to_goal_s"] == 2
+    assert result["false_reject_rate"] == 0.3
