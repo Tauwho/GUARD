@@ -47,18 +47,18 @@ Every row links to the code and to target evidence once it exists.
 
 | Feature | Where in code | Evidence |
 |---|---|---|
-| `MsgSend` / `MsgReceive` / `MsgReply` | `qnx/supervisor`, `qnx/planner` | planned (#45) |
-| Pulses + `timer_create` | `qnx/gate` | planned (#45) |
-| `TimerTimeout` on every blocking call | `qnx/common/ipc` | planned (#45) |
-| Resource manager `/dev/guard/*` | `qnx/gate` | planned (#45) |
-| Resource manager `/dev/sim/*` with delayed reply | `qnx/sim` | planned (#45) |
-| Priority map + priority inheritance (ADR-0006) | `qnx/common/sched` | planned (#45) |
+| `MsgSend` / `MsgReceive` / `MsgReply` | `qnx/common/src/ipc.cpp` (processes: `qnx/supervisor`, `qnx/planner`, planned) | library on target: [bundle](evidence/20261116-7bdd68b-qnx-common/) |
+| Pulses + `timer_create` | `qnx/common/src/timer.cpp` (process: `qnx/gate`, planned) | library on target: [bundle](evidence/20261116-667ec80-qnx-common-timer/) |
+| `TimerTimeout` on every blocking call | `qnx/common/src/ipc.cpp` | library on target: [bundle](evidence/20261116-7bdd68b-qnx-common/) |
+| Resource manager `/dev/guard/*` | `qnx/common/src/resmgr.cpp` (process: `qnx/gate`, planned) | library on target: [bundle](evidence/20261116-0da47f6-qnx-common-resmgr/) |
+| Resource manager `/dev/sim/*` with delayed reply | `qnx/common/src/resmgr.cpp` (process: `qnx/sim`, planned) | library on target: [bundle](evidence/20261116-0da47f6-qnx-common-resmgr/) |
+| Priority map + priority inheritance (ADR-0006) | `qnx/common/src/sched.cpp` | planned (#45) |
 | Process isolation | target transcript | planned (#45) |
-| Client credential authorization | `qnx/common/authz` | planned (#45) |
-| `procmgr_ability` lock | `qnx/common/abilities` | planned (#45) |
+| Client credential authorization | `qnx/common/src/priv.cpp` (`require_euid`) | library on target: [bundle](evidence/20261116-f6dc640-qnx-common-priv/) |
+| `procmgr_ability` lock | `qnx/common/src/priv.cpp` (`drop_and_lock`) | library on target: [bundle](evidence/20261116-f6dc640-qnx-common-priv/) |
 | `slog2` logging | `qnx/common/log` | planned (#45) |
 | Shared-memory telemetry rings | `qnx/common/ring` | planned (#45) |
-| `mkqnximage` image | `image/` | planned (#45) |
+| `mkqnximage` image | `image/` | image layout on target: [bundle](evidence/20261116-6913b85-image-layout/) (GUARD processes not in the image yet) |
 | Portable core tests run on the QNX target | `core/tests`, `cmake/qnx-x86_64.cmake` | [evidence/20261116-161b1e8-core-on-target](evidence/20261116-161b1e8-core-on-target/) |
 
 ## Quick start
@@ -79,8 +79,12 @@ python dashboard/relay.py --replay run.jsonl                # planned (#24)
 ```sh
 source ~/qnx800/qnxsdp-env.sh                               # your own SDP install
 cmake --preset qnx-x86_64 && cmake --build --preset qnx-x86_64   # core tests for the target (#31)
-image/run-demo.sh                                           # planned (#43)
+image/run-demo.sh                 # user-mode networking, ssh on 127.0.0.1:2222, no sudo
+image/run-demo.sh --test          # adds guard-hog (fault F2)
+image/run-demo.sh --stop
 ```
+
+The image boots with the GUARD processes skipped until #38-#42 land ([image/README.md](image/README.md), #43).
 
 Setup steps: [docs/setup.md](docs/setup.md).
 
