@@ -58,7 +58,7 @@ Questions Q1–Q8 are in issue PO-1.
 |---|---|---|---|---|---|
 | S1 | QSTI boot + `qcc` hello on each host | all | 18 Nov | — | — |
 | S2 | CMake QNX toolchain + core tests on target | B | 19 Nov | — | — |
-| S3 | resmgr delayed reply, OCB close on death, mutex priority inheritance | B | 21 Nov | — | — |
+| S3 | resmgr delayed reply, OCB close on death, mutex priority inheritance; delayed `LeaseAck` (gate waits 10 ms before `MsgReply`, supervisor `TimerTimeout` 5 ms: expect `ETIMEDOUT`, `MsgReply` fails with `ESRCH`, lease not installed, `GATE_ACK_UNDELIVERED`) | B | 21 Nov | — | — |
 | S4 | secpol denial errno; abilities across `setuid` | B | 22 Nov | — | — |
 | S5 | Instrumented `procnto` for tracelogger | B | 7 Dec | — | — |
 | S6 | Host ↔ target TCP 7700 | B | 19 Nov | — | — |

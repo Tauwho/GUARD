@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Tauwho/GUARD/contracts/scenario.schema.json",
+  "title": "GUARD scenario and map files (C11)",
+  "description": "YAML files under scenarios/. kind=scenario for F0..F8, kind=map for scenarios/maps/*.yaml. Units: metres, seconds, radians. Map frame origin is the map's lower-left corner.",
+  "oneOf": [
+    {"$ref": "#/$defs/scenario"},
+    {"$ref": "#/$defs/map"}
+  ],
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}$"},
+    "point": {
+      "type": "array", "prefixItems": [{"type": "number", "minimum": -100, "maximum": 100}, {"type": "number", "minimum": -100, "maximum": 100}],
+      "minItems": 2, "maxItems": 2, "description": "[x, y] in metres"
+    },
+    "pose": {
+      "type": "object", "required": ["x", "y", "theta"], "additionalProperties": false,
+      "properties": {
+        "x": {"type": "number", "minimum": -100, "maximum": 100},
+        "y": {"type": "number", "minimum": -100, "maximum": 100},
+        "theta": {"type": "number", "minimum": -3.1416, "maximum": 3.1416}
+      }
+    },
+    "rect": {
+      "type": "object", "required": ["min", "max"], "additionalProperties": false,
+      "properties": {"min": {"$ref": "#/$defs/point"}, "max": {"$ref": "#/$defs/point"}},
+      "description": "Axis-aligned rectangle"
+    },
+    "window": {
+      "type": "object", "required": ["from_s"], "additionalProperties": false,
+      "properties": {
+        "from_s": {"type": "number", "minimum": 0},
+        "to_s": {"type": ["number", "null"], "minimum": 0, "description": "null = until the end of the run"}
+      }
+    },
+    "zone": {
+      "type": "object", "required": ["id", "kind", "rect", "active"], "additionalProperties": false,
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "kind": {"enum": ["restricted", "slow", "info"], "description": "Only restricted zones are enforced by checker 10 in v1"},
+        "rect": {"$ref": "#/$defs/rect"},
+        "active": {
+          "description": "Activation schedule. Each change of state increments map_version.",
+          "oneOf": [
+            {"type": "boolean"},
+            {"type": "array", "items": {"$ref": "#/$defs/window"}, "minItems": 1, "maxItems": 8}
+          ]
+        },
+        "note": {"type": "string", "maxLength": 200}
+      }
+    },
+    "crossing": {
+      "type": "object", "required": ["id", "from", "to", "speed"], "additionalProperties": false,
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "from": {"$ref": "#/$defs/point"},
+        "to": {"$ref": "#/$defs/point"},
+        "speed": {"type": "number", "minimum": 0.1, "maximum": 2.0, "description": "m/s, walking staff"},
+        "radius": {"type": "number", "minimum": 0.05, "maximum": 2.0, "default": 0.3}
+      }
+    },
+    "map": {
+      "type": "object",
+      "required": ["kind", "version", "id", "size", "walls", "zones", "start", "goal"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"const": "map"},
+        "version": {"const": 1},
+        "id": {"$ref": "#/$defs/id"},
+        "title": {"type": "string", "maxLength": 120},
+        "size": {"$ref": "#/$defs/point", "description": "[width, height] in metres"},
+        "walls": {"type": "array", "items": {"$ref": "#/$defs/rect"}, "maxItems": 64},
+        "zones": {"type": "array", "items": {"$ref": "#/$defs/zone"}, "maxItems": 32},
+        "start": {"$ref": "#/$defs/pose"},
+        "goal": {"$ref": "#/$defs/pose"},
+        "waypoints": {"type": "array", "items": {"$ref": "#/$defs/point"}, "maxItems": 16},
+        "crossings": {"type": "array", "items": {"$ref": "#/$defs/crossing"}, "maxItems": 16},
+        "landmarks": {
+          "type": "object", "additionalProperties": {"$ref": "#/$defs/point"},
+          "description": "Named points for narration, e.g. ward_a, lab, mri_door"
+        }
+      }
+    },
+    "obstacle_event": {
+      "type": "object", "required": ["t_s", "id", "action"], "additionalProperties": false,
+      "properties": {
+        "t_s": {"type": "number", "minimum": 0},
+        "id": {"$ref": "#/$defs/id"},
+        "action": {"enum": ["spawn", "despawn", "start_crossing", "stop"]},
+        "at": {"$ref": "#/$defs/point"},
+        "r": {"type": "number", "minimum": 0.05, "maximum": 2.0},
+        "crossing": {"$ref": "#/$defs/id", "description": "Map crossing id, for start_crossing"}
+      }
+    },
+    "zone_event": {
+      "type": "object", "required": ["t_s", "zone", "active"], "additionalProperties": false,
+      "properties": {
+        "t_s": {"type": "number", "minimum": 0},
+        "zone": {"$ref": "#/$defs/id"},
+        "active": {"type": "boolean"}
+      }
+    },
+    "fault_event": {
+      "type": "object", "required": ["t_s", "fault"], "additionalProperties": false,
+      "properties": {
+        "t_s": {"type": "number", "minimum": 0},
+        "fault": {"enum": ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"]},
+        "duration_ms": {"type": "integer", "minimum": 0, "maximum": 60000},
+        "params": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "lag_ms": {"type": "integer", "minimum": 0, "maximum": 5000},
+            "hog_prio": {"type": "integer", "minimum": 1, "maximum": 63},
+            "signal": {"enum": ["SIGKILL", "SIGSTOP"]},
+            "resume_after_ms": {"type": "integer", "minimum": 0, "maximum": 60000},
+            "rate_hz": {"type": "integer", "minimum": 1, "maximum": 5000},
+            "v_cmd": {"type": "number", "minimum": -1.5, "maximum": 1.5},
+            "feed": {"enum": ["supervisor", "planner"]}
+          }
+        }
+      }
+    },
+    "outcome": {
+      "type": "object", "required": ["violations", "final_state"], "additionalProperties": false,
+      "properties": {
+        "violations": {
+          "description": "Expected violation episodes (SIM_ZONE_BREACH + SIM_CONTACT). Integer = exact; object = bound.",
+          "oneOf": [
+            {"type": "integer", "minimum": 0},
+            {"type": "object", "additionalProperties": false, "properties": {"min": {"type": "integer", "minimum": 0}, "max": {"type": "integer", "minimum": 0}}}
+          ]
+        },
+        "final_state": {"enum": ["INIT", "LATCHED", "READY", "MOVING", "STOPPING", "STOPPED", "GOAL"], "description": "GOAL = reached the goal and stopped"},
+        "latches": {"type": "integer", "minimum": 0},
+        "required_reasons": {"type": "array", "items": {"type": "string", "pattern": "^(OK|REJ|UNV|REVOKE|GATE|SIM)_[A-Z_]+$"}, "uniqueItems": true},
+        "forbidden_reasons": {"type": "array", "items": {"type": "string", "pattern": "^(OK|REJ|UNV|REVOKE|GATE|SIM)_[A-Z_]+$"}, "uniqueItems": true},
+        "max_false_reject_rate": {"type": "number", "minimum": 0, "maximum": 1},
+        "max_stop_time_s": {"type": "number", "minimum": 0, "description": "Fault onset to STOPPING, sim time"},
+        "note": {"type": "string", "maxLength": 300}
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "required": ["kind", "version", "id", "title", "map", "seed", "duration_s", "planner", "target_semantics", "obstacles", "zones", "faults", "expected"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"const": "scenario"},
+        "version": {"const": 1},
+        "id": {"enum": ["F0", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"]},
+        "title": {"type": "string", "maxLength": 120},
+        "description": {"type": "string", "maxLength": 1000},
+        "map": {"$ref": "#/$defs/id", "description": "Map id from scenarios/maps/<id>.yaml"},
+        "seed": {"type": "integer", "minimum": 0, "description": "Base seed; eval adds the seed index"},
+        "duration_s": {"type": "number", "minimum": 1, "maximum": 600},
+        "planner": {
+          "type": "object", "required": ["mode"], "additionalProperties": false,
+          "properties": {
+            "mode": {"enum": ["rule", "aggressive", "shortcut"]},
+            "cruise_v": {"type": "number", "minimum": 0, "maximum": 1.5},
+            "lease_req_ms": {"type": "integer", "minimum": 50, "maximum": 1000},
+            "rate_hz": {"type": "integer", "minimum": 1, "maximum": 50}
+          }
+        },
+        "target_semantics": {"enum": ["model", "process"], "description": "process = fault acts on real QNX processes on the target; the host harness models it"},
+        "host_abstraction": {"type": "string", "maxLength": 500, "description": "Required when target_semantics=process"},
+        "obstacles": {"type": "array", "items": {"$ref": "#/$defs/obstacle_event"}, "maxItems": 64},
+        "zones": {"type": "array", "items": {"$ref": "#/$defs/zone_event"}, "maxItems": 32},
+        "faults": {"type": "array", "items": {"$ref": "#/$defs/fault_event"}, "maxItems": 16},
+        "expected": {
+          "type": "object", "required": ["B0", "B1", "B2"], "additionalProperties": false,
+          "description": "Hypotheses. eval reports actual outcomes.",
+          "properties": {"B0": {"$ref": "#/$defs/outcome"}, "B1": {"$ref": "#/$defs/outcome"}, "B2": {"$ref": "#/$defs/outcome"}}
+        }
+      },
+      "if": {"properties": {"target_semantics": {"const": "process"}}},
+      "then": {"required": ["host_abstraction"]}
+    }
+  }
+}

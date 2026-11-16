@@ -1,0 +1,12 @@
+{
+  "message": "recover_request",
+  "type": "0x0020",
+  "size": 16,
+  "valid": false,
+  "expect_error": "EMSGSIZE",
+  "why": "size field says 24, fixed size is 16",
+  "fields": {
+    "request_id": 1
+  },
+  "hex": "47442000010018000100000000000000"
+}
