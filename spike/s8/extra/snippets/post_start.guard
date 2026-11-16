@@ -1,0 +1,6 @@
+# Spike S8 (#35): commands run at the end of system startup (post_startup.sh).
+# STARTU_P adds "on -T <type> -u <uid>:<uid>" only when --secpol is not "no"; without secpol the
+# process starts as root (GUARD processes drop privileges themselves, docs/architecture.md).
+STARTU_P(s8_t,1101) /system/bin/s8_hello /data/var/tmp/s8_hello.txt
+# Explicit uid without secpol:
+on -u 1101:1101 /system/bin/s8_hello /data/var/tmp/s8_hello_uid.txt
