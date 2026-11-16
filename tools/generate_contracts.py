@@ -85,6 +85,45 @@ def generate(contracts, output):
             ]
         tests += ["}"]
     (output / "contracts_fixtures.cpp").write_text("\n".join(tests) + "\n")
+    loader_tests = [
+        "// Generated from shared YAML and JSON fixtures. No runtime file reads.",
+        '#include "guard/scenario.hpp"',
+        '#include "guard/config.hpp"',
+        "#include <doctest/doctest.h>",
+    ]
+    for path in sorted((contracts / "fixtures/schemas").glob("config.*.json")):
+        data = json.loads(path.read_text())
+        expected = "true" if path.name.endswith(".valid.json") else "false"
+        loader_tests += [
+            f'TEST_CASE("loader {path.name}") {{',
+            "    guard::Config config;",
+            f"    CHECK(guard::load_config({json.dumps(json.dumps(data))}, config) == {expected});",
+            "}",
+        ]
+    scenario_root = contracts.parent / "scenarios"
+    for path in sorted((scenario_root / "maps").glob("*.yaml")):
+        data = yaml.safe_load(path.read_text())
+        loader_tests += [
+            f'TEST_CASE("loader map {path.name}") {{',
+            "    guard::MapSpec map;",
+            f"    REQUIRE(guard::load_map({json.dumps(json.dumps(data))}, map));",
+            f'    CHECK(guard::name_view(map.id) == "{data["id"]}");',
+            "}",
+        ]
+    for path in sorted(scenario_root.glob("F*.yaml")):
+        data = yaml.safe_load(path.read_text())
+        map_data = yaml.safe_load((scenario_root / "maps" / f"{data['map']}.yaml").read_text())
+        loader_tests += [
+            f'TEST_CASE("loader scenario {path.name}") {{',
+            "    guard::MapSpec map;",
+            "    guard::ScenarioSpec scenario;",
+            f"    REQUIRE(guard::load_map({json.dumps(json.dumps(map_data))}, map));",
+            f"    REQUIRE(guard::load_scenario({json.dumps(json.dumps(data))}, map, scenario));",
+            f"    CHECK(scenario.id == {int(data['id'][1])});",
+            f"    CHECK(scenario.seed == {data['seed']}ULL);",
+            "}",
+        ]
+    (output / "loaders_fixtures.cpp").write_text("\n".join(loader_tests) + "\n")
 
 
 if __name__ == "__main__":

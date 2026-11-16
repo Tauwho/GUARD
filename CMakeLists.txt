@@ -4,11 +4,14 @@ project(GUARD VERSION 0.1.0 LANGUAGES CXX)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 set(GUARD_GENERATED "${PROJECT_BINARY_DIR}/generated/guard")
 file(GLOB GUARD_FIXTURES CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/contracts/fixtures/messages/*.json")
+file(GLOB_RECURSE GUARD_LOADER_FIXTURES CONFIGURE_DEPENDS
+     "${PROJECT_SOURCE_DIR}/scenarios/*.yaml" "${PROJECT_SOURCE_DIR}/contracts/fixtures/schemas/config.*.json")
 add_custom_command(
   OUTPUT "${GUARD_GENERATED}/reason_codes.hpp" "${GUARD_GENERATED}/contracts_fixtures.cpp"
+         "${GUARD_GENERATED}/loaders_fixtures.cpp"
   COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tools/generate_contracts.py"
           "${PROJECT_SOURCE_DIR}/contracts" "${GUARD_GENERATED}"
-  DEPENDS tools/generate_contracts.py contracts/reason_codes.yaml ${GUARD_FIXTURES})
+  DEPENDS tools/generate_contracts.py contracts/reason_codes.yaml ${GUARD_FIXTURES} ${GUARD_LOADER_FIXTURES})
 add_library(guard_core STATIC core/src/codec/validation.cpp core/src/config/config.cpp core/src/config/loader.cpp
                core/src/plant/geometry.cpp core/src/plant/plant.cpp core/src/fsm/gate_fsm.cpp
                core/src/safety/stopping.cpp core/src/safety/supervisor.cpp core/src/safety/recheck.cpp
@@ -43,7 +46,7 @@ if(BUILD_TESTING)
                  core/tests/plant_geometry.cpp core/tests/plant_dynamics.cpp core/tests/gate_fsm_rows.cpp
                  core/tests/gate_fsm_integration.cpp core/tests/supervisor_checks.cpp
                  core/tests/supervisor_recheck.cpp core/tests/contracts_config.cpp core/tests/contracts_scenario.cpp
-                 "${GUARD_GENERATED}/contracts_fixtures.cpp")
+                 "${GUARD_GENERATED}/contracts_fixtures.cpp" "${GUARD_GENERATED}/loaders_fixtures.cpp")
   target_link_libraries(guard_core_tests PRIVATE guard_core doctest::doctest)
   add_test(NAME guard_core_smoke COMMAND guard_core_tests)
 endif()
