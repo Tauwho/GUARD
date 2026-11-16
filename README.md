@@ -33,9 +33,11 @@ flowchart LR
 
 1. The planner proposes a speed and turn rate, and says which observation it used.
 2. The supervisor runs all 11 checkers against its **own** observation history: provenance and freshness, map version, sensor health, speed envelope, restricted zones and stopping distance.
-3. If every check passes, the supervisor sends the gate a lease that expires after `T_lease` (default 250 ms). The gate accepts it only if the epoch and sequence number are current.
+3. If every check passes, the supervisor sends the gate a lease that expires after `T_lease` (default 250 ms). The gate accepts it only if the epoch and sequence number are current. The stopping-distance check counts the whole lease time as reaction time, so a shorter lease means a shorter required distance and allows more speed near hazards.
 4. The gate sends a motor command every tick. When the lease expires, is revoked or comes from an old epoch, the gate brings the robot to a stop and, for some causes, latches until an operator recovers it.
 5. If the gate itself dies, the simulated drive brakes after its own watchdog timeout.
+
+Starving the planner path, for example with a busy process above the supervisor, can only let leases lapse, which stops the robot. It never extends motion.
 
 Details: [docs/architecture.md](docs/architecture.md), contracts in [contracts/](contracts/), decisions in [DECISIONS.md](DECISIONS.md).
 
@@ -123,6 +125,8 @@ Three people build this project with AI coding assistants. Assistants drafted do
 - [AGENTS.md](AGENTS.md): rules for humans and AI agents
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 - [DECISIONS.md](DECISIONS.md)
+
+CI runs on the host only. QNX runs happen on our own machines, and their results are committed as text evidence bundles in `evidence/`.
 
 ## Licence
 
