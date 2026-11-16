@@ -1,70 +1,72 @@
 # Stream A progress
 
-Brief: `docs/streams/BRIEF-A.md`. Resume from this file after any restart. Live scope: `python tools/scope_gate.py --stream A`.
+Brief: `docs/streams/BRIEF-A.md`; frozen contracts-v1.2; D26/D27. Resume here.
 
 ## Now
-- Resumed at user request on 2026-11-16; GitHub identity/access verified as phatdat220707.
-- A5 PR #163 merged 82ba25a, host-ci/governance/stream-a GREEN.
-- A6: recorded mode default, --trace compatibility, exact timeout fallback; full checks and self-review underway.
-- Next: A7 real seed variation, then A8 property tests. A9 second-laptop evidence remains manual.
+- A8 generated production-C++ properties: local acceptance complete, CI/merge pending.
+- Account phatdat220707 verified after user-requested pause/resume; no secrets exposed.
+- Continue useful independent host work; no QNX target needed by stream A.
 
-## Done (with evidence: command + last lines, commit or run link)
+## Done with executable evidence
 
-A1: done 4b10a4ce12d61b3537d321c062eef43495818eed
-- `ctest --preset host-debug`: 2/2 passed, 111 core test cases.
-- `python tools/check.py`: all stages PASS, `RESULT: GREEN` (Windows clang; clang-format 18).
-- Passthrough regression failed before fix (REJ_SCHEMA instead of acceptance after braking); now passes. Lease refusal/recheck regressions from #152 still pass.
-- Fresh-context review: no blocker/should findings (review_a1).
+A1: done dcc8d36 (#158; lease/recheck fixes also #152 aab4d95).
+- `ctest --preset host-debug`: 2/2 passed, 111 core cases.
+- `python tools/check.py`: RESULT: GREEN. Refused passthrough no longer consumes cmd_seq.
+- Self-review: 0 blocker, 0 should; sequence/refusal regressions reproduced before fixes.
 
-A2: done 25fc74b
-- `python host/guard-replay --scenario scenarios/F5.yaml --mode B2 --out out/d26-F5.jsonl`: exit 0, mismatches [], GOAL.
-- `python host/guard-replay --scenario scenarios/F6.yaml --mode B2 --out out/d26-F6.jsonl`: exit 0, mismatches [], READY, REJ_MAP_VERSION.
-- Frozen v1.2 consumed unchanged; Linux evidence run https://github.com/Tauwho/GUARD/actions/runs/43847940386.
+A2: done 25fc74b (#153).
+- `python host/guard-replay --scenario scenarios/F5.yaml --mode B2 --out out/F5.jsonl`: exit0, GOAL, mismatches[].
+- F6 same command: exit0, READY, REJ_MAP_VERSION, mismatches[]. No B2 expectations weakened.
+
+A3: done 82ff265 (#160).
+- `python -m pytest eval/tests/test_target_runner.py -q`: 11 passed including real core F0/F3.
+- Local C14 mock + bounded SSH transport; validate seed/run identity, always clean up owned run.
+- Self-review: 0 blocker/should after duration, trial identity, deadline and refused-load fixes.
+- Local/mock evidence only; real QNX transport execution belongs to B.
+
+A4: done (manual remote evidence) https://github.com/Tauwho/GUARD/actions/runs/43856863508
+- Main f48946b: host-evaluation GREEN; 90-day artifact; every subsequent main push reruns it.
+- Main Linux full check/fresh-clone GREEN: https://github.com/Tauwho/GUARD/actions/runs/43856863542
+- Optional min_margin_m omitted if unmeasured; report summary null/unavailable; frozen C8 unchanged.
+- Temporary A-only recursion adapter removed after upstream P fix. Plain tools/check.py used again.
+
+A5: done 82ba25a (#163).
+- `python -m pytest eval/tests/test_dashboard_relay.py -q`: 7 passed.
+- Headless Node smoke PASS: seek, lease, source arc, latch/reason feed; real localhost HTTP/TCP tests.
+- Bad JSON/schema/non-finite/chunked oversized physical lines dropped/counted; later valid lines survive.
+- Self-review: 0 blocker/should after physical framing and browser-infinite integer fixes.
+
+A6: done a73a371 (#174).
+- `python -m pytest eval/tests/test_recorded_advisor.py -q`: 11 passed incl offline TCP -> real core F6 map rejection.
+- --recorded default, --trace compatible, explicit --ollama; exact recorded fallback only for model availability.
+- Recording I/O failures and invalid model output do not fall back; original provenance/delay unchanged.
+- Full check GREEN; self-review 0 blocker/should/nit after dedicated availability-error fix.
+
+A7: done b016a04 (#177), manual Linux evidence https://github.com/Tauwho/GUARD/actions/runs/43887605751
+- Artifact 14235253466, host-evaluation-338bf3cb2e1ae97bd4cf9e8bd845c7afd17507fe, retained 90 days.
+- Actual 3150 executions, 0 execution/schema errors; 450/450 B2 pass. F1 B2 has 50 distinct trace bodies.
+- 386 control/ablation reference differences remain visible; no statistical-independence claim.
+- Same seed byte-identical; seeded staff +/-100ms and proposal cadence +0..5ms; reference/flood schedules unchanged.
+- C8 exact schema dispatch remains jsonschema-based, full fallback for unknown reference shapes; 4 differential tests pass.
+- `python tools/check.py`: RESULT: GREEN (out/d26-a7-final.txt); fresh-context reviews 0 outstanding blocker/should.
+- Local copies: out/a7-linux-full/linux-matrix/results.json and linux-report/report.md.
+
+## A8 acceptance
+A8: done 9458c26 (local executable acceptance; CI/merge pending)
+- Hypothesis 6.170.15 + actual guard-core-probe: 5 tests, 100 generated examples per property + explicit regressions.
+- Valid wire bytes, nonfinite fields, arbitrary bytes, valid-header wrong lengths, ACK/refusal fencing, MOVING/expiry/braking/READY.
+- Found and fixed test-driver subnormal stod issue; finite strtod regression retained.
+- Self-review: 0 blocker/should/nit after removing wrong-length prefilter and requiring real movement.
+- `python tools/check.py`: RESULT: GREEN before integration (out/d26-a8-check.txt); final integrated rerun RESULT: GREEN (out/d26-a8-integrated.txt).
+- Optional suite only collects with real backend + built probe. Without it, -k hypothesis exits5; no property success fabricated.
+- Dedicated stream-a CI pins backend, builds probe and explicitly requires -k hypothesis. Existing tests unchanged.
 
 ## Next
-- A5 dashboard bridge resilience; A6 advisor recorded default; A7 seeded trials.
+- Finish A8 check/review/CI/merge, then improve independently reproducible host demo/live-burst viewing if valuable.
 
-## Known issues
-
-A4: done https://github.com/Tauwho/GUARD/actions/runs/43856863508
-- Main f48946b: host-evaluation GREEN, 63 cases with B2 gate; artifact retained 90 days.
-- Linux tools/check.py and fresh-clone demo: https://github.com/Tauwho/GUARD/actions/runs/43856863542 GREEN.
-- `python tools/check.py`: RESULT: GREEN (out/d26-a4-check.txt).
-- run_start.ablate is already emitted under frozen v1.2; preserve it.
-
-A3: done (local acceptance)
-- `python -m pytest eval/tests/test_target_runner.py -q`: 11 passed, including actual core F0/F3.
-- `python tools/check.py`: RESULT: GREEN after all review refinements (out/d26-a3-final.txt).
-- Local C14 command log includes load/start/process inject/stop; SSH transport has bounded capture and BatchMode auth.
-- Fresh-context review: fixed top-level duration, requested seed/multiple-run validation, out-of-duration injection and stop-after-refused-load findings. Validate optional frozen C8 run_id when supplied; enforce shared injection deadline.
-- SSH hardware not claimed: tests use local core and transport mocks. Target execution belongs to B.
-
-
-A5: done (host acceptance)
-- `python -m pytest eval/tests/test_dashboard_relay.py -q`: 7 passed.
-- Headless Node smoke: PASS (seek, lease, source arc, latch, reason feed).
-- Actual localhost HTTP/TCP tested; malformed/schema-invalid/non-finite and chunked oversized lines drop without poisoning later records.
-- Lease telemetry uses retained proposal source pose; no synthetic newer-pose fallback.
-- Fresh-context findings fixed: oversized physical-line framing and huge integer rejection.
-
-- A5 integrated `python tools/check.py`: RESULT: GREEN (out/d26-a5-integrated.txt); temporary A scope adapter removed after upstream P fix.
-
-
-A6: done (host acceptance)
-- `python -m pytest eval/tests/test_recorded_advisor.py -q`: 11 passed, including bundled recorded TCP -> actual core/F6 -> REJ_MAP_VERSION.
-- `python host/llm_advisor.py --help`: --recorded default, --trace alias, explicit --ollama and optional exact recorded fallback.
-- `python tools/check.py`: RESULT: GREEN (out/d26-a6-final.txt; Git Bash selected before Windows WSL alias).
-- self-review: 0 blocker, 0 should, 0 nit after restricting fallback to ModelUnavailableError; recording write failures do not fall back.
-- Bundled fixture is synthetic-test; real 1.5B evidence remains private under out/s7-1p5b. A9 second-laptop evidence is not claimed.
-
-
-A7: in progress; seeded host trials
-- `ctest --preset host-debug`: 2/2 passed; seed 42 deterministic and 43 changes trace body.
-- `python -m pytest eval/tests/test_matrix.py -q`: 3 passed, including F1 physical poses differ and repeated seed bytes match.
-- Three-seed matrix: 189 executions, 0 execution/schema errors; 27/27 B2 match, 23 visible control/ablation differences (out/d26-seeded-smoke/results.json).
-- Fresh-context review: report interpretation corrected to match seed_variation; no replay blockers.
-- Validation dispatch optimization is being checked before full 50-seed Linux run; no statistical-independence claim.
-
-- C8 dispatcher: 4 differential tests pass, including unsupported root/reference contexts falling back to full schema; 63-case producer matrix has 0 errors and all B2 pass.
-- `python tools/check.py`: RESULT: GREEN (out/d26-a7-check.txt); post-review rerun RESULT: GREEN (out/d26-a7-final.txt).
-- self-review: 0 blocker/should after report wording and resolver-context fallback fixes.
+## Known limits
+- A4/A7 remain MANUAL in scope_gate by design: remote evidence linked above, never inferred from progress text.
+- A9 remains MANUAL: real 1.5B tested on Dat laptop only; second-laptop verification is not fabricated.
+- Target evidence is B-owned. No QNX SDK/licences/weights or QNX performance numbers committed.
+- Host reports use simulation-only functional results. Operator recovery trials still unavailable.
+- No task-owned Ollama/advisor process left running; tests close their sockets/processes.
