@@ -60,4 +60,29 @@ struct ScenarioSpec {
 // Loaders accept schema-validated JSON buffers normalized from the shared YAML files.
 bool load_map(std::string_view buffer, MapSpec &output);
 bool load_scenario(std::string_view buffer, const MapSpec &map, ScenarioSpec &output);
+
+class World {
+  public:
+    World(MapSpec map, ScenarioSpec scenario);
+    bool update(std::int64_t now);
+    const Scene &scene() const { return scene_; }
+    const MapSpec &map() const { return map_; }
+    const ScenarioSpec &scenario() const { return scenario_; }
+    const FaultEvent *active_fault(unsigned fault, std::int64_t now) const;
+
+  private:
+    struct Actor {
+        Name id{};
+        Point from, to;
+        double speed = 0, radius = 0.3, began = 0;
+        bool active = false;
+    };
+    MapSpec map_;
+    ScenarioSpec scenario_;
+    Scene scene_;
+    std::array<Actor, 16> actors_{};
+    std::array<int, 32> zone_overrides_{};
+    std::size_t next_obstacle_ = 0, next_zone_ = 0;
+    std::int64_t last_update_ = -1;
+};
 } // namespace guard
