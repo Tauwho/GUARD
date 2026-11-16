@@ -11,7 +11,6 @@ import time
 from pathlib import Path
 
 import jsonschema
-
 from llm_advisor import VALIDATOR, strict_json
 from ollama_route import OllamaAdvisor, OllamaGenerator
 
