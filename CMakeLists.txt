@@ -38,8 +38,8 @@ if(BUILD_TESTING)
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
   FetchContent_MakeAvailable(doctest)
   add_executable(guard_core_tests core/tests/smoke.cpp core/tests/contracts_edges.cpp
-                 core/tests/plant_geometry.cpp core/tests/plant_dynamics.cpp
-                 "${GUARD_GENERATED}/contracts_fixtures.cpp")
+                 core/tests/plant_geometry.cpp core/tests/plant_dynamics.cpp core/tests/gate_fsm_rows.cpp
+                 core/tests/gate_fsm_integration.cpp "${GUARD_GENERATED}/contracts_fixtures.cpp")
   target_link_libraries(guard_core_tests PRIVATE guard_core doctest::doctest)
   add_test(NAME guard_core_smoke COMMAND guard_core_tests)
 endif()
