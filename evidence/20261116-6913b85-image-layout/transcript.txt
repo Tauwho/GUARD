@@ -1,0 +1,35 @@
+Script started on 2026-11-16 03:01:43-05:00 [COMMAND="bash ~/guard-ev/img/all.sh" <not executed on terminal>]
+skip guard-sim: qnx/sim not in the repo yet
+skip guard-gate: qnx/gate not in the repo yet
+skip guard-supervisor: qnx/supervisor not in the repo yet
+skip guard-planner: qnx/planner not in the repo yet
+skip guardctl: qnx/guardctl not in the repo yet
+skip guard-bridge: qnx/bridge not in the repo yet
+add  guard-hog
+image built in ~/guard-ev/img/src/image/out/qsti (network: user)
+target up: ssh -i ~/.ssh/guard_target_ed25519 -p 2222 -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=3 root@127.0.0.1
+guard start Mon Nov 16 08:01:54 UTC 2026
+skipped guard-sim (not in image)
+skipped guard-gate (not in image)
+skipped guard-supervisor (not in image)
+skipped guard-planner (not in image)
+skipped guard-bridge (not in image)
+dashboard relay not in the repo yet (#24); the bridge streams C8 to the host on TCP 7700
+/etc/passwd:guard_sim:x:1101:1101:GUARD sim:/:/bin/false
+/etc/passwd:guard_gate:x:1102:1102:GUARD gate:/:/bin/false
+/etc/passwd:guard_sup:x:1103:1103:GUARD supervisor:/:/bin/false
+/etc/passwd:guard_plan:x:1104:1104:GUARD planner:/:/bin/false
+/etc/passwd:guard_bridge:x:1105:1105:GUARD bridge:/:/bin/false
+/etc/passwd:guard_op:x:1106:1106:GUARD operator:/:/bin/false
+/etc/group:guard_sim:x:1101:
+/etc/group:guard_gate:x:1102:
+/etc/group:guard_sup:x:1103:
+/etc/group:guard_plan:x:1104:
+/etc/group:guard_bridge:x:1105:
+/etc/group:guard_op:x:1106:
+-r-xr-xr-x  1 root root 14200 2026-11-16 08:01 /system/bin/guard-hog
+CLI guard-hog exit 0
+uid=1102(guard_gate) gid=1102(guard_gate) groups=1102(guard_gate)
+post_startup errors: none
+
+Script done on 2026-11-16 03:02:07-05:00 [COMMAND_EXIT_CODE="0"]
