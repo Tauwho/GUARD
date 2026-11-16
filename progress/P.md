@@ -3,7 +3,7 @@
 Brief: [BRIEF-P.md](../docs/streams/BRIEF-P.md). Resume from this file after any restart. Live scope: `python tools/scope_gate.py --stream P`.
 
 ## Now
-- P0, P1, P2, P5 and P6 closed; P4 package gate next, then P3 (10 Dec) and P4 video (13 Dec).
+- P0, P1, P2, P5 and P6 closed; package gate on main. Left: P3 tag (10 Dec), P4 video + captions (13 Dec).
 
 ## Done (with evidence: command + last lines, commit or run link)
 
@@ -175,6 +175,15 @@ claims-lint: PASS
 $ python tools/check.py --fast
 RESULT: GREEN
 ```
+
+### P4 (part) — package gate (2026-11-16)
+
+`tools/check_package.py` (`make package-check` runs it after `make check`, the
+fresh-clone demo and readme-links) checks: README current, links, no TBD, Results
+cite the Linux run, video linked, `docs/video/captions.srt` under 3:00, demo
+commands, architecture SVG labels, submission draft, no QNX logo file. 5 tests.
+Current state: FAIL only on `readme-video` and `captions`, which the recording on
+13 Dec produces.
 
 ## Next
 - P5 (architecture SVG + Limits), then P6, P3 (10 Dec), P4 (13 Dec).
