@@ -7,8 +7,8 @@
 namespace guard {
 Gate::Gate(Config config) : config_(config) {
     status_.experiment = config.mode;
-    status_.mode = GateMode::latched;
-    status_.latch = LatchCause::boot;
+    status_.mode = config.mode == Mode::guarded ? GateMode::latched : GateMode::ready;
+    status_.latch = config.mode == Mode::guarded ? LatchCause::boot : LatchCause::none;
 }
 void Gate::record(Reason reason) { ++status_.counters[static_cast<unsigned>(reason)]; }
 void Gate::stop(Reason reason, LatchCause latch) {
@@ -20,6 +20,10 @@ void Gate::stop(Reason reason, LatchCause latch) {
     record(reason);
 }
 bool Gate::register_supervisor(RegisterReply &reply) {
+    if (config_.mode != Mode::guarded) {
+        record(Reason::GATE_UNAUTHORIZED_CLIENT);
+        return false;
+    }
     if (!valid(config_) || status_.epoch == std::numeric_limits<std::uint32_t>::max())
         return false;
     ++status_.epoch;
@@ -33,7 +37,12 @@ bool Gate::register_supervisor(RegisterReply &reply) {
     return true;
 }
 void Gate::expire(std::int64_t now) {
-    if (status_.mode == GateMode::moving && !config_.ablate_expiry && now >= lease_.expires_ns)
+    if (config_.mode == Mode::heartbeat && status_.mode == GateMode::moving &&
+        last_passthrough_ >= 0 &&
+        now - last_passthrough_ >= milliseconds(config_.heartbeat_timeout_ms))
+        stop(Reason::GATE_HEARTBEAT_LOST);
+    if (config_.mode == Mode::guarded && status_.mode == GateMode::moving &&
+        !config_.ablate_expiry && now >= lease_.expires_ns)
         stop(Reason::GATE_LEASE_EXPIRED);
 }
 LeaseAck Gate::prepare_lease(const Lease &value, std::int64_t now) {
@@ -41,8 +50,10 @@ LeaseAck Gate::prepare_lease(const Lease &value, std::int64_t now) {
     pending_valid_ = false;
     Reason reason = Reason::GATE_LEASE_ACCEPTED;
     std::array<std::uint8_t, sizeof(Lease)> packet{};
-    if (!valid(config_) || !encode(value, packet) || !registered_ || now < 0 || now < last_tick_ ||
-        value.issued_ns > now)
+    if (config_.mode != Mode::guarded)
+        reason = Reason::GATE_UNAUTHORIZED_CLIENT;
+    else if (!valid(config_) || !encode(value, packet) || !registered_ || now < 0 ||
+             now < last_tick_ || value.issued_ns > now)
         reason = Reason::GATE_NOT_READY;
     else if (!config_.ablate_epoch && value.epoch != status_.epoch)
         reason = Reason::GATE_EPOCH_STALE;
@@ -94,6 +105,10 @@ LeaseAck Gate::lease(const Lease &value, std::int64_t now) {
     return reply;
 }
 bool Gate::revoke(const Revoke &value) {
+    if (config_.mode != Mode::guarded) {
+        record(Reason::GATE_UNAUTHORIZED_CLIENT);
+        return false;
+    }
     if (!valid(value) || value.epoch != status_.epoch)
         return false;
     if (status_.mode != GateMode::moving ||
@@ -113,7 +128,7 @@ RecoverReply Gate::recover(const RecoverRequest &request, RecoveryConditions con
             mask |= 1u;
         if (!conditions.outside_zones)
             mask |= 2u;
-        if (!registered_)
+        if (config_.mode == Mode::guarded && !registered_)
             mask |= 4u;
         if (!conditions.observations_fresh)
             mask |= 8u;
@@ -133,6 +148,8 @@ RecoverReply Gate::recover(const RecoverRequest &request, RecoveryConditions con
     return reply;
 }
 void Gate::supervisor_lost() {
+    if (config_.mode != Mode::guarded)
+        return;
     registered_ = false;
     pending_valid_ = false;
     if (status_.mode == GateMode::moving)
@@ -166,8 +183,10 @@ MotorCmd Gate::tick(std::int64_t now, double v_meas, double w_meas) {
     ++motor_.cmd_seq;
     motor_.stamp_ns = now;
     if (status_.mode == GateMode::moving) {
-        motor_.v = std::clamp(lease_.v_cmd, -lease_.v_cap, lease_.v_cap);
-        motor_.w = lease_.w_cmd;
+        motor_.v = config_.mode == Mode::guarded
+                       ? std::clamp(lease_.v_cmd, -lease_.v_cap, lease_.v_cap)
+                       : held_.v;
+        motor_.w = config_.mode == Mode::guarded ? lease_.w_cmd : held_.w;
     } else if (status_.mode == GateMode::stopping) {
         const double speed = std::min(std::abs(v_meas), std::abs(motor_.v));
         motor_.v = std::copysign(
@@ -187,8 +206,29 @@ MotorCmd Gate::tick(std::int64_t now, double v_meas, double w_meas) {
 }
 GateStatus Gate::status(std::int64_t now) const {
     auto result = status_;
-    if (result.mode == GateMode::moving)
+    if (config_.mode == Mode::guarded && result.mode == GateMode::moving)
         result.lease_remaining_ns = std::max<std::int64_t>(0, lease_.expires_ns - now);
     return result;
+}
+Reason Gate::passthrough(const PassthruCmd &value, std::int64_t now) {
+    if (config_.mode == Mode::guarded) {
+        record(Reason::GATE_UNAUTHORIZED_CLIENT);
+        return Reason::GATE_UNAUTHORIZED_CLIENT;
+    }
+    std::array<std::uint8_t, sizeof(PassthruCmd)> packet{};
+    if (!valid(config_) || !encode(value, packet) || value.cmd_seq <= held_.cmd_seq || now < 0 ||
+        now < last_tick_ || now < last_passthrough_ || value.stamp_ns > now)
+        return Reason::REJ_SCHEMA;
+    expire(now);
+    held_.cmd_seq = value.cmd_seq;
+    if (status_.mode != GateMode::ready && status_.mode != GateMode::moving) {
+        record(Reason::GATE_NOT_READY);
+        return Reason::GATE_NOT_READY;
+    }
+    held_ = value;
+    last_passthrough_ = now;
+    status_.mode = GateMode::moving;
+    record(Reason::GATE_PASSTHRU_ACCEPTED);
+    return Reason::GATE_PASSTHRU_ACCEPTED;
 }
 } // namespace guard
