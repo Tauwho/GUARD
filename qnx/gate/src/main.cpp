@@ -14,6 +14,8 @@
 #include "guard/reason_codes.hpp"
 #include "status_text.hpp"
 
+#include <sys/trace.h>
+
 #include <array>
 #include <cerrno>
 #include <cstdio>
@@ -86,6 +88,9 @@ void log_mode() {
                       static_cast<unsigned long long>(s.lease_id), gate::latch_name(s.latch),
                       s.recovery_unmet_mask & 31u);
         g->tlm.emit(now_ns(), "gate_transition", payload);
+        if (reason == static_cast<unsigned>(Reason::GATE_LEASE_EXPIRED))
+            trace_logf(qnx::kTraceExpiry, "expiry lease %llu",
+                       static_cast<unsigned long long>(s.lease_id));
         g->last_mode = s.mode;
     }
     g->last_counters = s.counters;
@@ -201,6 +206,9 @@ int io_devctl(resmgr_context_t *ctp, io_devctl_t *msg, void *ocb) {
         std::memset(&msg->o, 0, sizeof msg->o);
         msg->o.nbytes = wire.size();
         bool delivered = MsgReply(ctp->rcvid, EOK, &msg->o, sizeof msg->o + wire.size()) != -1;
+        if (delivered)
+            trace_logf(qnx::kTraceLease, "lease %llu",
+                       static_cast<unsigned long long>(lease.lease_id));
         if (g->gate.commit_lease(lease.lease_seq, now, delivered) && lease.expires_ns > now)
             g->expiry_timer.arm_oneshot(static_cast<std::uint64_t>(lease.expires_ns - now));
         log_mode();

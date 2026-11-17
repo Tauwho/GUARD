@@ -31,6 +31,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <sys/neutrino.h>
+#include <sys/trace.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -167,8 +168,7 @@ void refresh_world(std::int64_t now) {
     if (qnx::read_world(s) != EOK)
         return;
     bool new_run =
-        std::strcmp(s.scenario_path, g->world.scenario_path) != 0 || s.seed != g->world.seed ||
-        (std::strcmp(s.state, "LOADED") == 0 && std::strcmp(g->world.state, "LOADED") != 0);
+        s.load != g->world.load || std::strcmp(s.scenario_path, g->world.scenario_path) != 0;
     if (new_run && s.loaded()) {
         Config config;
         std::size_t n = 0;
@@ -274,6 +274,8 @@ void handle_proposal(int rcvid, const std::uint8_t *buf, std::size_t len) {
     auto now = now_ns();
     Proposal p;
     auto err = decode(buf, len, p);
+    trace_logf(qnx::kTraceProposal, "proposal %llu",
+               static_cast<unsigned long long>(p.proposal_id));
     if (err == DecodeError::bad_message) {
         MsgError(rcvid, EBADMSG);
         return;
@@ -360,6 +362,9 @@ void handle_proposal(int rcvid, const std::uint8_t *buf, std::size_t len) {
     d.lease_id = accepted ? lease.lease_id : 0;
     d.expires_ns = accepted ? lease.expires_ns : 0;
     emit_decision(now, p, d, &e);
+    trace_logf(qnx::kTraceDecision, "decision %llu verdict %u reason %u lease %llu",
+               static_cast<unsigned long long>(d.proposal_id), d.verdict, d.primary_reason,
+               static_cast<unsigned long long>(d.lease_id));
     pthread_mutex_unlock(&g->lock);
     reply_decision(rcvid, d);
 }

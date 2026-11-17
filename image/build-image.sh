@@ -72,6 +72,12 @@ EOF
 done
 echo "add  $(grep -c guard/scenarios "$FILES") input files (inputs.json hashes match)"
 echo "[perms=555] bin/guard-inputs-check=$ROOT/image/inputs-check.sh" >> "$FILES"
+# Test image: traceprinter from the SDP decodes tracelogger output on the target (#48). It is
+# copied into the image only, never into the repo.
+if [ "$TEST" = 1 ]; then
+    echo "[perms=555] bin/traceprinter=$QNX_TARGET/x86_64/usr/bin/traceprinter" >> "$FILES"
+    echo "[perms=555] bin/guard-trace-check=$ROOT/image/trace-check.sh" >> "$FILES"
+fi
 
 SECPOL_ARGS=()
 case $SECPOL in

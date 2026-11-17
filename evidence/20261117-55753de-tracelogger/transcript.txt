@@ -1,0 +1,35 @@
+$ guard-trace-check
+events proposal: 88
+events decision: 87
+events lease: 37
+events expiry: 1
+first steps of the timeline:
+  proposal 61
+  decision 61 verdict 1 reason 100 lease 61
+  proposal 62
+  decision 62 verdict 1 reason 100 lease 62
+  proposal 63
+  decision 63 verdict 1 reason 100 lease 63
+  proposal 64
+  decision 64 verdict 1 reason 100 lease 64
+last steps of the timeline:
+  decision 147 verdict 1 reason 100 lease 146
+  proposal 148
+  lease 147
+  decision 148 verdict 1 reason 100 lease 147
+one lease, step by step:
+  proposal 148
+  decision 148 verdict 1 reason 100 lease 147
+  lease 147
+  expiry lease 0
+RESULT PASS (timeline shows proposal -> decision -> lease -> expiry)
+[exit 0]
+
+$ guard-trace-check | tail -6
+one lease, step by step:
+  proposal 148
+  decision 148 verdict 1 reason 100 lease 294
+  lease 294
+  expiry lease 0
+RESULT PASS (timeline shows proposal -> decision -> lease -> expiry)
+[exit 0]

@@ -92,8 +92,7 @@ void refresh_world(std::int64_t now) {
         return;
     g->world_read_ns = now;
     bool new_run =
-        std::strcmp(s.scenario_path, g->world.scenario_path) != 0 || s.seed != g->world.seed ||
-        (std::strcmp(s.state, "LOADED") == 0 && std::strcmp(g->world.state, "LOADED") != 0);
+        s.load != g->world.load || std::strcmp(s.scenario_path, g->world.scenario_path) != 0;
     if (new_run && s.loaded()) {
         static MapSpec map;
         static ScenarioSpec scenario;
