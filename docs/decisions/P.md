@@ -43,3 +43,4 @@ Decide, log one line, continue (D26). Never edit `DECISIONS.md`.
 | 2026-11-17 | Scene 1 shows a normal F0 replay instead of F3 | An F3 hook would show the stop before scene 3 explains it. |
 | 2026-11-17 | Voice: Microsoft David (offline SAPI), no music, no sound effects | $0, no cloud TTS; effects would add licence risk and no information. |
 | 2026-11-17 | `v1.0-rc1` stays on `bf4c417` although DEMO step 1 now lists the F0 opening shot and re-timed slots | Docs-only change after the tag; the footage was recorded from the tagged code, and the F0 commands exist there unchanged. |
+| 2026-11-17 | Voice changed to Kokoro-82M (Apache-2.0, offline ONNX), voice `af_heart`, chosen by the PO from four samples; supersedes the Windows SAPI voice row | The PO rejected the SAPI voice as too robotic; Kokoro stays $0, offline and keyless, and is still disclosed as synthetic. |

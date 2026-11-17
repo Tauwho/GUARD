@@ -255,7 +255,8 @@ commit passed `make check` and `tools/fresh_clone_demo.sh`.
   rendering; terminal shots replay real captured runs verbatim (the target start log is trimmed to
   the GUARD lines, marked on screen); the target scene is a live
   QEMU run of DEMO step 4 with the dashboard's numeric readouts hidden (D11).
-- Voice-over: offline Windows TTS (synthetic, disclosed in `docs/devpost/description.md`
+- Voice-over: Kokoro-82M (Apache-2.0, offline; voice af_heart) after the PO found the
+  first Windows voice too robotic (synthetic, disclosed in `docs/devpost/description.md`
   and on the end card). No music, no sound effects.
 - `docs/video/captions.srt` (26 cues, last ends 164.7 s) and `docs/video/duration.txt`
   (2:46); storyboard re-timed to the cut. `check_package.py`: only readme-video and
