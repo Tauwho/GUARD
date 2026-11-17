@@ -101,4 +101,6 @@ A8: done 6ac05ec (#179; actual C++ property CI https://github.com/Tauwho/GUARD/a
 - Replace floating conversion with bounded integer-significand/exponent normalization then strtod; no decimal separator, process locale mutation, allocation, or QNX APIs. Preserve integer from_chars.
 - Add range, minimum-subnormal, signed-zero, huge-exponent, output-preservation and existing comma-locale regression coverage.
 - Local build attempts blocked by filesystem write denial from CMake/Ninja even with escalation; no local test success claimed. Linux CI must run the complete check before merge.
-- Fresh-context self-review and CI results pending.
+- Linux validation at f8916fc: GCC/Clang debug + ASan build/test PASS; Stream A acceptance (tools/check.py, real Hypothesis and fresh-clone demo) PASS: https://github.com/Tauwho/GUARD/actions/runs/44005030555 . Local filesystem-denied results remain separate.
+- Fresh-context adversarial self-review: 0 blocker, 0 should; one skipped nit requesting another comma-locale sample, since the existing locale regression already parses a fractional decimal under available comma locales.
+- Next: B rebuilds merged main with SDP 8.0 and captures core-on-target evidence; the scratch strtod result does not validate this final implementation.
