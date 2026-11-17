@@ -42,13 +42,15 @@ Status: ready
 
 ```sh
 source ~/qnx800/qnxsdp-env.sh
-image/run-demo.sh --dashboard
+image/run-demo.sh --test --dashboard
 ```
 
 Expected: the image boots in QEMU with user-mode networking (ssh on 127.0.0.1:2222,
 bridge C8 port forwarded to 127.0.0.1:7700, `docs/setup.md` Option C), `run-demo.sh`
 shows the GUARD start log, starts `dashboard/relay.py --bridge 127.0.0.1:7700` and runs
-F0 with `guardctl` (`image/README.md`). Open `http://127.0.0.1:8765`. Stop everything
+F0 with `guardctl` (`image/README.md`). `--test` builds the test image, which
+step 4 needs: on the default image `guardctl inject` answers "process faults need the
+test image". Open `http://127.0.0.1:8765`. Stop everything
 afterwards with `image/run-demo.sh --stop`.
 
 ### 1. Supervisor killed, host replay [0:00-0:35]
