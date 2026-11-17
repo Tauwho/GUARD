@@ -4,6 +4,8 @@
 # is skipped. Logs go to slog2 and /data/var/log/guard-start.log.
 mkdir -p /data/var/log
 echo "guard start $(date)" > /data/var/log/guard-start.log
+# Normalized inputs (#141): the packed files must match inputs.json before GUARD starts.
+[ -x /system/bin/guard-inputs-check ] && guard-inputs-check | tail -1 | sed "s/^/inputs: /" >> /data/var/log/guard-start.log
 if [ -x /system/bin/guard-sim ]; then
     on -d /system/bin/guard-sim
     waitfor /dev/sim/motor 5 || echo "guard-sim: /dev/sim/motor missing" >> /data/var/log/guard-start.log

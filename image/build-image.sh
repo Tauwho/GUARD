@@ -66,6 +66,7 @@ EOF
     echo "[perms=444] guard/scenarios/${f#./}=$INPUTS/${f#./}" >> "$FILES"
 done
 echo "add  $(grep -c guard/scenarios "$FILES") input files (inputs.json hashes match)"
+echo "[perms=555] bin/guard-inputs-check=$ROOT/image/inputs-check.sh" >> "$FILES"
 
 IP=dhcp
 [ "$NET" = bridge ] && IP=10.10.10.2
