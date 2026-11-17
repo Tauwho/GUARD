@@ -25,7 +25,7 @@ while [ $# -gt 0 ]; do
             [ -f "$OUT/qsti/output/qemu.pid" ] && kill "$(cat "$OUT/qsti/output/qemu.pid")" 2>/dev/null
             echo "target stopped"; exit 0 ;;
         -h|--help) sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
-        *) echo "usage: $0 [--net user|bridge] [--rebuild] [--test] [--dashboard [Fn]] | --stop" >&2; exit 2 ;;
+        *) echo "usage: $0 [--net user|bridge] [--rebuild] [--test] [--secpol develop|secure] [--dashboard [Fn]] | --stop" >&2; exit 2 ;;
     esac
 done
 KEY=$HOME/.ssh/guard_target_ed25519

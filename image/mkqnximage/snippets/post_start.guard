@@ -10,7 +10,6 @@ echo "guard start $(date)" > /data/var/log/guard-start.log
 T() { :; }
 if [ -f /system/etc/guard-secpol ]; then
     T() { echo "-T $1"; }
-    [ "$(cat /system/etc/guard-secpol)" = develop ] && export GUARD_SECPOL_DEVELOP=1
     echo "secpol: $(cat /system/etc/guard-secpol)" >> /data/var/log/guard-start.log
 fi
 if [ -x /system/bin/guard-sim ]; then

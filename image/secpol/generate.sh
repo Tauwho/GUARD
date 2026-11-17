@@ -23,6 +23,9 @@ done
 # that start (guardctl --version touches no GUARD path), never the gate connect itself.
 ssh -o BatchMode=yes "$ALIAS" 'on -T planner_t -u 1104 guardctl --version; on -T supervisor_t -u 1104 guardctl --version' > /dev/null
 ssh -o BatchMode=yes "$ALIAS" 'guardctl status > /dev/null; cat /dev/secpolgenerate/policy' \
-    > "$ROOT/image/secpol/guard.secpol"
+    > "$OUT/guard.secpol.new"
+grep -q 'Rules for type planner_t' "$OUT/guard.secpol.new" \
+    || { echo "recorded policy is empty or has no GUARD types; kept the old one" >&2; exit 1; }
+mv "$OUT/guard.secpol.new" "$ROOT/image/secpol/guard.secpol"
 echo "wrote image/secpol/guard.secpol ($(wc -l < "$ROOT/image/secpol/guard.secpol") lines)"
 "$ROOT/image/run-demo.sh" --stop > /dev/null

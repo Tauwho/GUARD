@@ -15,17 +15,20 @@ expect() { # expect <name> <exit> <stderr text> <command...>
     got=$?
     if [ "$got" = "$want" ] && grep -q "$text" /tmp/denial_err /tmp/denial_out; then r=PASS; else r=FAIL; failed=$((failed + 1)); fi
     echo "CHECK $name (exit $got) $r"
-    sed -n '1p' /tmp/denial_err /tmp/denial_out | sed 's/^/  /'
+    { sed -n 1p /tmp/denial_err; sed -n 1p /tmp/denial_out; } | sed 's/^/  /'
 }
+count() { guardctl status | sed -n 's/^count.GATE_UNAUTHORIZED_CLIENT=//p'; }
 echo "secpol mode: $(cat /system/etc/guard-secpol 2>/dev/null || echo none)"
-before=$(guardctl status | sed -n 's/^count.GATE_UNAUTHORIZED_CLIENT=//p')
+c0=$(count)
 expect "planner_t -> /dev/guard/gate: secpol denies the connect" 3 "connect denied" \
     on -T planner_t -u 1104 guardctl recover
+c1=$(count)
 expect "supervisor_t, uid 1104 -> recover: gate uid check" 3 "gate uid check" \
     on -T supervisor_t -u 1104 guardctl recover
-after=$(guardctl status | sed -n 's/^count.GATE_UNAUTHORIZED_CLIENT=//p')
-if [ "${after:-0}" -gt "${before:-0}" ]; then r=PASS; else r=FAIL; failed=$((failed + 1)); fi
-echo "CHECK gate counted GATE_UNAUTHORIZED_CLIENT for the uid denial only $r"
+c2=$(count)
+# The secpol denial never reaches the gate (+0); the uid denial is counted (+1).
+if [ "${c1:-0}" = "${c0:-0}" ] && [ "${c2:-0}" = "$((${c1:-0} + 1))" ]; then r=PASS; else r=FAIL; failed=$((failed + 1)); fi
+echo "CHECK GATE_UNAUTHORIZED_CLIENT: +0 for the secpol denial, +1 for the uid denial $r"
 guardctl recover > /tmp/denial_out 2>&1
 rc=$?
 if [ "$rc" -le 1 ]; then r=PASS; else r=FAIL; failed=$((failed + 1)); fi

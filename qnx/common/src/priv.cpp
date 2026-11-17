@@ -1,6 +1,7 @@
 #include "guard/qnx/priv.hpp"
 
-#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 
 #include <errno.h>
 #include <sys/neutrino.h>
@@ -38,6 +39,16 @@ constexpr unsigned kLocked[] = {PROCMGR_AID_SETUID,       PROCMGR_AID_SETGID,
                                 PROCMGR_AID_PATHSPACE,    PROCMGR_AID_PUBLIC_CHANNEL,
                                 PROCMGR_AID_PRIORITY};
 
+bool secpol_develop() {
+    char mode[16] = "";
+    std::FILE *f = std::fopen("/system/etc/guard-secpol", "r");
+    if (f == nullptr)
+        return false;
+    bool ok = std::fgets(mode, sizeof mode, f) != nullptr;
+    std::fclose(f);
+    return ok && std::strncmp(mode, "develop", 7) == 0;
+}
+
 bool kept(unsigned id, const unsigned *keep, std::size_t n) {
     for (std::size_t i = 0; i < n; ++i) {
         if (keep[i] == id) {
@@ -64,9 +75,10 @@ int drop_and_lock(uid_t uid, gid_t gid, const unsigned *keep, std::size_t n) {
         return errno;
     }
     // secpol develop mode grants and records every request, so the setuid(0) probe would
-    // both succeed and put setuid-to-root into the generated policy (image/secpol). The
-    // start script sets GUARD_SECPOL_DEVELOP only on a develop image.
-    if (std::getenv("GUARD_SECPOL_DEVELOP") != nullptr) {
+    // both succeed and put setuid-to-root into the generated policy (image/secpol). Only the
+    // image itself can say "develop": /system/etc/guard-secpol is read-only, written by
+    // image/build-image.sh.
+    if (secpol_develop()) {
         return getuid() == uid && geteuid() == uid ? EOK : EIO;
     }
     if (setuid(0) == 0 || getuid() != uid || geteuid() != uid) {

@@ -295,11 +295,8 @@ int cmd_recover() {
 
 // On a secpol image a process guardctl starts gets its GUARD type (image/secpol, #46).
 std::vector<std::string> typed(const char *type, std::vector<std::string> argv) {
-    std::string mode;
-    if (read_text("/system/etc/guard-secpol", mode) != EOK)
+    if (access("/system/etc/guard-secpol", R_OK) != 0)
         return argv;
-    if (mode.compare(0, 7, "develop") == 0) // see qnx/common priv.hpp drop_and_lock
-        setenv("GUARD_SECPOL_DEVELOP", "1", 1);
     argv.insert(argv.begin(), {"on", "-T", type});
     return argv;
 }
