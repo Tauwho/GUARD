@@ -96,9 +96,7 @@ def test_ssh_port_forward_and_quoted_remote_pipeline():
 
 def test_cmake_preset_must_exist():
     assert one("cmake --preset host-debug") == []
-    assert one("cmake --preset nope") == [
-        "DEMO.md:7: cmake preset not in CMakePresets.json: nope"
-    ]
+    assert one("cmake --preset nope") == ["DEMO.md:7: cmake preset not in CMakePresets.json: nope"]
 
 
 def test_planned_step_is_not_run_until_done():
@@ -110,9 +108,7 @@ def test_planned_step_is_not_run_until_done():
 
 def test_planned_step_needs_a_real_scope_id():
     text = demo(step("1. Target [0:00-0:10]", "planned (Z9)", "guardctl inject F3"))
-    assert cdc.problems(text, ok_runner, states={}) == [
-        "DEMO.md:3: planned (Z9) is not a SCOPE id"
-    ]
+    assert cdc.problems(text, ok_runner, states={}) == ["DEMO.md:3: planned (Z9) is not a SCOPE id"]
 
 
 def test_video_slots_in_order_and_under_three_minutes():
@@ -138,8 +134,10 @@ def test_seconds_above_59_are_not_a_slot():
 
 
 def test_numbered_heading_without_slot_fails():
-    text = demo(step("1. A [0:00-0:10]", "ready", "mkdir -p out"),
-                step("2. Wrap-up", "ready", "mkdir -p out"))
+    text = demo(
+        step("1. A [0:00-0:10]", "ready", "mkdir -p out"),
+        step("2. Wrap-up", "ready", "mkdir -p out"),
+    )
     found = cdc.problems(text, ok_runner, states={})
     assert any("no [m:ss-m:ss] video slot" in p for p in found)
 
