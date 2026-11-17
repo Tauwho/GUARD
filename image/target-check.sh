@@ -13,6 +13,8 @@
 #   --bin <name>      test binary inside the build dir (repeatable; default guard_core_tests)
 #   --copy <name>     binary to copy to /tmp but not run by itself (repeatable)
 #   --run <cmd>       extra command to run on the target after the binaries (repeatable)
+#   --scenario <Fn>   run scenarios/<Fn>.yaml with eval/target_runner.py --target ssh:<alias>
+#                     and put its summary and C8 trace in the bundle (B4); --seed N optional
 #   --alias <host>    ssh alias (default $GUARD_TARGET or guard-target, see ENV.md)
 #   --net user|bridge passed to run-demo.sh (default $GUARD_NET or user)
 #   --keep            leave the target running
@@ -21,7 +23,7 @@
 # Needs the SDP env sourced (qnxsdp-env.sh). Prints pass/fail and counts only, no timings.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-PROJECT="" BINS=() COPIES=() RUNS=() KEEP=0 DRY=0 TOPIC=""
+PROJECT="" BINS=() COPIES=() RUNS=() KEEP=0 DRY=0 TOPIC="" SCENARIO="" SEED=""
 ALIAS=${GUARD_TARGET:-guard-target}
 NET=${GUARD_NET:-user}
 
@@ -32,6 +34,8 @@ while [ $# -gt 0 ]; do
         --bin) BINS+=("$2"); shift 2 ;;
         --copy) COPIES+=("$2"); shift 2 ;;
         --run) RUNS+=("$2"); shift 2 ;;
+        --scenario) SCENARIO=$2; shift 2 ;;
+        --seed) SEED=$2; shift 2 ;;
         --alias) ALIAS=$2; shift 2 ;;
         --net) NET=$2; shift 2 ;;
         --keep) KEEP=1; shift ;;
@@ -42,7 +46,8 @@ while [ $# -gt 0 ]; do
     esac
 done
 [ -n "$TOPIC" ] || { echo "missing <topic>" >&2; usage >&2; exit 2; }
-[ ${#BINS[@]} -gt 0 ] || [ ${#RUNS[@]} -gt 0 ] || BINS=(guard_core_tests)
+[ ${#BINS[@]} -gt 0 ] || [ ${#RUNS[@]} -gt 0 ] || [ -n "$SCENARIO" ] || BINS=(guard_core_tests)
+case $SCENARIO in ""|F[0-8]) ;; *) echo "--scenario must be F0..F8" >&2; exit 2 ;; esac
 
 step() { echo "== $*"; }
 do_run() { if [ "$DRY" = 1 ]; then echo "   (dry-run) $*"; else "$@"; fi; }
@@ -88,6 +93,19 @@ for b in "${BINS[@]}"; do
 done
 for b in "${COPIES[@]}"; do CAP+=(--binary "$BUILD/$b"); done
 for r in "${RUNS[@]}"; do CAP+=(--run "$r"); done
+if [ -n "$SCENARIO" ]; then
+    OUTF=$ROOT/build/target-runs/$SCENARIO.jsonl
+    mkdir -p "$(dirname "$OUTF")"
+    RUNNER=(python3 "$ROOT/eval/target_runner.py" --target "ssh:$ALIAS" --scenario "$ROOT/scenarios/$SCENARIO.yaml" --out "$OUTF")
+    [ -n "$SEED" ] && RUNNER+=(--seed "$SEED")
+    do_run "${RUNNER[@]}" > /dev/null || echo "   target_runner exit $? (mismatches are in the bundle)"
+    CAP+=(--scenario-result "${OUTF%.jsonl}.results.json" --trace "$OUTF" --scenario "$SCENARIO"
+          --run "guardctl status")
+    for exe in "$ROOT"/image/out/build/*/guard-* "$ROOT"/image/out/build/guardctl/guardctl; do
+        case $exe in *.log) ;; *) [ -f "$exe" ] && [ -x "$exe" ] && CAP+=(--binary "$exe") ;; esac
+    done
+    [ -n "$SEED" ] && CAP+=(--seed "$SEED")
+fi
 
 step "5/6 capture evidence ($TOPIC)"
 do_run python3 "$ROOT/tools/capture-evidence.py" "${CAP[@]}"

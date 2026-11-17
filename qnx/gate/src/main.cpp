@@ -10,6 +10,8 @@
 #include "guard/qnx/resmgr.hpp"
 #include "guard/qnx/sched.hpp"
 #include "guard/qnx/timer.hpp"
+#include "guard/qnx/tlm.hpp"
+#include "guard/reason_codes.hpp"
 #include "status_text.hpp"
 
 #include <array>
@@ -37,6 +39,8 @@ struct State {
     std::uint64_t ticks = 0, late_ticks = 0, unauthorized = 0;
     std::int64_t last_tick = -1;
     GateMode last_mode = GateMode::init;
+    std::array<std::uint64_t, 700> last_counters{};
+    qnx::TlmWriter tlm;
     resmgr_connect_funcs_t status_connect{};
     resmgr_io_funcs_t status_io{};
     iofunc_attr_t status_attr{};
@@ -53,13 +57,38 @@ std::int64_t now_ns() {
     return static_cast<std::int64_t>(ts.tv_sec) * 1'000'000'000 + ts.tv_nsec;
 }
 
+// One gate_transition (C8) per mode change. The reason is the gate counter that moved, picked
+// the same way as the host harness (host/replay.cpp).
 void log_mode() {
     auto s = g->gate.status(0);
     if (s.mode != g->last_mode) {
         std::printf("guard-gate: %s -> %s (latch %s, epoch %u)\n", gate::mode_name(g->last_mode),
                     gate::mode_name(s.mode), gate::latch_name(s.latch), s.epoch);
+        unsigned reason = static_cast<unsigned>(Reason::GATE_STANDSTILL);
+        if (s.mode == GateMode::ready && g->last_mode == GateMode::latched)
+            reason = static_cast<unsigned>(Reason::GATE_RECOVERED);
+        if (s.mode == GateMode::moving)
+            reason = s.experiment == Mode::guarded
+                         ? static_cast<unsigned>(Reason::GATE_LEASE_ACCEPTED)
+                         : static_cast<unsigned>(Reason::GATE_PASSTHRU_ACCEPTED);
+        if (s.mode == GateMode::stopping || s.mode == GateMode::latched)
+            for (unsigned code = 506; code <= 516; ++code)
+                if (code != 511 && code != 512 && code != 513 && code != 514 &&
+                    s.counters[code] > g->last_counters[code])
+                    reason = code;
+        char payload[256];
+        auto name = reason_name(static_cast<std::uint16_t>(reason));
+        std::snprintf(payload, sizeof payload,
+                      "\"from\":\"%s\",\"to\":\"%s\",\"reason\":\"%.*s\",\"epoch\":%u,"
+                      "\"lease_id\":%llu,\"latch_cause\":\"%s\",\"unmet_mask\":%u",
+                      gate::mode_name(g->last_mode), gate::mode_name(s.mode),
+                      static_cast<int>(name.size()), name.data(), s.epoch,
+                      static_cast<unsigned long long>(s.lease_id), gate::latch_name(s.latch),
+                      s.recovery_unmet_mask & 31u);
+        g->tlm.emit(now_ns(), "gate_transition", payload);
         g->last_mode = s.mode;
     }
+    g->last_counters = s.counters;
 }
 
 // C5: one MotorCmd per tick, bounded by 5 ms. Undelivered while MOVING latches MOTOR_TIMEOUT.
@@ -289,6 +318,8 @@ int main(int argc, char **argv) {
     if ((rc = g->rm.add_path("/dev/guard/status", &g->status_connect, &g->status_io,
                              &g->status_attr)) != EOK)
         return fail("attach /dev/guard/status", rc);
+    if ((rc = g->tlm.open("gate")) != EOK)
+        return fail("telemetry ring", rc);
     if ((rc = g->rm.self_coid(coid)) != EOK ||
         (rc = g->rm.alloc_pulse(tick_code, on_tick, nullptr)) != EOK ||
         (rc = g->rm.alloc_pulse(expiry_code, on_tick, nullptr)) != EOK ||
