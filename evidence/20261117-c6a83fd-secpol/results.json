@@ -1,0 +1,15 @@
+{
+  "commands": [
+    "cat /system/etc/guard-secpol",
+    "cat /data/var/log/guard-start.log",
+    "sh /tmp/denial-check.sh",
+    "cat /tmp/secure-runs.txt"
+  ],
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "doctest": {}
+}

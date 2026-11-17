@@ -1,0 +1,8 @@
+$ /tmp/guard_qnx_common_tests
+[doctest] doctest version is "2.4.11"
+[doctest] run with "--help" for options
+===============================================================================
+[doctest] test cases:  24 |  24 passed | 0 failed | 0 skipped
+[doctest] assertions: 656 | 656 passed | 0 failed |
+[doctest] Status: SUCCESS!
+[exit 0]

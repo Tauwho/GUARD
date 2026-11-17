@@ -4,6 +4,9 @@
 #     --net user    (default) DHCP for QEMU user-mode networking, no sudo (docs/setup.md Option C)
 #     --net bridge  static 10.10.10.2 on br0 (docs/setup.md Option B)
 #     --test        also add guard-hog (test image only, fault F2)
+#     --secpol develop|secure
+#                   develop: secpol records a policy (image/secpol/generate.sh)
+#                   secure:  enforce image/secpol/guard.secpol (#46, D22)
 # Builds every qnx/<process> project that exists, adds the binaries to /system/bin, adds the
 # GUARD uids 1101-1106 and the start order (image/mkqnximage/snippets). Everything it writes
 # goes under image/out/ (git-ignored). Nothing from the SDP is copied into the repo.
@@ -12,11 +15,13 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT=$ROOT/image/out
 NET=user
 TEST=0
+SECPOL=
 while [ $# -gt 0 ]; do
     case $1 in
         --net) NET=$2; shift 2 ;;
         --test) TEST=1; shift ;;
-        *) echo "usage: $0 [--net user|bridge] [--test]" >&2; exit 2 ;;
+        --secpol) SECPOL=$2; shift 2 ;;
+        *) echo "usage: $0 [--net user|bridge] [--test] [--secpol develop|secure]" >&2; exit 2 ;;
     esac
 done
 [ "$NET" = user ] || [ "$NET" = bridge ] || { echo "--net must be user or bridge" >&2; exit 2; }
@@ -68,10 +73,25 @@ done
 echo "add  $(grep -c guard/scenarios "$FILES") input files (inputs.json hashes match)"
 echo "[perms=555] bin/guard-inputs-check=$ROOT/image/inputs-check.sh" >> "$FILES"
 
+SECPOL_ARGS=()
+case $SECPOL in
+    "") SECPOL_ARGS=(--secpol=no --policy=none) ;; # mkqnximage keeps the last choice otherwise
+    develop) SECPOL_ARGS=(--secpol=develop --policy=none) ;;
+    secure)
+        [ -f "$ROOT/image/secpol/guard.secpol" ] || { echo "no image/secpol/guard.secpol; run image/secpol/generate.sh" >&2; exit 1; }
+        SECPOL_ARGS=(--secpol=secure "--policy=$ROOT/image/secpol/guard.secpol") ;;
+    *) echo "--secpol must be develop or secure" >&2; exit 2 ;;
+esac
+
+if [ -n "$SECPOL" ]; then
+    echo "$SECPOL" > "$OUT/extra/guard-secpol"
+    echo "[perms=444] etc/guard-secpol=$OUT/extra/guard-secpol" >> "$FILES"
+fi
+
 IP=dhcp
 [ "$NET" = bridge ] && IP=10.10.10.2
 cd "$OUT/qsti"
 mkqnximage --type=qemu --arch=x86_64 --hostname=guard --ip="$IP" --sshd-pregen=yes \
-    --ssh-ident="$KEY.pub" --extra-dirs="$OUT/extra" --noprompt --build > "$OUT/mkqnximage.log" 2>&1 \
+    --ssh-ident="$KEY.pub" --extra-dirs="$OUT/extra" "${SECPOL_ARGS[@]}" --noprompt --build > "$OUT/mkqnximage.log" 2>&1 \
     || { tail -20 "$OUT/mkqnximage.log" >&2; exit 1; }
-echo "image built in $OUT/qsti (network: $NET)"
+echo "image built in $OUT/qsti (network: $NET${SECPOL:+, secpol: $SECPOL})"

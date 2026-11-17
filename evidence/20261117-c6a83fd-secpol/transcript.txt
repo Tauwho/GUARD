@@ -1,0 +1,38 @@
+$ cat /system/etc/guard-secpol
+secure
+[exit 0]
+
+$ cat /data/var/log/guard-start.log
+guard start Tue Nov 17 07:37:26 UTC 2026
+inputs: RESULT PASS (12 files, 0 failed)
+secpol: secure
+started guard-sim
+started guard-gate
+started guard-supervisor
+started guard-planner
+started guard-bridge
+[exit 0]
+
+$ sh /tmp/denial-check.sh
+secpol mode: secure
+CHECK planner_t -> /dev/guard/gate: secpol denies the connect (exit 3) PASS
+  guardctl: recover: open /dev/guard/gate: Operation not permitted (connect denied)
+CHECK supervisor_t, uid 1104 -> recover: gate uid check (exit 3) PASS
+  guardctl: recover: Operation not permitted (gate uid check)
+CHECK GATE_UNAUTHORIZED_CLIENT: +0 for the secpol denial, +1 for the uid denial PASS
+CHECK operator (root) reaches the gate (exit 0) PASS
+  recovered: mode=READY epoch=1
+RESULT PASS (0 failed)
+[exit 0]
+
+$ cat /tmp/secure-runs.txt
+F0 secure image: final_state=GOAL contacts=0 zone_breaches=0 latches=0 mismatches=0 runner_exit=0
+F1 secure image: final_state=GOAL contacts=0 zone_breaches=0 latches=0 mismatches=0 runner_exit=0
+F2 secure image: final_state=GOAL contacts=0 zone_breaches=0 latches=0 mismatches=0 runner_exit=0
+F3 secure image: final_state=LATCHED contacts=0 zone_breaches=0 latches=1 mismatches=0 runner_exit=0
+F4 secure image: final_state=LATCHED contacts=0 zone_breaches=0 latches=1 mismatches=0 runner_exit=0
+F5 secure image: final_state=GOAL contacts=0 zone_breaches=0 latches=0 mismatches=0 runner_exit=0
+F6 secure image: final_state=READY contacts=0 zone_breaches=0 latches=0 mismatches=0 runner_exit=0
+F7 secure image: final_state=LATCHED contacts=0 zone_breaches=0 latches=1 mismatches=0 runner_exit=0
+F8 secure image: final_state=GOAL contacts=0 zone_breaches=0 latches=0 mismatches=0 runner_exit=0
+[exit 0]

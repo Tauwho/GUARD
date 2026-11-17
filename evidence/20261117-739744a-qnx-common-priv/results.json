@@ -1,0 +1,21 @@
+{
+  "commands": [
+    "/tmp/guard_qnx_common_tests"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "doctest": {
+    "test_cases": {
+      "total": 24,
+      "passed": 24,
+      "failed": 0
+    },
+    "assertions": {
+      "total": 656,
+      "passed": 656,
+      "failed": 0
+    },
+    "status": "SUCCESS"
+  }
+}
