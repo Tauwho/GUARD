@@ -7,6 +7,7 @@
 #include "guard/reason_codes.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cerrno>
 #include <csignal>
 #include <cstdio>
@@ -90,6 +91,7 @@ int exit_of(int err) {
     case EOK:
         return 0;
     case EPERM:
+    case EACCES:
         return 3;
     case ETIMEDOUT:
         return 4;
@@ -317,10 +319,11 @@ int cmd_inject(unsigned fault, long duration, long long param) {
     std::snprintf(ok, sizeof ok, "injected F%u at t_ns=%lld", fault,
                   static_cast<long long>(now_ns()));
     int rc = EOK;
+    // Process faults act on real processes: test image only (guard-hog marks it).
+    if ((fault == 2 || fault == 3 || fault == 7) && access("/system/bin/guard-hog", X_OK) != 0)
+        return error("inject", "process faults need the test image (run-demo.sh --test)", 5);
     switch (fault) {
     case 2: // F2: delayed authorization, guard-hog at 32 (REF-PRIORITIES)
-        if (access("/system/bin/guard-hog", X_OK) != 0)
-            return error("inject", "guard-hog not in this image (test image only)", 5);
         rc = run({"/system/bin/guard-hog", "32", std::to_string(duration > 0 ? duration : 400)},
                  true);
         break;
@@ -335,6 +338,7 @@ int cmd_inject(unsigned fault, long duration, long long param) {
         long ms = duration > 0 ? duration : 2000;
         rc = run({"/bin/sh", "-c",
                   "sleep " + std::to_string(ms / 1000) + "." + std::to_string(ms % 1000 / 100) +
+                      std::to_string(ms % 100 / 10) + std::to_string(ms % 10) +
                       "; slay -f -Q -s SIGCONT guard-supervisor"},
                  true);
         break;
@@ -421,6 +425,8 @@ bool parse_u64(const char *s, unsigned long long max, unsigned long long &out) {
 }
 int usage() {
     std::fputs(kUsage, stderr);
+    if (g_json)
+        std::printf("{\"ok\":false,\"error\":\"usage\",\"exit\":2}\n");
     return 2;
 }
 } // namespace

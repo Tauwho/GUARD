@@ -97,14 +97,14 @@ if [ -n "$SCENARIO" ]; then
     OUTF=$ROOT/build/target-runs/$SCENARIO.jsonl
     mkdir -p "$(dirname "$OUTF")"
     RUNNER=(python3 "$ROOT/eval/target_runner.py" --target "ssh:$ALIAS" --scenario "$ROOT/scenarios/$SCENARIO.yaml" --out "$OUTF")
-    [ -n "$SEED" ] && RUNNER+=(--seed "$SEED")
+    if [ -n "$SEED" ]; then RUNNER+=(--seed "$SEED"); fi
     do_run "${RUNNER[@]}" > /dev/null || echo "   target_runner exit $? (mismatches are in the bundle)"
     CAP+=(--scenario-result "${OUTF%.jsonl}.results.json" --trace "$OUTF" --scenario "$SCENARIO"
-          --run "guardctl status")
+          --run "guardctl status | grep -v -e _ns= -e ticks=")  # D11: no timing fields
     for exe in "$ROOT"/image/out/build/*/guard-* "$ROOT"/image/out/build/guardctl/guardctl; do
         case $exe in *.log) ;; *) [ -f "$exe" ] && [ -x "$exe" ] && CAP+=(--binary "$exe") ;; esac
     done
-    [ -n "$SEED" ] && CAP+=(--seed "$SEED")
+    if [ -n "$SEED" ]; then CAP+=(--seed "$SEED"); fi
 fi
 
 step "5/6 capture evidence ($TOPIC)"

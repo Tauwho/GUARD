@@ -55,7 +55,11 @@ def read_bridge(seconds):
             buffer += chunk
             *lines, buffer = buffer.split(b"\n")
             for line in lines:
-                event = json.loads(line)
+                try:
+                    event = json.loads(line)
+                except ValueError:
+                    bad += 1
+                    continue
                 bad += 0 if validator.is_valid(event) else 1
                 events.append(event)
     return events, bad

@@ -149,8 +149,13 @@ std::string complete_run_end(const std::string &s, std::int64_t t) {
         b.unverifiable, b.latches);
     if (has_margin)
         n += std::snprintf(p + n, sizeof p - n, ",\"min_margin_m\":%.17g", margin);
-    std::snprintf(p + n, sizeof p - n, ",\"sim_duration_ns\":%.0f", duration);
-    return bridge_line(t, "run_end", p);
+    if (s.find("\"sim_duration_ns\":") != std::string::npos)
+        std::snprintf(p + n, sizeof p - n, ",\"sim_duration_ns\":%.0f", duration);
+    // Keep the sim's envelope (src, seq, run_id); only the payload is completed.
+    auto at = s.find("\"payload\":{");
+    (void)t;
+    return at == std::string::npos ? bridge_line(t, "run_end", p)
+                                   : s.substr(0, at) + "\"payload\":{" + p + "}}";
 }
 
 void poll_rings(std::int64_t now) {
@@ -193,8 +198,11 @@ void poll_rings(std::int64_t now) {
             out(l.text, l.t);
     }
     b.pending.erase(b.pending.begin(), b.pending.begin() + static_cast<long>(done));
-    if (b.pending.size() > 20000) // nobody is that far behind; keep memory bounded
+    if (b.pending.size() > 20000) { // keep memory bounded; the dropped lines still count
+        for (std::size_t i = 0; i < 10000; ++i)
+            tally(b.pending[i].text);
         b.pending.erase(b.pending.begin(), b.pending.begin() + 10000);
+    }
 }
 
 void accept_clients() {

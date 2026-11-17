@@ -85,7 +85,9 @@ def doctest_summary(text):
     return out
 
 
-TIME_KEYS = ("time_to_goal_s", "sim_duration_ns", "stop_time_s")
+def timed(key):
+    """Summary keys that measure time (D11): *_s, *_ns, durations."""
+    return key.endswith(("_s", "_ns")) or "duration" in key or "time" in key
 
 
 def sanitize_trace(lines):
@@ -111,12 +113,14 @@ def scenario_results(result_path, trace_path):
         validator = jsonschema.Draft202012Validator(schema)
         for event in trace:
             validator.validate(event)
-    summary = {k: v for k, v in result.get("summary", {}).items() if k not in TIME_KEYS}
+    summary = {k: v for k, v in result.get("summary", {}).items() if not timed(k)}
+    # Mismatch texts can quote measured values; keep only which metric differed.
+    mismatches = [str(m).split(":")[0].split()[0] for m in result.get("mismatches") or []]
     return {
         "source": result.get("source"),
         "commands": result.get("commands"),
         "summary": summary,
-        "mismatches": result.get("mismatches"),
+        "mismatches": mismatches,
         "trace_schema": "contracts/telemetry.schema.json (t_ns = event index, D11)",
         "trace": trace,
     }

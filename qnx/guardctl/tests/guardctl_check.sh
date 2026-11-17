@@ -11,7 +11,9 @@ check() { # check <name> <expected exit> <command...>
     got=$?
     if [ "$got" = "$want" ]; then r=PASS; else r=FAIL; failed=$((failed + 1)); fi
     echo "CHECK $name (exit $want, got $got) $r"
-    [ -n "$out" ] && echo "  out: $(echo "$out" | head -1 | sed 's/t_ns=[0-9]*/t_ns=<n>/')"
+    # D11: no timing values in the transcript (t_ns, *_ns, tick counts).
+    [ -n "$out" ] && echo "  out: $(echo "$out" | head -1 | sed -e 's/t_ns=[0-9]*/t_ns=<n>/' \
+        -e 's/"[a-z_]*_ns":[0-9]*,//g' -e 's/"[a-z_]*ticks":[0-9]*,//g')"
     [ -s /tmp/guardctl_err ] && echo "  err: $(head -1 /tmp/guardctl_err)"
 }
 S=/system/guard/scenarios
