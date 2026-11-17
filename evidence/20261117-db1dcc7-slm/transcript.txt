@@ -1,0 +1,20 @@
+$ cat /data/var/log/guard-start.log
+guard start Tue Nov 17 08:07:26 UTC 2026
+inputs: RESULT PASS (12 files, 0 failed)
+started by slm: guard-sim guard-gate guard-supervisor guard-planner guard-bridge
+[exit 0]
+
+$ sh /tmp/slm-check.sh
+CHECK F0 running: gate MOVING PASS
+CHECK kill -9 supervisor: gate LATCHED, SUPERVISOR_LOST PASS
+CHECK SLM restarted guard-supervisor (new pid) PASS
+CHECK robot stays stopped until recover (LATCHED, v_cmd 0) PASS
+  recover: recovered: mode=READY epoch=2
+CHECK guardctl recover with conditions met: READY PASS
+CHECK motion resumes under the restarted supervisor PASS
+CHECK SLM restarted guard-gate (new pid) PASS
+CHECK restarted gate comes up LATCHED (BOOT) PASS
+  recover: recovered: mode=READY epoch=1
+CHECK after recover the supervisor leases again: MOVING PASS
+RESULT PASS (0 failed)
+[exit 0]
