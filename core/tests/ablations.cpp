@@ -1,6 +1,7 @@
 #include "guard/gate_fsm.hpp"
 #include "guard/supervisor.hpp"
 #include <doctest/doctest.h>
+#include <memory>
 
 namespace {
 void ready(guard::Gate &gate) {
@@ -29,7 +30,10 @@ guard::Proposal proposal() {
 TEST_CASE("freshness ablation removes provenance checks but retains sensor health") {
     guard::Config config;
     config.ablate_freshness = true;
-    guard::Supervisor supervisor(config), control;
+    // Heap: two Supervisors (~300 KB each) overflow the QNX main-thread stack.
+    auto owned = std::make_unique<guard::Supervisor>(config);
+    auto owned_control = std::make_unique<guard::Supervisor>();
+    guard::Supervisor &supervisor = *owned, &control = *owned_control;
     REQUIRE(supervisor.observe(observation(), 0));
     REQUIRE(control.observe(observation(), 0));
     auto request = proposal();
@@ -44,7 +48,9 @@ TEST_CASE("freshness ablation removes provenance checks but retains sensor healt
 TEST_CASE("stopping ablation removes check 11 without removing speed checks") {
     guard::Config config;
     config.ablate_stopping = true;
-    guard::Supervisor supervisor(config), control;
+    auto owned = std::make_unique<guard::Supervisor>(config);
+    auto owned_control = std::make_unique<guard::Supervisor>();
+    guard::Supervisor &supervisor = *owned, &control = *owned_control;
     auto source = observation();
     source.obstacle_count = 1;
     source.obstacles[0] = {0.6, 0, 0.3};
