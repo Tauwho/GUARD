@@ -1,0 +1,11 @@
+{
+  "commands": [
+    "cat /data/var/log/guard-start.log",
+    "sh /tmp/slm-check.sh"
+  ],
+  "exit_codes": [
+    0,
+    0
+  ],
+  "doctest": {}
+}
