@@ -18,8 +18,8 @@ Supersedes the v1 draft in PR #65 (scenes kept, re-cut to the DEMO steps).
 - Every claim is backed by a file on `main` (claims table below).
 
 Total **2:46** (final cut, `docs/video/duration.txt`), hard limit under 3:00. Footage is
-recorded from tag `v1.0-rc1` (P3). Scene 1 uses the F0 replay (a normal run) so the stop is
-first seen in scene 3; the target scene uses `image/run-demo.sh --test --dashboard`.
+recorded from tag `v1.0-rc1` (P3). Scene 1 uses the F0 replay (a normal run) to set the scene
+before any fault; the target scene uses `image/run-demo.sh --test --dashboard`.
 
 ## Scenes
 
@@ -63,10 +63,9 @@ first seen in scene 3; the target scene uses `image/run-demo.sh --test --dashboa
 | C2 | F3 under B2 ends LATCHED with `GATE_SUPERVISOR_LOST`; under B1 it ends MOVING | `scenarios/F3.yaml` `expected`; DEMO step 1 exit 0 |
 | C3 | The gate stops the robot on its own timer when no lease is renewed | README intro; `docs/architecture.md` |
 | C4 | F6 under B2 is refused with `REJ_MAP_VERSION` and has 0 violations; under B0 at least 1 | `scenarios/F6.yaml` `expected`; DEMO step 3 |
-| C5 | `guardctl recover` is refused with `GATE_RECOVERY_UNMET` until recovery conditions hold | `contracts/guardctl.md` |
+| C5 | `guardctl recover` is refused with `GATE_RECOVERY_UNMET` until recovery conditions hold | `contracts/guardctl.md`; on the target: `progress/P.md` F2 (`unmet: supervisor_registered`, exit 1) |
 | C6 | Results are from the host (Linux) harness | README Results; `docs/results/host-linux.json` |
 | C7 | Simulation-only research prototype | README Limits; `docs/limits.md` |
-| C8 | The target run is shown as behaviour only (modes, latch cause, reason text) | DEMO step 4; `evidence/20261117-604281c-scenario-F3/` |
+| C8 | The target run is shown as behaviour only (modes, latch cause, reason text) | DEMO step 4 output filters; `progress/P.md` F2 transcript; dashboard numbers hidden in capture (`docs/decisions/P.md`) |
 | C9 | On the target each component is its own process | `qnx/README.md`; README Evidence Map (`process-*` bundles) |
-
-C5 is shown on the target too: `recover` answers `unmet: supervisor_registered` (exit 1).
+| C10 | End card "Stale decisions can't move the robot." is the project tagline, shown after the evidence for it in simulation | README tagline; C2-C4 (stale lease: stop; stale map: refused) |

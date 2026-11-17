@@ -167,4 +167,4 @@ harness, and target bundles are transcripts of runs on our own machines. By defa
 the LLM advisor replays a synthetic test fixture, not model output; live model runs
 stay on our own machines (`host/ADVISOR.md`). The rule-based planner is the default
 demo path. The demo video's narration is a synthetic voice (offline Windows
-text-to-speech); the footage is screen recordings of the real tools at `v1.0-rc1`.
+text-to-speech); the footage is screen captures and terminal replays of captured runs at `v1.0-rc1`.

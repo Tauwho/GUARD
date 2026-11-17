@@ -100,20 +100,23 @@ hold.
 Here we show behaviour, not timings.
 
 23
-00:02:22,000 --> 00:02:26,287
+00:02:22,000 --> 00:02:26,313
 Every number in our results comes from the
 host Linux harness,
 
 24
-00:02:26,287 --> 00:02:28,016
+00:02:26,313 --> 00:02:28,053
 and is labelled that way.
 
 25
-00:02:28,016 --> 00:02:33,479
+00:02:28,053 --> 00:02:31,253
 GUARD is a simulation-only research
-prototype, not for real robots or
-patients.
+prototype,
 
 26
+00:02:31,253 --> 00:02:33,479
+not for real robots or patients.
+
+27
 00:02:41,800 --> 00:02:44,700
 Stale decisions can't move the robot.

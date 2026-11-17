@@ -249,7 +249,8 @@ commit passed `make check` and `tools/fresh_clone_demo.sh`.
 - Final cut 2:46 (166 s), 1920x1080 30 fps H.264 + AAC, recorded from `v1.0-rc1`. Kept
   outside the repo with its build scripts, claims ledger, audio licence log and QC report.
 - Footage: host replays (F0, F3, F6 B2/B0) and the README on GitHub recorded as Edge's own
-  rendering; terminal shots replay real captured runs verbatim; the target scene is a live
+  rendering; terminal shots replay real captured runs verbatim (the target start log is trimmed to
+  the GUARD lines, marked on screen); the target scene is a live
   QEMU run of DEMO step 4 with the dashboard's numeric readouts hidden (D11).
 - Voice-over: offline Windows TTS (synthetic, disclosed in `docs/devpost/description.md`
   and on the end card). No music, no sound effects.
