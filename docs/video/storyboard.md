@@ -27,13 +27,9 @@ Total **2:58**, hard limit under 3:00. Footage is recorded from tag `v1.0-rc1` (
 | 2 | 0:10-0:35 | 1 | Host terminal: F3 replay under B2, then under B1; final states highlighted | "Supervisor killed: GUARD latches. A heartbeat baseline keeps moving." |
 | 3 | 0:35-1:10 | 2 | Dashboard replay of `out/F3-B2.jsonl`: lease bar drains, STOPPING, LATCHED, reason journal | "No lease renewal, so the gate stops the robot on its own timer." |
 | 4 | 1:10-1:45 | 3 | Split: F6 under B2 (robot waits, `REJ_MAP_VERSION`) and under B0 (robot crosses the active MRI zone) | "Stale map: refused, with a reason code." |
-| 5 | 1:45-2:30 | 4 | Target terminal + live dashboard (speed and lease-time readouts cropped): `guardctl status` filtered to mode and latch cause, `inject F3`, `status`, `recover` | "Same fault on QNX 8.0 in QEMU: behaviour only." (planned (B5); fallback below) |
+| 5 | 1:45-2:30 | 4 | Target terminal + live dashboard (speed and lease-time readouts cropped): `guardctl status` filtered to mode and latch cause, `inject F3`, `status`, `recover` | "Same fault on QNX 8.0 in QEMU: behaviour only." |
 | 6 | 2:30-2:55 | 5 | README Results block (host Linux harness), then the Limits list | "Results: host (Linux) harness. Simulation-only research prototype." |
 | end | 2:55-2:58 | - | End card: repository URL | "Stale decisions can't move the robot." |
-
-**Fallback (brief §7):** if B5 is not DONE at Mon 7 Dec 23:59, scene 5 shows the host F3
-replay at a closer zoom plus the README Evidence Map rows labelled "behaviour only",
-and its caption drops "on QNX". The captions file then changes in the same PR.
 
 ## Narration (about 300 words)
 

@@ -20,7 +20,7 @@
   <rect width="960" height="560" fill="#ffffff"/>
 
   <rect class="zone" x="20" y="20" width="920" height="390" rx="8"/>
-  <text class="z" x="36" y="42">Design, QNX 8.0 target in QEMU: one process per box (docs/architecture.md); target processes land in Stream B</text>
+  <text class="z" x="36" y="42">Design, QNX 8.0 target in QEMU: one process per box (docs/architecture.md); evidence in README Evidence Map</text>
   <rect class="zone" x="20" y="425" width="920" height="115" rx="8"/>
   <text class="z" x="924" y="447" text-anchor="end">Host (Linux or WSL2)</text>
 

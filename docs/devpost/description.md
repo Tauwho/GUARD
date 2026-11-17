@@ -26,10 +26,10 @@ untrusted planner only proposes motion; a supervisor checks each proposal agains
 own view of the world and grants a short, epoch-fenced lease; a separate gate stops
 the robot when the lease runs out (`docs/architecture.md`).
 
-Today the checks, the lease rules and the gate state machine run in a portable C++17
-core under a deterministic host harness (`core/`, `host/guard-replay`). The QNX 8.0
-processes that wire this core to message passing, timers and resource managers (gate,
-supervisor, planner, simulator, bridge, guardctl) are planned (B2, B3, B5) and run in
+The checks, the lease rules and the gate state machine are a portable C++17 core.
+It runs under a deterministic host harness (`core/`, `host/guard-replay`) and inside
+the QNX 8.0 processes that wire it to message passing, timers and resource managers
+(gate, supervisor, planner, simulator, bridge, guardctl; `qnx/`). The target runs in
 QEMU (x86_64), not on hardware.
 
 GUARD is a simulation-only research prototype. It is not a safety product, not a
@@ -64,11 +64,20 @@ REF-CONTRACTS, REF-PRIORITIES):
   (README Evidence Map, behaviour only);
 - a CPU hog at a fixed `SCHED_FIFO` priority for fault F2: built and tested in
   `qnx/hog`;
-- a boot image from `mkqnximage` with GUARD's users (uids 1101-1106) and the hog;
-  no GUARD processes in the image yet (`image/README.md`, evidence `image-layout`);
-- native message passing (`MsgSend` / `MsgReceive` / `MsgReply`) with `TimerTimeout`,
-  `/dev/guard/*` and `/dev/sim/*` resource managers, gate timer pulses and priority
-  inheritance on the proposal path: planned (B2, B3).
+- a boot image from `mkqnximage` with GUARD's users (uids 1101-1106) that starts the
+  GUARD processes; `image/run-demo.sh` boots it in QEMU (evidence `image-demo`);
+- the gate as the `/dev/guard/gate` resource manager on its own timer: lease
+  expiry stops the robot, a stale epoch is refused, and after `kill -9` of the
+  supervisor it stops and latches `SUPERVISOR_LOST` (evidence `process-gate`,
+  `scenario-F3`);
+- the supervisor on native message passing (`name_attach`, `MsgSend` /
+  `MsgReceive` / `MsgReply`): it authorises a proposal, refuses replays, unknown
+  observations and stale observations with reason codes, and refuses a client
+  that is not the planner (evidence `process-supervisor`, `process-planner`);
+- a secpol policy so the planner cannot connect to the gate (evidence `secpol`),
+  SLM ordered start and restart into LATCHED (evidence `slm`), and a tracelogger
+  timeline from proposal to lease expiry (evidence `tracelogger`);
+- F0-F8 on the target (evidence `scenario-F0` to `scenario-F8`).
 
 Target results are shown as behaviour only: transcripts, reason codes and test
 results, never measurements (D11).
@@ -93,7 +102,8 @@ its written hypothesis in every scenario (0 B2 mismatches), one repeat per scena
 configuration. A separate 50-seed host run (CI run 43887605751, 3,150 runs, linked in
 `progress/A.md`) also had 0 B2 mismatches. Seeds vary staff and planner timing within
 small bounds; the report says this alone does not establish statistical independence.
-Target runs are shown only as behaviour (reason codes, modes, logs; video planned, P4).
+Target runs (F0-F8 in QEMU) are shown only as behaviour: reason codes, modes, logs
+and test results in the README Evidence Map, never measurements.
 
 ## Challenges
 
@@ -131,9 +141,6 @@ Target runs are shown only as behaviour (reason codes, modes, logs; video planne
 
 ## What's next
 
-- The GUARD processes on the target, then F0, F1 and F3 there: planned (B2-B5); F2,
-  F4, F7 and F8: planned (B7).
-- A secpol policy so the planner cannot connect to the motor at all: planned (B6).
 - The LLM route advisor (Qwen2.5-1.5B, D23) is on the host today with a recorded
   default (A6); behind the target planner over C9: planned (B9).
 - Signed proposals (HMAC), so a planner cannot misstate which observation it used:

@@ -197,6 +197,21 @@ URL) and release-tag, which P3 (10 Dec) and the recording (13 Dec) produce.
   43887605751 (3,150 runs, 0 B2 mismatches), with the report's own independence caveat.
 - Done early because A finished; S2 on Sat 5 Dec re-runs `--fetch` if main moves.
 
+### S3 (early) — B landed: demo and package refresh (2026-11-17)
+
+- Stream B on main at `3b61f5a`: scope B0-B7, B10, B11 DONE; B8 MANUAL with evidence in
+  `progress/B.md`; B9 (STRETCH) OPEN. Main CI green.
+- `demo/DEMO.md` target setup and step 4 are `ready` on `image/run-demo.sh --dashboard`;
+  the fallback is gone. `python tools/check_demo_commands.py` -> `PASS (every ready
+  command exists on main)`.
+- README intro, Why-QNX and How-it-works, `docs/devpost/description.md` (What it does,
+  QNX technologies, Results, What's next), the `docs/architecture.svg` header and the
+  video shot list/storyboard now describe the built QNX processes, citing evidence
+  bundles as behaviour only. `python tools/build_readme.py --check` -> PASS;
+  `check_submission.py`, `check_architecture_svg.py`, `check_readme_links.py` PASS;
+  `python tools/check.py --fast` -> `RESULT: GREEN`.
+- S3 (B5 decision on 7 Dec) is settled early: B5 is DONE, the target scene is recorded.
+
 ## Next
 - P5 (architecture SVG + Limits), then P6, P3 (10 Dec), P4 (13 Dec).
 - Mon 7 Dec: if B5 is not DONE, switch DEMO step 4 to the host fallback by hand.

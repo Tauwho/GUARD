@@ -9,16 +9,17 @@ distance and restricted zones, then grants a short, epoch-fenced lease. A
 separate gate process uses its own timer to stop the robot when the lease
 expires, even if the supervisor has died.
 
-Today the checks, lease rules and gate state machine run in a portable C++17
-core under a deterministic host harness; the QNX processes that wire it to
-message passing, timers and resource managers land with Stream B (planned
-B2-B5) and run in QEMU, not on hardware.
+The checks, lease rules and gate state machine are a portable C++17 core. The
+same core runs under a deterministic host harness and inside QNX 8.0 processes
+(gate, supervisor, planner, simulator, bridge, guardctl) that wire it to message
+passing, timers and resource managers. The target runs in QEMU, not on hardware;
+target runs are reported as behaviour only (Evidence Map below).
 
 Why QNX: the gate runs as an independent resource-manager process with its own
 timer and message path, so the component that stops the robot does not share a
-fate with the component that authorises it. In the design the supervisor, gate,
-planner and simulator are separate processes; only the planner is treated as
-untrusted.
+fate with the component that authorises it. The supervisor, gate, planner and
+simulator are separate processes; only the planner is treated as untrusted, and
+a secpol policy stops it from connecting to the gate at all.
 
 > **Status:** in development for the QNX Global Hackathon 2026 (Robotics &
 > Medical). Internal code freeze 10 Dec 2026, submission 15 Dec 2026.
@@ -62,6 +63,7 @@ source ~/qnx800/qnxsdp-env.sh
 image/run-demo.sh                 # user-mode networking, ssh on 127.0.0.1:2222, no sudo
 image/run-demo.sh --net bridge    # br0, 10.10.10.2 (docs/setup.md Option B)
 image/run-demo.sh --test          # adds guard-hog (fault F2)
+image/run-demo.sh --dashboard     # boot, live dashboard on http://127.0.0.1:8765, run F0
 image/run-demo.sh --stop
 ```
 <!-- gen:quickstart-end -->
@@ -94,6 +96,30 @@ B2 mismatches are failures (CI gates them). Baseline mismatches are expected: B0
 
 | Evidence | Where it ran | Commit | Contracts | Bundle |
 |---|---|---|---|---|
+| scenario-f0 | QNX 8.0 target (behaviour only) | `db1dcc7` | contracts-v1.2 | [20261117-db1dcc7-scenario-F0](evidence/20261117-db1dcc7-scenario-F0/manifest.json) |
+| slm | QNX 8.0 target (behaviour only) | `db1dcc7` | contracts-v1.2 | [20261117-db1dcc7-slm](evidence/20261117-db1dcc7-slm/manifest.json) |
+| tracelogger | QNX 8.0 target (behaviour only) | `55753de` | contracts-v1.2 | [20261117-55753de-tracelogger](evidence/20261117-55753de-tracelogger/manifest.json) |
+| qnx-common-priv | QNX 8.0 target (behaviour only) | `739744a` | contracts-v1.2 | [20261117-739744a-qnx-common-priv](evidence/20261117-739744a-qnx-common-priv/manifest.json) |
+| secpol | QNX 8.0 target (behaviour only) | `c6a83fd` | contracts-v1.2 | [20261117-c6a83fd-secpol](evidence/20261117-c6a83fd-secpol/manifest.json) |
+| image-demo | QNX 8.0 target (behaviour only) | `b91ea6b` | contracts-v1.2 | [20261117-b91ea6b-image-demo](evidence/20261117-b91ea6b-image-demo/manifest.json) |
+| image-inputs | QNX 8.0 target (behaviour only) | `179b8d3` | contracts-v1.2 | [20261117-179b8d3-image-inputs](evidence/20261117-179b8d3-image-inputs/manifest.json) |
+| scenario-f7 | QNX 8.0 target (behaviour only) | `604281c` | contracts-v1.2 | [20261117-604281c-scenario-F7](evidence/20261117-604281c-scenario-F7/manifest.json) |
+| scenario-f3 | QNX 8.0 target (behaviour only) | `604281c` | contracts-v1.2 | [20261117-604281c-scenario-F3](evidence/20261117-604281c-scenario-F3/manifest.json) |
+| scenario-f2 | QNX 8.0 target (behaviour only) | `604281c` | contracts-v1.2 | [20261117-604281c-scenario-F2](evidence/20261117-604281c-scenario-F2/manifest.json) |
+| qnx-common-tlm | QNX 8.0 target (behaviour only) | `604281c` | contracts-v1.2 | [20261117-604281c-qnx-common-tlm](evidence/20261117-604281c-qnx-common-tlm/manifest.json) |
+| scenario-f8 | QNX 8.0 target (behaviour only) | `77a4b96` | contracts-v1.2 | [20261117-77a4b96-scenario-F8](evidence/20261117-77a4b96-scenario-F8/manifest.json) |
+| scenario-f6 | QNX 8.0 target (behaviour only) | `77a4b96` | contracts-v1.2 | [20261117-77a4b96-scenario-F6](evidence/20261117-77a4b96-scenario-F6/manifest.json) |
+| scenario-f5 | QNX 8.0 target (behaviour only) | `77a4b96` | contracts-v1.2 | [20261117-77a4b96-scenario-F5](evidence/20261117-77a4b96-scenario-F5/manifest.json) |
+| scenario-f4 | QNX 8.0 target (behaviour only) | `77a4b96` | contracts-v1.2 | [20261117-77a4b96-scenario-F4](evidence/20261117-77a4b96-scenario-F4/manifest.json) |
+| scenario-f1 | QNX 8.0 target (behaviour only) | `77a4b96` | contracts-v1.2 | [20261117-77a4b96-scenario-F1](evidence/20261117-77a4b96-scenario-F1/manifest.json) |
+| scenario-f0 | QNX 8.0 target (behaviour only) | `8c1e748` | contracts-v1.2 | [20261117-8c1e748-scenario-F0](evidence/20261117-8c1e748-scenario-F0/manifest.json) |
+| qnx-ctl-bridge | QNX 8.0 target (behaviour only) | `dbcd97c` | contracts-v1.2 | [20261117-dbcd97c-qnx-ctl-bridge](evidence/20261117-dbcd97c-qnx-ctl-bridge/manifest.json) |
+| process-planner | QNX 8.0 target (behaviour only) | `41aa9a7` | contracts-v1.1 | [20261117-41aa9a7-process-planner](evidence/20261117-41aa9a7-process-planner/manifest.json) |
+| process-supervisor | QNX 8.0 target (behaviour only) | `edfa19a` | contracts-v1.1 | [20261117-edfa19a-process-supervisor](evidence/20261117-edfa19a-process-supervisor/manifest.json) |
+| process-sim | QNX 8.0 target (behaviour only) | `f948929` | contracts-v1.1 | [20261117-f948929-process-sim](evidence/20261117-f948929-process-sim/manifest.json) |
+| qnx-common-tlm | QNX 8.0 target (behaviour only) | `f948929` | contracts-v1.1 | [20261117-f948929-qnx-common-tlm](evidence/20261117-f948929-qnx-common-tlm/manifest.json) |
+| process-gate | QNX 8.0 target (behaviour only) | `2395caa` | contracts-v1.1 | [20261117-2395caa-process-gate](evidence/20261117-2395caa-process-gate/manifest.json) |
+| core-on-target | QNX 8.0 target (behaviour only) | `5f957d9` | contracts-v1.1 | [20261117-5f957d9-core-on-target](evidence/20261117-5f957d9-core-on-target/manifest.json) |
 | image-layout | QNX 8.0 target (behaviour only) | `6913b85` | contracts-v1.1 | [20261116-6913b85-image-layout](evidence/20261116-6913b85-image-layout/manifest.json) |
 | qnx-hog | QNX 8.0 target (behaviour only) | `3ed822e` | contracts-v1.1 | [20261116-3ed822e-qnx-hog](evidence/20261116-3ed822e-qnx-hog/manifest.json) |
 | qnx-common-priv | QNX 8.0 target (behaviour only) | `f6dc640` | contracts-v1.1 | [20261116-f6dc640-qnx-common-priv](evidence/20261116-f6dc640-qnx-common-priv/manifest.json) |
@@ -112,8 +138,8 @@ measurements. Numbers appear only in the host (Linux) Results section above.
 
 ![GUARD design: planner, supervisor, gate, simulator, bridge and guardctl as separate QNX processes; dashboard and guard-replay on the host](docs/architecture.svg)
 
-The diagram shows the design in `docs/architecture.md`; the target processes land
-with Stream B (scope items B2-B5).
+The diagram shows the design in `docs/architecture.md`; each target box is a QNX
+process on the target image, with its evidence bundle in the Evidence Map.
 
 1. The planner proposes a trajectory with a map version and a timestamp.
 2. The supervisor rejects the proposal if the map is stale, the stopping
