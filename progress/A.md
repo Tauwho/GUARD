@@ -104,3 +104,13 @@ A8: done 6ac05ec (#179; actual C++ property CI https://github.com/Tauwho/GUARD/a
 - Linux validation at f8916fc: GCC/Clang debug + ASan build/test PASS; Stream A acceptance (tools/check.py, real Hypothesis and fresh-clone demo) PASS: https://github.com/Tauwho/GUARD/actions/runs/44005030555 . Local filesystem-denied results remain separate.
 - Fresh-context adversarial self-review: 0 blocker, 0 should; one skipped nit requesting another comma-locale sample, since the existing locale regression already parses a fractional decimal under available comma locales.
 - Next: B rebuilds merged main with SDP 8.0 and captures core-on-target evidence; the scratch strtod result does not validate this final implementation.
+
+
+## QNX target test follow-up (#187)
+- Adopt B's tested commit 7924758 unchanged in production: decimal cutoff recovers finite DBL_MAX from SDP 8.0 strtod overflow; two ablation tests move large Supervisor objects to heap (test-only).
+- Existing DBL_MAX regression failed on target before this fix. Added signed near-cutoff acceptance and immediate-above-cutoff rejection with output preservation.
+- Fresh-context self-review: 0 blocker, 0 should; one boundary-test nit addressed. Decimal cutoff independently verified against integer 2**1024 - 2**970.
+- B reports host and QSTI 112/112 cases, 3294 assertions at 7924758 in https://github.com/Tauwho/GUARD/pull/187 . This is teammate evidence, not a new local/merged-main target run.
+- Local `python tools/check.py`: format/policy/contracts/ownership/doc-links/brief-sync/ruff/pytest PASS; configure/build/ctest fail on filesystem permission-denied writes, so local RESULT RED is an environment blocker, not a host pass.
+- Linux `python tools/check.py`, explicit Hypothesis and fresh-clone demo PASS in Stream A acceptance at f497a8b: https://github.com/Tauwho/GUARD/actions/runs/44010730026/job/133796835019 . Required PR checks must be green before merge.
+- Final fresh-context self-review: 0 blocker, 0 should, 0 outstanding nit. After merge B recaptures core-on-target evidence and closes #187; no unrelated feature work.

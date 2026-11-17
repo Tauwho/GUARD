@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <limits>
 #include <string_view>
 
 namespace guard {
@@ -99,8 +100,14 @@ class BufferJson {
         if (end.ec != std::errc{})
             return false;
         char *parsed_end = nullptr;
-        const double parsed = std::strtod(buffer, &parsed_end);
-        if (parsed_end != end.ptr || !std::isfinite(parsed) || (parsed == 0 && nonzero))
+        double parsed = std::strtod(buffer, &parsed_end);
+        if (parsed_end != end.ptr)
+            return false;
+        // SDP 8.0 strtod overflows at DBL_MAX itself ("1.7976931348623157e308" -> inf).
+        // Below the true overflow point (2^1024 - 2^970) the correct result is DBL_MAX.
+        if (std::isinf(parsed) && below_overflow(buffer, used - 1, sign * exponent - fractional))
+            parsed = std::copysign(std::numeric_limits<double>::max(), parsed);
+        if (!std::isfinite(parsed) || (parsed == 0 && nonzero))
             return false;
         output = parsed;
         return true;
@@ -120,6 +127,22 @@ class BufferJson {
     }
 
   private:
+    // True if |digits| * 10^exponent10 is below the double overflow point 2^1024 - 2^970,
+    // whose first 64 decimal digits are kOverflow (309 digits in total, nonzero tail).
+    // `digits` may start with '-' and leading zeros; at most 63 digits (raw.size() < 64).
+    static bool below_overflow(const char *digits, std::size_t length, int exponent10) {
+        static constexpr std::string_view kOverflow =
+            "1797693134862315807937289714053034150799341327100378269361737789";
+        std::string_view d(digits, length);
+        if (!d.empty() && d.front() == '-')
+            d.remove_prefix(1);
+        while (!d.empty() && d.front() == '0')
+            d.remove_prefix(1);
+        const long magnitude = static_cast<long>(d.size()) + exponent10;
+        if (magnitude != 309)
+            return magnitude < 309;
+        return d.compare(kOverflow.substr(0, d.size())) <= 0;
+    }
     void whitespace() {
         while (position_ < source_.size() &&
                (source_[position_] == ' ' || source_[position_] == '\n' ||
