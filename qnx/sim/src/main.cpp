@@ -82,7 +82,9 @@ struct Sim {
     bool watchdog = false, contact = false, breach = false, margin_measured = false;
     unsigned contacts = 0, breaches = 0;
     double min_margin = 1000;
-    int zone_override = -1;
+    int zone_override = -1;          // map zone that an injected F6 activates
+    const void *motor_ocb = nullptr; // the gate's open of /dev/sim/motor
+    bool motor_closed = false;       // a gate session ended (gate restarted by SLM, #47)
     Feed sup, plan;
     resmgr_connect_funcs_t feed_connect{}, motor_connect{};
     resmgr_io_funcs_t feed_io{}, motor_io{};
@@ -578,6 +580,18 @@ int motor_devctl(resmgr_context_t *ctp, io_devctl_t *msg, void *ocb) {
     MotorCmd cmd;
     if (rc == EOK)
         rc = read_struct(msg, cmd);
+    if (rc == EOK && ocb != g->motor_ocb) {
+        if (g->motor_closed) {
+            // A restarted gate counts cmd_seq from 1 again. Its sequence starts over, and so
+            // does the plant's (same pose; the actuator watchdog has braked it meanwhile).
+            g->last_seq = 0;
+            if (g->plant) {
+                auto pose = g->plant->pose();
+                g->plant.emplace(g->config, pose, now_ns());
+            }
+        }
+        g->motor_ocb = ocb;
+    }
     if (rc == EOK && cmd.cmd_seq <= g->last_seq)
         rc = EINVAL;
     if (rc == EOK && g->plant && !g->plant->command(cmd, now_ns()))
@@ -589,6 +603,14 @@ int motor_devctl(resmgr_context_t *ctp, io_devctl_t *msg, void *ocb) {
     g->last_seq = cmd.cmd_seq;
     ++g->motor_ok;
     return EOK;
+}
+
+int motor_close(resmgr_context_t *ctp, void *reserved, void *ocb) {
+    if (ocb == g->motor_ocb) {
+        g->motor_ocb = nullptr;
+        g->motor_closed = true;
+    }
+    return iofunc_close_ocb_default(ctp, reserved, static_cast<iofunc_ocb_t *>(ocb));
 }
 
 // ---- C6 ----
@@ -653,6 +675,7 @@ int main(int argc, char **argv) {
         return fail("attach /dev/sim/world", rc);
     iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &g->motor_connect, _RESMGR_IO_NFUNCS, &g->motor_io);
     g->motor_io.devctl = motor_devctl;
+    g->motor_io.close_ocb = motor_close;
     iofunc_attr_init(&g->motor_attr, S_IFNAM | 0666, nullptr, nullptr);
     iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &g->feed_connect, _RESMGR_IO_NFUNCS, &g->feed_io);
     g->feed_io.read = feed_read;

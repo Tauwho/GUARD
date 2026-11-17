@@ -12,24 +12,21 @@ if [ -f /system/etc/guard-secpol ]; then
     T() { echo "-T $1"; }
     echo "secpol: $(cat /system/etc/guard-secpol)" >> /data/var/log/guard-start.log
 fi
-if [ -x /system/bin/guard-sim ]; then
-    on -d $(T sim_t) /system/bin/guard-sim
-    waitfor /dev/sim/motor 5 || echo "guard-sim: /dev/sim/motor missing" >> /data/var/log/guard-start.log
+start() { # start <binary> <type> [waitfor path]
+    [ -x /system/bin/$1 ] || { echo "skipped $1 (not in image)" >> /data/var/log/guard-start.log; return; }
+    on -d $(T $2) /system/bin/$1
+    [ -n "$3" ] && { waitfor $3 5 || echo "$1: $3 missing" >> /data/var/log/guard-start.log; }
+    echo "started $1" >> /data/var/log/guard-start.log
+}
+if [ -x /system/bin/slm ] && [ -f /system/etc/guard-slm.xml ]; then
+    # SLM image (#47): SLM starts the same order and restarts a process that dies.
+    on -d slm /system/etc/guard-slm.xml
+    waitfor /dev/name/local/guard/supervisor 10 || echo "slm: supervisor name missing" >> /data/var/log/guard-start.log
+    echo "started by slm: guard-sim guard-gate guard-supervisor guard-planner guard-bridge" >> /data/var/log/guard-start.log
+else
+    start guard-sim sim_t /dev/sim/motor
+    start guard-gate gate_t /dev/guard/gate
+    start guard-supervisor supervisor_t /dev/name/local/guard/supervisor
+    start guard-planner planner_t
+    start guard-bridge bridge_t
 fi
-if [ -x /system/bin/guard-gate ]; then
-    on -d $(T gate_t) /system/bin/guard-gate
-    waitfor /dev/guard/gate 5 || echo "guard-gate: /dev/guard/gate missing" >> /data/var/log/guard-start.log
-fi
-if [ -x /system/bin/guard-supervisor ]; then
-    on -d $(T supervisor_t) /system/bin/guard-supervisor
-    waitfor /dev/name/local/guard/supervisor 5 || echo "guard-supervisor: name missing" >> /data/var/log/guard-start.log
-fi
-if [ -x /system/bin/guard-planner ]; then
-    on -d $(T planner_t) /system/bin/guard-planner
-fi
-if [ -x /system/bin/guard-bridge ]; then
-    on -d $(T bridge_t) /system/bin/guard-bridge
-fi
-for p in guard-sim guard-gate guard-supervisor guard-planner guard-bridge; do
-    [ -x /system/bin/$p ] && echo "started $p" >> /data/var/log/guard-start.log || echo "skipped $p (not in image)" >> /data/var/log/guard-start.log
-done

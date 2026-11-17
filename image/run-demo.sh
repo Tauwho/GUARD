@@ -1,6 +1,6 @@
 #!/bin/bash
 # Boot the GUARD image and get the demo going (B-9, #43). Run on the QNX host, SDP env sourced.
-#   image/run-demo.sh [--net user|bridge] [--rebuild] [--test] [--secpol develop|secure] [--dashboard [Fn]]
+#   image/run-demo.sh [--net user|bridge] [--rebuild] [--test] [--secpol develop|secure] [--slm] [--dashboard [Fn]]
 # Builds the image if needed (image/build-image.sh), boots QEMU in the background, waits for
 # ssh and the GUARD start log, then prints the live dashboard command (dashboard/relay.py).
 #   --dashboard [Fn]  also start the dashboard relay on the bridge and run scenario Fn
@@ -16,6 +16,7 @@ while [ $# -gt 0 ]; do
         --rebuild) REBUILD=1; shift ;;
         --test) BUILD_ARGS+=(--test); REBUILD=1; shift ;;
         --secpol) BUILD_ARGS+=(--secpol "$2"); REBUILD=1; shift 2 ;;
+        --slm) BUILD_ARGS+=(--slm); REBUILD=1; shift ;;
         --dashboard)
             DASH=F0
             case ${2:-} in F[0-8]) DASH=$2; shift ;; esac
@@ -25,7 +26,7 @@ while [ $# -gt 0 ]; do
             [ -f "$OUT/qsti/output/qemu.pid" ] && kill "$(cat "$OUT/qsti/output/qemu.pid")" 2>/dev/null
             echo "target stopped"; exit 0 ;;
         -h|--help) sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
-        *) echo "usage: $0 [--net user|bridge] [--rebuild] [--test] [--secpol develop|secure] [--dashboard [Fn]] | --stop" >&2; exit 2 ;;
+        *) echo "usage: $0 [--net user|bridge] [--rebuild] [--test] [--secpol develop|secure] [--slm] [--dashboard [Fn]] | --stop" >&2; exit 2 ;;
     esac
 done
 KEY=$HOME/.ssh/guard_target_ed25519

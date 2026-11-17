@@ -4,6 +4,7 @@
 #     --net user    (default) DHCP for QEMU user-mode networking, no sudo (docs/setup.md Option C)
 #     --net bridge  static 10.10.10.2 on br0 (docs/setup.md Option B)
 #     --test        also add guard-hog (test image only, fault F2)
+#     --slm         start GUARD under SLM, which restarts a process that dies (#47)
 #     --secpol develop|secure
 #                   develop: secpol records a policy (image/secpol/generate.sh)
 #                   secure:  enforce image/secpol/guard.secpol (#46, D22)
@@ -16,12 +17,14 @@ OUT=$ROOT/image/out
 NET=user
 TEST=0
 SECPOL=
+SLM=0
 while [ $# -gt 0 ]; do
     case $1 in
         --net) NET=$2; shift 2 ;;
         --test) TEST=1; shift ;;
         --secpol) SECPOL=$2; shift 2 ;;
-        *) echo "usage: $0 [--net user|bridge] [--test] [--secpol develop|secure]" >&2; exit 2 ;;
+        --slm) SLM=1; shift ;;
+        *) echo "usage: $0 [--net user|bridge] [--test] [--secpol develop|secure] [--slm]" >&2; exit 2 ;;
     esac
 done
 [ "$NET" = user ] || [ "$NET" = bridge ] || { echo "--net must be user or bridge" >&2; exit 2; }
@@ -89,6 +92,11 @@ case $SECPOL in
     *) echo "--secpol must be develop or secure" >&2; exit 2 ;;
 esac
 
+# SLM (#47): slm from the SDP goes into the image only, never into the repo.
+if [ "$SLM" = 1 ]; then
+    echo "[perms=555] bin/slm=$QNX_TARGET/x86_64/usr/sbin/slm" >> "$FILES"
+    echo "[perms=444] etc/guard-slm.xml=$ROOT/image/slm/guard-slm.xml" >> "$FILES"
+fi
 if [ -n "$SECPOL" ]; then
     echo "$SECPOL" > "$OUT/extra/guard-secpol"
     echo "[perms=444] etc/guard-secpol=$OUT/extra/guard-secpol" >> "$FILES"

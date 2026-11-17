@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!-- image/slm/guard-slm.xml (B10, #47): SLM starts GUARD in order and restarts a process that
+     dies. A restarted gate comes up LATCHED (BOOT); a restarted supervisor registers a new
+     epoch, and the gate stays LATCHED until `guardctl recover` with every condition met. -->
+<SLM:system>
+    <SLM:component name="guard-sim">
+        <SLM:command>/system/bin/guard-sim</SLM:command>
+        <SLM:waitfor wait="pathname">/dev/sim/motor</SLM:waitfor>
+        <SLM:stop stop="signal">SIGTERM</SLM:stop>
+        <SLM:repair>restart</SLM:repair>
+    </SLM:component>
+    <SLM:component name="guard-gate">
+        <SLM:command>/system/bin/guard-gate</SLM:command>
+        <SLM:depend>guard-sim</SLM:depend>
+        <SLM:waitfor wait="pathname">/dev/guard/gate</SLM:waitfor>
+        <SLM:stop stop="signal">SIGTERM</SLM:stop>
+        <SLM:repair>restart</SLM:repair>
+    </SLM:component>
+    <SLM:component name="guard-supervisor">
+        <SLM:command>/system/bin/guard-supervisor</SLM:command>
+        <SLM:depend>guard-gate</SLM:depend>
+        <SLM:waitfor wait="pathname">/dev/name/local/guard/supervisor</SLM:waitfor>
+        <SLM:stop stop="signal">SIGTERM</SLM:stop>
+        <SLM:repair>restart</SLM:repair>
+    </SLM:component>
+    <SLM:component name="guard-planner">
+        <SLM:command>/system/bin/guard-planner</SLM:command>
+        <SLM:depend>guard-supervisor</SLM:depend>
+        <SLM:stop stop="signal">SIGTERM</SLM:stop>
+        <SLM:repair>restart</SLM:repair>
+    </SLM:component>
+    <SLM:component name="guard-bridge">
+        <SLM:command>/system/bin/guard-bridge</SLM:command>
+        <SLM:depend>guard-sim</SLM:depend>
+        <SLM:stop stop="signal">SIGTERM</SLM:stop>
+        <SLM:repair>restart</SLM:repair>
+    </SLM:component>
+</SLM:system>
