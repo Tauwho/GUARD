@@ -94,3 +94,11 @@ A8: done 6ac05ec (#179; actual C++ property CI https://github.com/Tauwho/GUARD/a
 - Main Linux [eval job: success](https://github.com/Tauwho/GUARD/actions/runs/43895106219/job/133396405455) at b3c10273c1e95b0c8371ed28116bd77dba63b072: recorded advisor, timeout fallback, provenance tests. This is offline/recorded verification, not second-machine inference.
 - `python tools/check.py`: all checks PASS, including host configure/build/test and pytest; `RESULT: GREEN` (out/d26-a9-close-check.txt).
 - Fresh-context adversarial self-review: 0 blocker, 0 should, 0 nit; PO decision and linked Linux eval job independently verified.
+
+
+## QNX SDP 8.0 decimal compatibility follow-up
+- B reports main f37ece8 cannot compile BufferJson::number: SDP 8.0 lacks floating-point std::from_chars. Target evidence for the new fix remains B-owned.
+- Replace floating conversion with bounded integer-significand/exponent normalization then strtod; no decimal separator, process locale mutation, allocation, or QNX APIs. Preserve integer from_chars.
+- Add range, minimum-subnormal, signed-zero, huge-exponent, output-preservation and existing comma-locale regression coverage.
+- Local build attempts blocked by filesystem write denial from CMake/Ninja even with escalation; no local test success claimed. Linux CI must run the complete check before merge.
+- Fresh-context self-review and CI results pending.

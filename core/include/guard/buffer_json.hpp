@@ -48,10 +48,59 @@ class BufferJson {
         const auto raw = text(index);
         if (raw.size() >= 64)
             return false;
-        double parsed = 0;
-        const auto result = std::from_chars(raw.data(), raw.data() + raw.size(), parsed);
-        if (result.ec != std::errc{} || result.ptr != raw.data() + raw.size() ||
-            !std::isfinite(parsed))
+        // strtod is available in SDP 8.0, unlike floating-point from_chars.
+        // Remove the decimal point and compensate in the exponent: 1.25e2 ->
+        // 125e0. Integer significands work in every numeric locale without
+        // changing global locale or allocating a locale object.
+        char buffer[96]{};
+        std::size_t used = 0, cursor = 0;
+        if (!raw.empty() && raw.front() == '-') {
+            buffer[used++] = '-';
+            ++cursor;
+        }
+        int fractional = 0;
+        bool decimal = false, nonzero = false, digit = false;
+        while (cursor < raw.size() && raw[cursor] != 'e' && raw[cursor] != 'E') {
+            const char c = raw[cursor++];
+            if (c == '.' && !decimal) {
+                decimal = true;
+                continue;
+            }
+            if (c < '0' || c > '9')
+                return false;
+            digit = true;
+            nonzero = nonzero || c != '0';
+            buffer[used++] = c;
+            if (decimal)
+                ++fractional;
+        }
+        if (!digit)
+            return false;
+        int exponent = 0, sign = 1;
+        if (cursor < raw.size()) {
+            ++cursor;
+            if (cursor < raw.size() && (raw[cursor] == '+' || raw[cursor] == '-'))
+                sign = raw[cursor++] == '-' ? -1 : 1;
+            if (cursor == raw.size())
+                return false;
+            for (; cursor < raw.size(); ++cursor) {
+                const char c = raw[cursor];
+                if (c < '0' || c > '9')
+                    return false;
+                // Beyond this bound all nonzero <=63-digit inputs overflow
+                // or underflow double; zero must still remain representable.
+                if (exponent < 10000)
+                    exponent = exponent * 10 + (c - '0');
+            }
+        }
+        buffer[used++] = 'e';
+        const auto end =
+            std::to_chars(buffer + used, buffer + sizeof(buffer) - 1, sign * exponent - fractional);
+        if (end.ec != std::errc{})
+            return false;
+        char *parsed_end = nullptr;
+        const double parsed = std::strtod(buffer, &parsed_end);
+        if (parsed_end != end.ptr || !std::isfinite(parsed) || (parsed == 0 && nonzero))
             return false;
         output = parsed;
         return true;
