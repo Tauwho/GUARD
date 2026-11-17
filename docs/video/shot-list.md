@@ -15,7 +15,7 @@ refer to [storyboard.md](storyboard.md). Two takes of each shot.
 
 | Shot | Scene | DEMO step | Content | Status |
 |---|---|---|---|---|
-| S1 | 1, 3 | 2 | Dashboard replay of `out/F3-B2.jsonl`, full run, robot visible from Ward A | ready |
+| S1 | 1 | 1 | Dashboard replay of `out/F0-B2.jsonl` (normal run, `--seed 1000`), robot leaving Ward A | ready |
 | S2 | 2 | 1 | Host terminal: both F3 replays, exit codes visible | ready |
 | S3 | 4 | 3 | Dashboard replay of `out/F6-B2.jsonl` with `--map scenarios/maps/mri_suite.yaml` (robot waits, reason journal) | ready |
 | S4 | 4 | 3 | Dashboard replay of `out/F6-B0.jsonl` with the same `--map` (robot crosses the zone) | ready |
@@ -30,7 +30,15 @@ refer to [storyboard.md](storyboard.md). Two takes of each shot.
 - Target scene: target ssh terminal on the left (QEMU has no window: `-display none`), dashboard on the right.
 - Crop to these windows only; no host OS chrome.
 
-## Recording tool
+## Recording tool (as used for the final cut)
+
+Recorded headless with Microsoft Edge (Playwright, DevTools screencast) at 1920 x 1080: the
+dashboard and GitHub pages are the browser's own rendering; terminal shots replay the
+captured commands and verbatim output of real runs at `v1.0-rc1`. Edit, labels and mix with
+`ffmpeg`; voice-over is offline Windows text-to-speech. Scripts live outside the repo with
+the footage.
+
+Original plan:
 
 OBS Studio, canvas and output 1920 x 1080 at 30 fps, MKV (remux to MP4), desktop audio
 off, microphone on its own track. Editing in Kdenlive (fallback Shotcut). Export 1080p

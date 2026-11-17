@@ -1,0 +1,119 @@
+1
+00:00:00,600 --> 00:00:05,547
+An AI planner can be right about a world
+that no longer exists.
+
+2
+00:00:05,547 --> 00:00:08,609
+In a hospital, that world changes fast.
+
+3
+00:00:09,300 --> 00:00:14,227
+GUARD sits between the planner and a
+simulated robot, and only fresh,
+
+4
+00:00:14,227 --> 00:00:16,369
+checked decisions can move it.
+
+5
+00:00:18,200 --> 00:00:21,995
+Here we kill the supervisor in the middle
+of a run.
+
+6
+00:00:21,995 --> 00:00:24,971
+With GUARD, the robot stops and latches.
+
+7
+00:00:24,971 --> 00:00:29,361
+With a heartbeat-only baseline, the
+planner is still alive,
+
+8
+00:00:29,361 --> 00:00:31,295
+so the robot keeps moving.
+
+9
+00:00:40,000 --> 00:00:42,582
+The planner only proposes motion.
+
+10
+00:00:42,582 --> 00:00:45,320
+The supervisor grants short leases.
+
+11
+00:00:45,320 --> 00:00:49,544
+Once the supervisor is gone, nothing
+renews the lease.
+
+12
+00:00:49,544 --> 00:00:54,864
+So the gate, a separate process with its
+own timer, stops the robot,
+
+13
+00:00:54,864 --> 00:00:58,619
+and stays latched until an operator
+recovers it.
+
+14
+00:01:10,000 --> 00:01:15,222
+Now the MRI zone switches on, while the
+planner still cites its old map.
+
+15
+00:01:15,222 --> 00:01:20,662
+GUARD refuses the proposal with a reason
+code, and the robot waits outside.
+
+16
+00:01:20,662 --> 00:01:25,884
+Without a supervisor, the robot drives
+straight through the active zone.
+
+17
+00:01:42,500 --> 00:01:48,363
+This is the same fault on QNX 8.0, running
+in a QEMU virtual machine,
+
+18
+00:01:48,363 --> 00:01:51,252
+with each part in its own process.
+
+19
+00:01:51,252 --> 00:01:53,546
+guardctl injects the fault.
+
+20
+00:01:53,546 --> 00:01:57,880
+The gate latches, and the cause is
+supervisor lost.
+
+21
+00:02:08,400 --> 00:02:12,290
+Recovery is refused until its conditions
+hold.
+
+22
+00:02:12,290 --> 00:02:15,334
+Here we show behaviour, not timings.
+
+23
+00:02:22,000 --> 00:02:26,287
+Every number in our results comes from the
+host Linux harness,
+
+24
+00:02:26,287 --> 00:02:28,016
+and is labelled that way.
+
+25
+00:02:28,016 --> 00:02:33,479
+GUARD is a simulation-only research
+prototype, not for real robots or
+patients.
+
+26
+00:02:41,800 --> 00:02:44,700
+Stale decisions can't move the robot.
