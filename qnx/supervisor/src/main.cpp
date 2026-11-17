@@ -389,7 +389,19 @@ int main(int argc, char **argv) {
     pthread_mutexattr_setprotocol(&ma, PTHREAD_PRIO_INHERIT);
     pthread_mutex_init(&g->lock, &ma);
     int rc, coid = -1;
-    if ((rc = g->server.attach("guard/supervisor")) != EOK)
+    if ((rc = g->server.attach("guard/supervisor")) == EEXIST) {
+        // A replacement (fault F7): the old supervisor still holds the name. Register at once
+        // (new epoch, the gate fences the old one), then take the name when it is free.
+        ensure_registered();
+        std::printf("guard-supervisor: standby, epoch %u\n", g->epoch);
+        while ((rc = g->server.attach("guard/supervisor")) == EEXIST) {
+            struct timespec ts {
+                0, 100'000'000
+            };
+            nanosleep(&ts, nullptr);
+        }
+    }
+    if (rc != EOK)
         return fail("name_attach guard/supervisor", rc);
     if ((rc = g->tlm.open("supervisor")) != EOK)
         return fail("telemetry ring", rc);

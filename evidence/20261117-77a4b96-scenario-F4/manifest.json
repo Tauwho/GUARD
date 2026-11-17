@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "sha": "77a4b961e6b7ff8be75008aa1c115a955a2b6253",
+  "date": "2026-11-17T06:17:38Z",
+  "topic": "scenario-f4",
+  "runner_role": "b",
+  "host_os": "Linux 6.6.87.2-microsoft-standard-WSL2",
+  "sdp_version": "8.0.0",
+  "qcc_version": "Toolchain:  12.2.0\tVersion:  gcc_ntox86_64",
+  "image_id": "mkqnximage --type=qemu --arch=x86_64 (QSTI); 8.0.0 2026/10/30-09:10:05EDT x86pc",
+  "contracts": "contracts-v1.2",
+  "files": [
+    "transcript.txt",
+    "uname.txt",
+    "pidin.txt",
+    "binaries.txt",
+    "slog2.txt",
+    "results.json"
+  ],
+  "scenario": "F4",
+  "mode": "B2",
+  "seeds": [
+    1004
+  ]
+}

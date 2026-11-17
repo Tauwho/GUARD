@@ -301,6 +301,8 @@ void do_tick() {
         ++g->scene.map_version;
     }
     for (unsigned f = 1; f <= 8; ++f) {
+        if (f == 2 || f == 3 || f == 7)
+            continue; // process faults: guardctl writes the event when it acts
         bool on = fault_active(f);
         if (on != g->fault_on[f]) {
             emit(now, "fault", "\"fault\":\"F%u\",\"phase\":\"%s\"", f, on ? "start" : "end");

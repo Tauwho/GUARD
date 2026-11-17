@@ -21,11 +21,13 @@ TlmWriter::~TlmWriter() {
         munmap(ring_, sizeof(TlmRing));
 }
 
-int TlmWriter::open(const char *src) {
+int TlmWriter::open(const char *src, const char *label, bool append) {
     char name[48];
+    if (label == nullptr)
+        label = src;
     if (ring_ != nullptr)
         return EBUSY;
-    if (src == nullptr || std::strlen(src) >= sizeof src_ || !tlm_name(src, name, sizeof name))
+    if (src == nullptr || std::strlen(label) >= sizeof src_ || !tlm_name(src, name, sizeof name))
         return EINVAL;
     int fd = shm_open(name, O_RDWR | O_CREAT, 0644);
     if (fd == -1)
@@ -43,6 +45,12 @@ int TlmWriter::open(const char *src) {
     if (p == MAP_FAILED)
         return e;
     ring_ = static_cast<TlmRing *>(p);
+    std::strcpy(src_, label);
+    if (append && ring_->magic.load(std::memory_order_acquire) == kTlmMagic &&
+        ring_->slots == kTlmSlots) {
+        seq_ = ring_->head.load(std::memory_order_acquire);
+        return EOK;
+    }
     // Reset: readers that see the new generation start again at line 0.
     ring_->magic.store(0, std::memory_order_relaxed);
     for (auto &s : ring_->slot)
@@ -54,7 +62,6 @@ int TlmWriter::open(const char *src) {
     ring_->generation.store(static_cast<std::uint64_t>(ts.tv_sec) * 1000000000u + ts.tv_nsec + 1,
                             std::memory_order_release);
     ring_->magic.store(kTlmMagic, std::memory_order_release);
-    std::strcpy(src_, src);
     seq_ = 0;
     return EOK;
 }
