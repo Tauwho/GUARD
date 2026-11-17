@@ -77,6 +77,18 @@ template <std::size_t N> class DelayedReplies {
         }
         return ENOENT;
     }
+    // MsgReply(status, data) to every saved client, freeing each slot. Returns how many.
+    std::size_t reply_all(long status, const void *data, std::size_t len) {
+        std::size_t n = 0;
+        for (auto &s : slots_) {
+            if (s.rcvid != -1) {
+                int rcvid = s.rcvid;
+                s.rcvid = -1;
+                n += MsgReply(rcvid, status, data, len) == -1 ? 0 : 1;
+            }
+        }
+        return n;
+    }
     // If `rcvid` is saved, MsgError(rcvid, err), free the slot, and return true.
     bool unblock(int rcvid, int err) {
         for (auto &s : slots_) {

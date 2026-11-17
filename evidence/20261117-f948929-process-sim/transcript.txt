@@ -1,0 +1,46 @@
+$ slay -f guard-gate guard-sim; /tmp/guard_sim_check /tmp/guard-sim /system/guard/scenarios/F0.yaml
+guard-sim: ready, uid 1101
+CHECK guard-sim attached world, motor, obs paths           PASS
+CHECK C7 read before load: state IDLE                      PASS
+CHECK C7 load as uid 1104 (planner) -> EPERM               PASS
+CHECK C7 load of a missing file -> ENOENT                  PASS
+CHECK C7 start before load -> EINVAL                       PASS
+guard-sim: loaded F0 (hospital_corridor) mode B2 seed 1000
+CHECK C7 load normalized F0 (#141 buffers) -> EOK          PASS
+CHECK status LOADED, scenario F0, mode B2, seed 1000       PASS
+map_path: /system/guard/scenarios/maps/hospital_corridor.yaml
+config_path: /system/guard/scenarios/config.yaml
+CHECK telemetry ring /guard_tlm_sim readable               PASS
+CHECK C5 motor as root -> EPERM (gate uid only)            PASS
+CHECK C6 supervisor feed as root -> EPERM                  PASS
+CHECK C6 read with 100-byte buffer -> EMSGSIZE             PASS
+guard-sim: run_start F0 B2 seed 1000
+CHECK C7 start (pause=0) -> RUNNING                        PASS
+CHECK C7 load while running -> EBUSY                       PASS
+CHECK C6 both feeds deliver 5 observations                 PASS
+CHECK C6 same obs_id/stamp/pose on both feeds (>= 4 of 5)  PASS
+CHECK C6 feed byte 0/1, seq +1 per delivery                PASS
+CHECK C5 gate uid 1102: 150 MotorCmds accepted             PASS
+motor_cmds: 150
+motor_rejected: 1
+CHECK plant moved under v = 0.3 (> 0.1 m)                  PASS
+CHECK C5 non-increasing cmd_seq -> EINVAL                  PASS
+CHECK 50 ms without MotorCmd: actuator watchdog brakes     PASS
+guard-sim: injected F4
+CHECK C7 inject F4 -> EOK                                  PASS
+CHECK status lists F4                                      PASS
+CHECK F4: planner feed still delivers                      PASS
+CHECK F4: supervisor read stays blocked (unblocked by alarm) PASS
+guard-sim: injected F1
+CHECK C7 inject F1 lag 600 ms -> EOK                       PASS
+CHECK F1: planner observation arrives >= 500 ms old        PASS
+CHECK C7 F2 is a process fault: WorldInject refuses it     PASS
+guard-sim: run_end F0 time contacts 0 zone_breaches 0
+CHECK C7 stop (pause=1) -> ENDED                           PASS
+CHECK C7 start after end without load -> EBUSY             PASS
+telemetry lines: 97 (dropped 0)
+CHECK C8 ring: one run_start and one run_end               PASS
+CHECK C8 ring: fault F4 start, SIM_ACTUATOR_WATCHDOG       PASS
+CHECK C8 ring: observation records                         PASS
+RESULT PASS (0 failed)
+[exit 0]
