@@ -22,7 +22,7 @@ struct WorldStatus {
     char config_path[160] = "";
     char mode[4] = "";
     char faults[256] = "";
-    std::uint64_t seed = 0;
+    std::uint64_t seed = 0, load = 0; // load: guard-sim's count of WorldLoads
     std::uint32_t map_version = 0, zones_active = 0, ablation_mask = 0;
     bool loaded() const { return std::strcmp(state, "IDLE") != 0 && state[0] != '\0'; }
     bool running() const { return std::strcmp(state, "RUNNING") == 0; }
@@ -54,6 +54,8 @@ inline int read_world(WorldStatus &out) {
         !kv_get(text, len, "mode", s.mode, sizeof s.mode) ||
         !kv_get(text, len, "faults", s.faults, sizeof s.faults))
         return EBADMSG;
+    if (kv_get(text, len, "load", num, sizeof num))
+        s.load = std::strtoull(num, nullptr, 10);
     if (kv_get(text, len, "seed", num, sizeof num))
         s.seed = std::strtoull(num, nullptr, 10);
     if (kv_get(text, len, "map_version", num, sizeof num))

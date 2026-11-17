@@ -72,8 +72,8 @@ struct Sim {
     WorldLoad load{};
     char map_path[160] = "", config_path[160] = "default";
     std::int64_t t0 = 0, rel = 0;
-    std::uint64_t ticks = 0, run_ticks = 0, motor_ok = 0, motor_rejected = 0, unauthorized = 0,
-                  last_seq = 0;
+    std::uint64_t loads = 0, ticks = 0, run_ticks = 0, motor_ok = 0, motor_rejected = 0,
+                  unauthorized = 0, last_seq = 0;
     std::array<bool, 9> fault_on{};
     std::array<Injected, 8> injected{};
     std::size_t injected_count = 0;
@@ -410,6 +410,7 @@ int do_load(const WorldLoad &load) {
     std::strcpy(g->map_path, map_path);
     std::strcpy(g->config_path, config_path);
     g->run = Run::loaded;
+    ++g->loads; // readers spot a new run by this count, even for the same scenario and seed
     std::printf("guard-sim: loaded F%u (%s) mode %s seed %" PRIu64 "\n", g->scenario.id, id,
                 mode_text(load.mode), load.seed);
     return EOK;
@@ -518,12 +519,13 @@ std::size_t format_world(char *out, std::size_t cap) {
     double v = g->plant ? g->plant->linear_velocity() : 0;
     int n = std::snprintf(
         out, cap,
-        "version: 1\nstate: %s\nscenario: F%u\nscenario_path: %s\nmap_path: %s\n"
+        "version: 1\nstate: %s\nload: %" PRIu64 "\nscenario: F%u\nscenario_path: %s\nmap_path: %s\n"
         "config_path: %s\nmode: %s\nseed: %" PRIu64 "\nablation_mask: %u\nt_run_ns: %" PRId64
         "\nmap_version: %u\nzones_active: %u\nfaults: %s\nx: %.17g\ny: %.17g\ntheta: %.17g\n"
         "v: %.17g\nwatchdog: %d\ncontacts: %u\nzone_breaches: %u\nticks: %" PRIu64
         "\nmotor_cmds: %" PRIu64 "\nmotor_rejected: %" PRIu64 "\nunauthorized: %" PRIu64 "\n",
-        run_name(g->run), g->scenario.id, g->run == Run::idle ? "-" : g->load.scenario_path.data(),
+        run_name(g->run), g->loads, g->scenario.id,
+        g->run == Run::idle ? "-" : g->load.scenario_path.data(),
         g->run == Run::idle ? "-" : g->map_path, g->config_path, mode_text(g->load.mode),
         g->load.seed, g->load.ablation_mask, g->run == Run::running ? g->rel : 0,
         g->scene.map_version, zones, faults, pose.x, pose.y, pose.theta, v, g->watchdog ? 1 : 0,

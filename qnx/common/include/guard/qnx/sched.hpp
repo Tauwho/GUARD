@@ -5,6 +5,10 @@
 
 namespace guard::qnx {
 
+// tracelogger user events (B11, #48): one code per step of a lease, shown on the timeline.
+// trace_logf() costs nothing visible when no tracelogger runs.
+enum TraceCode : int { kTraceProposal = 1, kTraceDecision = 2, kTraceLease = 3, kTraceExpiry = 4 };
+
 // Highest priority GUARD may use (docs/architecture.md REF-PRIORITIES).
 constexpr int kMaxPriority = 63;
 
