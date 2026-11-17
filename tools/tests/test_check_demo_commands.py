@@ -82,22 +82,21 @@ def test_py_launcher_and_bash_script_forms():
 
 
 def test_ssh_remote_program_needs_target_sources():
-    found = one("ssh -i key -p 2222 root@127.0.0.1 guardctl status")
-    assert found == ["DEMO.md:7: target program not on main: qnx/guardctl/"]
+    # A name with no qnx/<name>/ sources; guardctl itself has them since #42.
+    found = one("ssh -i key -p 2222 root@127.0.0.1 guard-nothere status")
+    assert found == ["DEMO.md:7: target program not on main: qnx/guard-nothere/"]
 
 
 def test_ssh_port_forward_and_quoted_remote_pipeline():
     assert one("ssh -N -L 7700:127.0.0.1:7700 -p 2222 root@127.0.0.1") == []
-    found = one("ssh -L 1:h:1 -p 2222 root@h 'guardctl status | grep -E \"^mode=\"'")
-    assert found == ["DEMO.md:7: target program not on main: qnx/guardctl/"]
+    found = one("ssh -L 1:h:1 -p 2222 root@h 'guard-nothere status | grep -E \"^mode=\"'")
+    assert found == ["DEMO.md:7: target program not on main: qnx/guard-nothere/"]
     assert one("ssh -p 2222 root@h ..") == ["DEMO.md:7: not a target program name: .."]
 
 
 def test_cmake_preset_must_exist():
     assert one("cmake --preset host-debug") == []
-    assert one("cmake --preset nope") == [
-        "DEMO.md:7: cmake preset not in CMakePresets.json: nope"
-    ]
+    assert one("cmake --preset nope") == ["DEMO.md:7: cmake preset not in CMakePresets.json: nope"]
 
 
 def test_planned_step_is_not_run_until_done():
@@ -109,9 +108,7 @@ def test_planned_step_is_not_run_until_done():
 
 def test_planned_step_needs_a_real_scope_id():
     text = demo(step("1. Target [0:00-0:10]", "planned (Z9)", "guardctl inject F3"))
-    assert cdc.problems(text, ok_runner, states={}) == [
-        "DEMO.md:3: planned (Z9) is not a SCOPE id"
-    ]
+    assert cdc.problems(text, ok_runner, states={}) == ["DEMO.md:3: planned (Z9) is not a SCOPE id"]
 
 
 def test_video_slots_in_order_and_under_three_minutes():
@@ -137,8 +134,10 @@ def test_seconds_above_59_are_not_a_slot():
 
 
 def test_numbered_heading_without_slot_fails():
-    text = demo(step("1. A [0:00-0:10]", "ready", "mkdir -p out"),
-                step("2. Wrap-up", "ready", "mkdir -p out"))
+    text = demo(
+        step("1. A [0:00-0:10]", "ready", "mkdir -p out"),
+        step("2. Wrap-up", "ready", "mkdir -p out"),
+    )
     found = cdc.problems(text, ok_runner, states={})
     assert any("no [m:ss-m:ss] video slot" in p for p in found)
 
