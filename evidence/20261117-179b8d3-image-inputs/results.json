@@ -1,0 +1,15 @@
+{
+  "commands": [
+    "cat /data/var/log/guard-start.log",
+    "ls -R /system/guard/scenarios",
+    "guard-inputs-check",
+    "guardctl scenario load /system/guard/scenarios/F0.yaml --seed 1000"
+  ],
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "doctest": {}
+}

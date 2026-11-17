@@ -1,0 +1,49 @@
+$ cat /data/var/log/guard-start.log
+guard start Tue Nov 17 06:36:09 UTC 2026
+inputs: RESULT PASS (12 files, 0 failed)
+started guard-sim
+started guard-gate
+started guard-supervisor
+started guard-planner
+started guard-bridge
+[exit 0]
+
+$ ls -R /system/guard/scenarios
+/system/guard/scenarios:
+F0.yaml
+F1.yaml
+F2.yaml
+F3.yaml
+F4.yaml
+F5.yaml
+F6.yaml
+F7.yaml
+F8.yaml
+config.yaml
+inputs.json
+maps
+
+/system/guard/scenarios/maps:
+hospital_corridor.yaml
+mri_suite.yaml
+[exit 0]
+
+$ guard-inputs-check
+CHECK sha256 F0.yaml PASS
+CHECK sha256 F1.yaml PASS
+CHECK sha256 F2.yaml PASS
+CHECK sha256 F3.yaml PASS
+CHECK sha256 F4.yaml PASS
+CHECK sha256 F5.yaml PASS
+CHECK sha256 F6.yaml PASS
+CHECK sha256 F7.yaml PASS
+CHECK sha256 F8.yaml PASS
+CHECK sha256 maps/hospital_corridor.yaml PASS
+CHECK sha256 maps/mri_suite.yaml PASS
+CHECK sha256 config.yaml PASS
+RESULT PASS (12 files, 0 failed)
+[exit 0]
+
+$ guardctl scenario load /system/guard/scenarios/F0.yaml --seed 1000
+loaded F0 mode=B2 seed=1000
+[exit 0]
