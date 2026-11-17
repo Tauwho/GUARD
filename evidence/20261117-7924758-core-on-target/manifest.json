@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "sha": "7924758a5626a60e5bc3de645ee6a87453bf4826",
+  "date": "2026-11-17T03:10:32Z",
+  "topic": "core-on-target",
+  "runner_role": "b",
+  "host_os": "Ubuntu 24.04.5 LTS on WSL2 (Windows 11)",
+  "sdp_version": "8.0.0",
+  "qcc_version": "Toolchain:  12.2.0\tVersion:  gcc_ntox86_64",
+  "image_id": "image/run-demo.sh --test (user-mode net, QSTI); 8.0.0 2026/10/30-09:10:05EDT x86pc",
+  "contracts": "contracts-v1.1",
+  "files": [
+    "transcript.txt",
+    "uname.txt",
+    "pidin.txt",
+    "binaries.txt",
+    "slog2.txt",
+    "results.json"
+  ],
+  "notes": "D25 follow-up for core at this sha (main b0f4aca plus the two QNX fixes). Same commit on host (host-debug): [doctest] test cases:  112 |  112 passed | 0 failed | 0 skipped [doctest] assertions: 3294 | 3294 passed | 0 failed | [doctest] Status: SUCCESS!  Run by the agent on @baofrovn's machine at their request."
+}
