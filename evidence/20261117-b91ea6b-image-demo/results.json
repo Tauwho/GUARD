@@ -1,0 +1,11 @@
+{
+  "commands": [
+    "cat /data/var/log/guard-start.log",
+    "guardctl status | grep -e mode= -e epoch= -e latch_cause="
+  ],
+  "exit_codes": [
+    0,
+    0
+  ],
+  "doctest": {}
+}
