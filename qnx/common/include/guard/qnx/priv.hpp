@@ -19,8 +19,9 @@ int require_euid(int scoid, const uid_t *allowed, std::size_t n);
 //  1. for non-root, deny and lock SETUID, SETGID, SPAWN_SETUID, SPAWN_SETGID, PATHSPACE,
 //     PUBLIC_CHANNEL and PRIORITY, except the ids in keep[0..n), which are allowed and locked;
 //  2. setgid(gid), setuid(uid);
-//  3. check the effect: setuid(0) must fail. procmgr_ability() returns EOK even when a locked
-//     ability is not changed (spike S4), so the return code alone proves nothing.
+//  3. check the effect: setuid(0) must fail (skipped when GUARD_SECPOL_DEVELOP is set: a
+//     secpol develop image grants and records every request). procmgr_ability() returns EOK even
+//     when a locked ability is not changed (spike S4), so the return code alone proves nothing.
 // Returns EOK, the errno of the failing step, or EIO if the check in step 3 fails.
 // Irreversible for the calling process.
 int drop_and_lock(uid_t uid, gid_t gid, const unsigned *keep, std::size_t n);

@@ -271,6 +271,12 @@ int cmd_recover() {
     int open_err = EOK;
     int rc = bounded_devctl("/dev/guard/gate", DCMD_GUARD_RECOVER, buf.data(), buf.size(), kC3Ms,
                             open_err);
+    // D22: a denied secpol connect and the gate's uid check both give EPERM; say which.
+    if (rc == EPERM && open_err == EPERM)
+        return error("recover", "open /dev/guard/gate: Operation not permitted (connect denied)",
+                     3);
+    if (rc == EPERM)
+        return error("recover", "Operation not permitted (gate uid check)", 3);
     if (rc != EOK)
         return errno_error("recover", rc);
     RecoverReply reply;
@@ -285,6 +291,17 @@ int cmd_recover() {
     if (reply.reason == static_cast<std::uint16_t>(Reason::GATE_RECOVERY_UNMET))
         return refused("unmet: " + unmet_names(reply.unmet_mask));
     return refused(std::string("not latched: mode=") + mode);
+}
+
+// On a secpol image a process guardctl starts gets its GUARD type (image/secpol, #46).
+std::vector<std::string> typed(const char *type, std::vector<std::string> argv) {
+    std::string mode;
+    if (read_text("/system/etc/guard-secpol", mode) != EOK)
+        return argv;
+    if (mode.compare(0, 7, "develop") == 0) // see qnx/common priv.hpp drop_and_lock
+        setenv("GUARD_SECPOL_DEVELOP", "1", 1);
+    argv.insert(argv.begin(), {"on", "-T", type});
+    return argv;
 }
 
 // ---- inject ----
@@ -345,8 +362,9 @@ int cmd_inject(unsigned fault, long duration, long long param) {
     case 2: // F2: delayed authorization, guard-hog at 32 (REF-PRIORITIES)
         // One hog per CPU, each pinned, so the priority-32 load covers the whole machine.
         for (unsigned cpu = 0; cpu < _syspage_ptr->num_cpu && cpu < 32 && rc == EOK; ++cpu)
-            rc = run({"/system/bin/guard-hog", "32", std::to_string(duration > 0 ? duration : 400),
-                      "-c", std::to_string(cpu)},
+            rc = run(typed("hog_t", {"/system/bin/guard-hog", "32",
+                                     std::to_string(duration > 0 ? duration : 400), "-c",
+                                     std::to_string(cpu)}),
                      true);
         break;
     case 3: // F3: supervisor killed
@@ -355,7 +373,7 @@ int cmd_inject(unsigned fault, long duration, long long param) {
     case 7: { // F7: stop supervisor A, start B (new epoch), continue A later
         if ((rc = slay("SIGSTOP", "guard-supervisor")) != EOK)
             break;
-        if ((rc = run({"/system/bin/guard-supervisor"}, true)) != EOK)
+        if ((rc = run(typed("supervisor_t", {"/system/bin/guard-supervisor"}), true)) != EOK)
             break;
         long ms = duration > 0 ? duration : 2000;
         rc = run({"/bin/sh", "-c",

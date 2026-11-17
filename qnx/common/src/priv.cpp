@@ -1,5 +1,7 @@
 #include "guard/qnx/priv.hpp"
 
+#include <cstdlib>
+
 #include <errno.h>
 #include <sys/neutrino.h>
 #include <sys/procmgr.h>
@@ -60,6 +62,12 @@ int drop_and_lock(uid_t uid, gid_t gid, const unsigned *keep, std::size_t n) {
     }
     if (setgid(gid) == -1 || setuid(uid) == -1) {
         return errno;
+    }
+    // secpol develop mode grants and records every request, so the setuid(0) probe would
+    // both succeed and put setuid-to-root into the generated policy (image/secpol). The
+    // start script sets GUARD_SECPOL_DEVELOP only on a develop image.
+    if (std::getenv("GUARD_SECPOL_DEVELOP") != nullptr) {
+        return getuid() == uid && geteuid() == uid ? EOK : EIO;
     }
     if (setuid(0) == 0 || getuid() != uid || geteuid() != uid) {
         return EIO;

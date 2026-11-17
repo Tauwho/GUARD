@@ -1,6 +1,6 @@
 #!/bin/bash
 # Boot the GUARD image and get the demo going (B-9, #43). Run on the QNX host, SDP env sourced.
-#   image/run-demo.sh [--net user|bridge] [--rebuild] [--test] [--dashboard [Fn]]
+#   image/run-demo.sh [--net user|bridge] [--rebuild] [--test] [--secpol develop|secure] [--dashboard [Fn]]
 # Builds the image if needed (image/build-image.sh), boots QEMU in the background, waits for
 # ssh and the GUARD start log, then prints the live dashboard command (dashboard/relay.py).
 #   --dashboard [Fn]  also start the dashboard relay on the bridge and run scenario Fn
@@ -15,6 +15,7 @@ while [ $# -gt 0 ]; do
         --net) NET=$2; BUILD_ARGS+=(--net "$2"); shift 2 ;;
         --rebuild) REBUILD=1; shift ;;
         --test) BUILD_ARGS+=(--test); REBUILD=1; shift ;;
+        --secpol) BUILD_ARGS+=(--secpol "$2"); REBUILD=1; shift 2 ;;
         --dashboard)
             DASH=F0
             case ${2:-} in F[0-8]) DASH=$2; shift ;; esac
