@@ -1,0 +1,9 @@
+{
+  "commands": [
+    "/tmp/guard_gate_check /tmp/guard-gate"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "doctest": {}
+}

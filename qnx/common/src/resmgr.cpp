@@ -39,6 +39,19 @@ int ResMgr::attach(const char *path, mode_t mode, unsigned flags) {
     return EOK;
 }
 
+int ResMgr::add_path(const char *path, resmgr_connect_funcs_t *connect, resmgr_io_funcs_t *io,
+                     iofunc_attr_t *attr, unsigned flags) {
+    if (dpp_ == nullptr) {
+        return EINVAL;
+    }
+    resmgr_attr_t rattr;
+    memset(&rattr, 0, sizeof rattr);
+    rattr.nparts_max = 1;
+    rattr.msg_max_size = 2048;
+    return resmgr_attach(dpp_, &rattr, path, _FTYPE_ANY, flags, connect, io, attr) == -1 ? errno
+                                                                                         : EOK;
+}
+
 int ResMgr::on_pulse(int code, int (*fn)(message_context_t *, int, unsigned, void *),
                      void *handle) {
     if (dpp_ == nullptr) {
