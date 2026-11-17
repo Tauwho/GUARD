@@ -1,0 +1,82 @@
+$ /tmp/guard_gate_check /tmp/guard-gate
+guard-gate: ready, uid 1102, mode LATCHED
+CHECK gate attached /dev/guard/gate                PASS
+-- status at boot
+   mode=LATCHED
+   epoch=0
+   latch_cause=BOOT
+CHECK C4 cat status: LATCHED, latch BOOT           PASS
+CHECK C2 register gives epoch 1                    PASS
+guard-gate: LATCHED -> READY (latch NONE, epoch 1)
+CHECK C3 recover (root) -> GATE_RECOVERED          PASS
+guard-gate: READY -> MOVING (latch NONE, epoch 1)
+CHECK lease accepted -> GATE_LEASE_ACCEPTED        PASS
+-- status after lease
+   mode=MOVING
+   epoch=1
+   latch_cause=NONE
+   count.GATE_LEASE_ACCEPTED=1
+   count.GATE_RECOVERED=1
+CHECK MOVING and sim receives v > 0                PASS
+guard-gate: MOVING -> STOPPING (latch NONE, epoch 1)
+CHECK lease expiry stops: GATE_LEASE_EXPIRED       PASS
+guard-gate: STOPPING -> STOPPED (latch NONE, epoch 1)
+guard-gate: STOPPED -> READY (latch NONE, epoch 1)
+CHECK standstill, back to READY, sim v == 0        PASS
+-- status after expiry
+   mode=READY
+   epoch=1
+   latch_cause=NONE
+   count.GATE_LEASE_ACCEPTED=1
+   count.GATE_LEASE_EXPIRED=1
+   count.GATE_STANDSTILL=1
+   count.GATE_RECOVERED=1
+CHECK stale-epoch lease -> GATE_EPOCH_STALE        PASS
+CHECK replayed seq -> GATE_LEASE_REPLAY            PASS
+CHECK uid 1104 lease -> EPERM                      PASS
+CHECK counted GATE_UNAUTHORIZED_CLIENT             PASS
+CHECK uid 1104 recover -> EPERM                    PASS
+guard-gate: READY -> MOVING (latch NONE, epoch 3)
+CHECK supervisor child: lease accepted, MOVING     PASS
+-- status before kill -9
+   mode=MOVING
+   epoch=3
+   latch_cause=NONE
+   count.GATE_LEASE_ACCEPTED=2
+   count.GATE_EPOCH_STALE=1
+   count.GATE_LEASE_REPLAY=1
+   count.GATE_UNAUTHORIZED_CLIENT=2
+   count.GATE_LEASE_EXPIRED=1
+   count.GATE_STANDSTILL=1
+   count.GATE_RECOVERED=1
+guard-gate: MOVING -> STOPPING (latch SUPERVISOR_LOST, epoch 3)
+CHECK kill -9: STOPPING within T_lease + 1 tick    PASS
+-- status after kill -9
+   mode=STOPPING
+   epoch=3
+   latch_cause=SUPERVISOR_LOST
+   count.GATE_LEASE_ACCEPTED=2
+   count.GATE_EPOCH_STALE=1
+   count.GATE_LEASE_REPLAY=1
+   count.GATE_UNAUTHORIZED_CLIENT=2
+   count.GATE_LEASE_EXPIRED=1
+   count.GATE_SUPERVISOR_LOST=1
+   count.GATE_STANDSTILL=1
+   count.GATE_RECOVERED=1
+guard-gate: STOPPING -> STOPPED (latch SUPERVISOR_LOST, epoch 3)
+guard-gate: STOPPED -> LATCHED (latch SUPERVISOR_LOST, epoch 3)
+CHECK then STOPPED and LATCHED, SUPERVISOR_LOST    PASS
+-- status final
+   mode=LATCHED
+   epoch=3
+   latch_cause=SUPERVISOR_LOST
+   count.GATE_LEASE_ACCEPTED=2
+   count.GATE_EPOCH_STALE=1
+   count.GATE_LEASE_REPLAY=1
+   count.GATE_UNAUTHORIZED_CLIENT=2
+   count.GATE_LEASE_EXPIRED=1
+   count.GATE_SUPERVISOR_LOST=1
+   count.GATE_STANDSTILL=2
+   count.GATE_RECOVERED=1
+RESULT PASS (0 failed)
+[exit 0]
