@@ -75,7 +75,7 @@ echo "[perms=555] bin/guard-inputs-check=$ROOT/image/inputs-check.sh" >> "$FILES
 
 SECPOL_ARGS=()
 case $SECPOL in
-    "") ;;
+    "") SECPOL_ARGS=(--secpol=no --policy=none) ;; # mkqnximage keeps the last choice otherwise
     develop) SECPOL_ARGS=(--secpol=develop --policy=none) ;;
     secure)
         [ -f "$ROOT/image/secpol/guard.secpol" ] || { echo "no image/secpol/guard.secpol; run image/secpol/generate.sh" >&2; exit 1; }
