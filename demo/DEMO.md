@@ -38,17 +38,18 @@ mkdir -p out
 Expected: the host build finishes; `out/` exists. Linux or WSL2 (see `host/README.md`).
 
 ### Target setup (off camera)
-Status: planned (B5)
+Status: ready
 
 ```sh
 source ~/qnx800/qnxsdp-env.sh
-image/run-demo.sh
-ssh -N -L 7700:127.0.0.1:7700 -i ~/.ssh/guard_target_ed25519 -p 2222 root@127.0.0.1
+image/run-demo.sh --dashboard
 ```
 
 Expected: the image boots in QEMU with user-mode networking (ssh on 127.0.0.1:2222,
-`docs/setup.md` Option C) and the GUARD start log is shown by `run-demo.sh`. The last
-line forwards the bridge's C8 port 7700 to the host; leave it running.
+bridge C8 port forwarded to 127.0.0.1:7700, `docs/setup.md` Option C), `run-demo.sh`
+shows the GUARD start log, starts `dashboard/relay.py --bridge 127.0.0.1:7700` and runs
+F0 with `guardctl` (`image/README.md`). Open `http://127.0.0.1:8765`. Stop everything
+afterwards with `image/run-demo.sh --stop`.
 
 ### 1. Supervisor killed, host replay [0:00-0:35]
 Status: ready
@@ -94,10 +95,9 @@ because each matches its own hypothesis. Run the two relays one after the other
 (Ctrl-C between them); `--map` is needed so the dashboard draws the MRI zone.
 
 ### 4. The same fault on the QNX target [1:45-2:30]
-Status: planned (B5)
+Status: ready
 
 ```sh
-python dashboard/relay.py --bridge 127.0.0.1:7700
 ssh -i ~/.ssh/guard_target_ed25519 -p 2222 root@127.0.0.1 'guardctl status | grep -E "^(mode|latch_cause)="'
 ssh -i ~/.ssh/guard_target_ed25519 -p 2222 root@127.0.0.1 'guardctl inject F3 | cut -d" " -f1-2'
 ssh -i ~/.ssh/guard_target_ed25519 -p 2222 root@127.0.0.1 'guardctl status | grep -E "^(mode|latch_cause)="'
@@ -108,12 +108,8 @@ Expected (behaviour only): before the fault, `mode=MOVING`; `inject F3` prints
 `injected F3`; then `mode=LATCHED` and `latch_cause=SUPERVISOR_LOST`. `recover`
 either prints `recovered: mode=READY ...` or is refused with `unmet: <names>` and
 exit 1 (`GATE_RECOVERY_UNMET`, `contracts/guardctl.md`). The dashboard follows the
-target live through the forwarded bridge port.
-
-Fallback (brief §7): if B5 is not DONE at Mon 7 Dec 23:59, P edits this file by hand
-(the `--fallback auto` switch named in the brief does not exist; decision logged in
-`docs/decisions/P.md`): this slot then shows the host F3 replay from steps 1-2 and
-the README Evidence Map rows labelled "behaviour only".
+target live through the relay `run-demo.sh --dashboard` started. Target evidence for
+the same fault: `evidence/20261117-604281c-scenario-F3/`.
 
 ### 5. Results and limits [2:30-2:55]
 Status: ready
