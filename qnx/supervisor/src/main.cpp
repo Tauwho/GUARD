@@ -41,7 +41,8 @@ constexpr std::uint64_t kMonitorNs = 20'000'000, kGateTimeoutNs = 5'000'000;
 constexpr uid_t kPlanner[] = {1104, 0};
 
 struct State {
-    pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER; // default QNX mutex: priority inheritance
+    // Priority inheritance set explicitly in main(): the reader at 30 may wait on a holder at 10.
+    pthread_mutex_t lock;
     Supervisor supervisor;
     Config config;
     MapSpec map;
@@ -52,7 +53,9 @@ struct State {
     std::uint32_t epoch = 0;
     std::uint64_t lease_seq = 0;
     Lease active{};
-    bool lease_active = false;
+    bool lease_active = false, revoke_pending = false;
+    std::uint16_t revoke_reason = 0;
+    std::int64_t world_read_ns = 0;
     qnx::TlmWriter tlm;
     qnx::NamedServer server;
     qnx::PulseTimer monitor;
@@ -109,27 +112,48 @@ void ensure_registered() {
     }
 }
 
-// Caller holds the lock.
-void revoke(std::uint16_t reason, std::int64_t now) {
+// Sends the pending revoke. Kept pending (and resent on each monitor pulse) until the gate
+// answers or the lease has expired anyway. Caller holds the lock.
+void send_revoke(std::int64_t now) {
+    if (!g->revoke_pending)
+        return;
+    if (now >= g->active.expires_ns) {
+        g->revoke_pending = false; // the gate's own timer has ended it
+        return;
+    }
     Revoke r;
     r.lease_id = g->active.lease_id;
     r.epoch = g->epoch;
-    r.reason = reason;
+    r.reason = g->revoke_reason;
     std::array<std::uint8_t, sizeof(Revoke)> wire{};
-    if (encode(r, wire))
-        gate_call(DCMD_GUARD_REVOKE, wire.data(), wire.size());
+    int rc = encode(r, wire) ? gate_call(DCMD_GUARD_REVOKE, wire.data(), wire.size()) : EINVAL;
+    // EINVAL: the gate no longer holds this lease (replaced, expired or other epoch).
+    if (rc == EOK || rc == EINVAL)
+        g->revoke_pending = false;
+}
+
+// Caller holds the lock.
+void revoke(std::uint16_t reason, std::int64_t now) {
     g->lease_active = false;
+    g->revoke_pending = true;
+    g->revoke_reason = reason;
     ++g->revokes;
     emit(now, "revoke", "\"reason\":\"%s\",\"lease_id\":%" PRIu64, reason_text(reason),
          g->active.lease_id);
+    send_revoke(now);
 }
 
 // Re-check the active lease (checks 8-11). Caller holds the lock.
 void recheck(std::int64_t now) {
-    if (!g->lease_active || !g->world_ready)
+    send_revoke(now);
+    if (!g->lease_active)
         return;
     if (now >= g->active.expires_ns) {
         g->lease_active = false; // the gate expires it on its own timer
+        return;
+    }
+    if (!g->world_ready) {
+        revoke(static_cast<std::uint16_t>(Reason::REVOKE_UNVERIFIABLE), now);
         return;
     }
     if (auto reason = g->supervisor.recheck(g->active, g->scene, now))
@@ -156,13 +180,14 @@ void refresh_world(std::int64_t now) {
         ok = ok && qnx::read_file(s.map_path, g->file, sizeof g->file, n) == EOK &&
              load_map({g->file, n}, map);
         // Ablations come from the run's WorldLoad (freshness and stopping are supervisor checks).
+        if (g->lease_active) // a lease from the previous run never outlives it
+            revoke(static_cast<std::uint16_t>(Reason::REVOKE_UNVERIFIABLE), now);
         if (ok) {
             config.ablate_freshness = s.ablation_mask & 1;
             config.ablate_stopping = s.ablation_mask & 2;
             g->config = config;
             g->map = map;
             g->supervisor = Supervisor(config);
-            g->lease_active = false;
             g->world_ready = true;
             std::printf("guard-supervisor: world %s seed %" PRIu64 "\n", s.scenario_path, s.seed);
         } else {
@@ -177,7 +202,7 @@ void refresh_world(std::int64_t now) {
         g->scene.map_version = s.map_version;
     }
     g->world = s;
-    (void)now;
+    g->world_read_ns = now;
 }
 
 // ---- C6 reader thread (priority 30) ----
@@ -198,7 +223,8 @@ void *reader(void *) {
         if (decode(buf, sizeof buf, obs) != DecodeError::none)
             continue;
         pthread_mutex_lock(&g->lock);
-        if (g->world_ready && obs.map_version != g->scene.map_version)
+        if (g->world_ready && obs.map_version != g->scene.map_version &&
+            now - g->world_read_ns >= static_cast<std::int64_t>(kMonitorNs))
             refresh_world(now);
         if (g->world_ready)
             g->supervisor.observe(obs, now);
@@ -229,15 +255,17 @@ void emit_decision(std::int64_t now, const Proposal &p, const Decision &d,
             if (code && at < sizeof reasons)
                 at += std::snprintf(reasons + at, sizeof reasons - at, "%s\"%s\"", at ? "," : "",
                                     reason_text(code));
-    if (d.primary_reason == static_cast<std::uint16_t>(Reason::REJ_GATE_NOT_READY) &&
-        at < sizeof reasons)
+    // Gate refusal, schema and not-ready answers: the primary reason is also listed.
+    if ((e == nullptr ||
+         d.primary_reason == static_cast<std::uint16_t>(Reason::REJ_GATE_NOT_READY)) &&
+        d.verdict != 1 && at < sizeof reasons)
         std::snprintf(reasons + at, sizeof reasons - at, "%s\"%s\"", at ? "," : "",
                       reason_text(d.primary_reason));
     emit(now, "decision",
          "\"proposal_id\":%" PRIu64 ",\"planner_id\":%u,\"verdict\":\"%s\",\"primary_reason\":"
-         "\"%s\",\"reasons\":[%s],\"lease_id\":%" PRIu64 ",\"epoch\":%u",
+         "\"%s\",\"reasons\":[%s],\"lease_id\":%" PRIu64 ",\"epoch\":%u,\"expires_ns\":%" PRId64,
          p.proposal_id, p.planner_id ? p.planner_id : 1, verdict, reason_text(d.primary_reason),
-         reasons, d.lease_id, d.epoch);
+         reasons, d.lease_id, d.epoch, d.expires_ns);
 }
 
 void handle_proposal(int rcvid, const std::uint8_t *buf, std::size_t len) {
@@ -291,8 +319,14 @@ void handle_proposal(int rcvid, const std::uint8_t *buf, std::size_t len) {
         LeaseAck ack;
         int rc =
             encode(lease, wire) ? gate_call(DCMD_GUARD_LEASE, wire.data(), wire.size()) : EINVAL;
-        accepted = rc == EOK && decode(wire.data(), sizeof(LeaseAck), ack) == DecodeError::none &&
-                   ack.reason == static_cast<std::uint16_t>(Reason::GATE_LEASE_ACCEPTED);
+        bool readable =
+            rc == EOK && decode(wire.data(), sizeof(LeaseAck), ack) == DecodeError::none;
+        accepted =
+            readable && ack.reason == static_cast<std::uint16_t>(Reason::GATE_LEASE_ACCEPTED);
+        if (rc == EOK && !readable) { // the gate may hold it: take it back
+            g->active = lease;
+            revoke(static_cast<std::uint16_t>(Reason::REVOKE_UNVERIFIABLE), now);
+        }
         if (accepted) {
             g->active = lease;
             g->lease_active = true;
@@ -348,6 +382,10 @@ int main(int argc, char **argv) {
     static State state; // about 300 KB: static storage, never a thread stack
     g = &state;
     sem_init(&g->go, 0, 0);
+    pthread_mutexattr_t ma;
+    pthread_mutexattr_init(&ma);
+    pthread_mutexattr_setprotocol(&ma, PTHREAD_PRIO_INHERIT);
+    pthread_mutex_init(&g->lock, &ma);
     int rc, coid = -1;
     if ((rc = g->server.attach("guard/supervisor")) != EOK)
         return fail("name_attach guard/supervisor", rc);

@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
+#include <sys/neutrino.h>
 #include <unistd.h>
 
 namespace guard::qnx {
@@ -27,12 +28,17 @@ struct WorldStatus {
     bool running() const { return std::strcmp(state, "RUNNING") == 0; }
 };
 
-// One snapshot of /dev/sim/world. Returns EOK, the errno of open/read, or EBADMSG.
+// One snapshot of /dev/sim/world, the read bounded by 5 ms. Returns EOK, the errno of\n// open/read
+// (ETIMEDOUT if the sim does not answer), or EBADMSG.
 inline int read_world(WorldStatus &out) {
     char text[2048];
     int fd = open("/dev/sim/world", O_RDONLY);
     if (fd < 0)
         return errno;
+    struct sigevent ev;
+    SIGEV_UNBLOCK_INIT(&ev);
+    std::uint64_t ns = 5'000'000;
+    TimerTimeout(CLOCK_MONOTONIC, _NTO_TIMEOUT_SEND | _NTO_TIMEOUT_REPLY, &ev, &ns, nullptr);
     ssize_t n = read(fd, text, sizeof text);
     int e = errno;
     close(fd);
