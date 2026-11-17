@@ -88,9 +88,8 @@ def doctest_summary(text):
 def timed(key):
     """Summary keys left out (D11): time (*_s, *_ns, durations) and derived numeric results
     (rates, margins). Counts, states and reason names stay."""
-    return (
-        key.endswith(("_s", "_ns"))
-        or any(word in key for word in ("duration", "time", "rate", "margin"))
+    return key.endswith(("_s", "_ns")) or any(
+        word in key for word in ("duration", "time", "rate", "margin")
     )
 
 
@@ -100,7 +99,8 @@ def sanitize_trace(lines):
     for index, line in enumerate(x for x in lines if x.strip()):
         event = json.loads(line)
         event["t_ns"] = index
-        event["payload"] = {k: v for k, v in event["payload"].items() if not k.endswith("_ns")}
+        payload = event["payload"].items()
+        event["payload"] = {k: v for k, v in payload if not k.endswith("_ns") and "margin" not in k}
         events.append(event)
     return events
 
