@@ -1,0 +1,21 @@
+{
+  "commands": [
+    "/tmp/guard_core_tests"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "doctest": {
+    "test_cases": {
+      "total": 112,
+      "passed": 112,
+      "failed": 0
+    },
+    "assertions": {
+      "total": 3306,
+      "passed": 3306,
+      "failed": 0
+    },
+    "status": "SUCCESS"
+  }
+}
