@@ -21,11 +21,13 @@ TlmWriter::~TlmWriter() {
         munmap(ring_, sizeof(TlmRing));
 }
 
-int TlmWriter::open(const char *src) {
+int TlmWriter::open(const char *src, const char *label) {
     char name[48];
+    if (label == nullptr)
+        label = src;
     if (ring_ != nullptr)
         return EBUSY;
-    if (src == nullptr || std::strlen(src) >= sizeof src_ || !tlm_name(src, name, sizeof name))
+    if (src == nullptr || std::strlen(label) >= sizeof src_ || !tlm_name(src, name, sizeof name))
         return EINVAL;
     int fd = shm_open(name, O_RDWR | O_CREAT, 0644);
     if (fd == -1)
@@ -54,7 +56,7 @@ int TlmWriter::open(const char *src) {
     ring_->generation.store(static_cast<std::uint64_t>(ts.tv_sec) * 1000000000u + ts.tv_nsec + 1,
                             std::memory_order_release);
     ring_->magic.store(kTlmMagic, std::memory_order_release);
-    std::strcpy(src_, src);
+    std::strcpy(src_, label);
     seq_ = 0;
     return EOK;
 }

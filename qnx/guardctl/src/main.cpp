@@ -4,6 +4,7 @@
 #include "guard/codec.hpp"
 #include "guard/qnx/dcmd.hpp"
 #include "guard/qnx/kv.hpp"
+#include "guard/qnx/tlm.hpp"
 #include "guard/reason_codes.hpp"
 
 #include <algorithm>
@@ -17,6 +18,7 @@
 #include <fcntl.h>
 #include <string>
 #include <sys/neutrino.h>
+#include <sys/syspage.h>
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <time.h>
@@ -286,6 +288,22 @@ int cmd_recover() {
 }
 
 // ---- inject ----
+// slay exits with the number of processes it signalled: 0 means none matched.
+int slay(const char *sig, const char *name) {
+    pid_t p = fork();
+    if (p < 0)
+        return errno;
+    if (p == 0) {
+        execlp("slay", "slay", "-f", "-Q", "-s", sig, name, static_cast<char *>(nullptr));
+        _exit(127);
+    }
+    int st = 0;
+    waitpid(p, &st, 0);
+    if (!WIFEXITED(st) || WEXITSTATUS(st) == 127)
+        return ENOENT;
+    return WEXITSTATUS(st) >= 1 ? EOK : ESRCH;
+}
+
 int run(const std::vector<std::string> &argv, bool detach) {
     pid_t p = fork();
     if (p < 0)
@@ -316,22 +334,26 @@ int run(const std::vector<std::string> &argv, bool detach) {
 
 int cmd_inject(unsigned fault, long duration, long long param) {
     char ok[64];
+    const auto t_inject = now_ns(); // before acting, so the event precedes its effects
     std::snprintf(ok, sizeof ok, "injected F%u at t_ns=%lld", fault,
-                  static_cast<long long>(now_ns()));
+                  static_cast<long long>(t_inject));
     int rc = EOK;
     // Process faults act on real processes: test image only (guard-hog marks it).
     if ((fault == 2 || fault == 3 || fault == 7) && access("/system/bin/guard-hog", X_OK) != 0)
         return error("inject", "process faults need the test image (run-demo.sh --test)", 5);
     switch (fault) {
     case 2: // F2: delayed authorization, guard-hog at 32 (REF-PRIORITIES)
-        rc = run({"/system/bin/guard-hog", "32", std::to_string(duration > 0 ? duration : 400)},
-                 true);
+        // One hog per CPU, each pinned, so the priority-32 load covers the whole machine.
+        for (unsigned cpu = 0; cpu < _syspage_ptr->num_cpu && rc == EOK; ++cpu)
+            rc = run({"/system/bin/guard-hog", "32", std::to_string(duration > 0 ? duration : 400),
+                      "-c", std::to_string(cpu)},
+                     true);
         break;
     case 3: // F3: supervisor killed
-        rc = run({"slay", "-f", "-Q", "-s", "SIGKILL", "guard-supervisor"}, false);
+        rc = slay("SIGKILL", "guard-supervisor");
         break;
     case 7: { // F7: stop supervisor A, start B (new epoch), continue A later
-        if ((rc = run({"slay", "-f", "-Q", "-s", "SIGSTOP", "guard-supervisor"}, false)) != EOK)
+        if ((rc = slay("SIGSTOP", "guard-supervisor")) != EOK)
             break;
         if ((rc = run({"/system/bin/guard-supervisor"}, true)) != EOK)
             break;
@@ -356,6 +378,16 @@ int cmd_inject(unsigned fault, long duration, long long param) {
     }
     if (rc != EOK)
         return errno_error("inject", rc);
+    if (fault == 2 || fault == 3 || fault == 7) {
+        // C8 fault event at the moment guardctl acted (the sim skips process faults).
+        qnx::TlmWriter tlm;
+        char payload[96];
+        std::snprintf(payload, sizeof payload,
+                      "\"fault\":\"F%u\",\"phase\":\"start\",\"detail\":\"guardctl inject\"",
+                      fault);
+        if (tlm.open("guardctl", "harness") == EOK)
+            tlm.emit(t_inject, "fault", payload);
+    }
     return result(ok);
 }
 

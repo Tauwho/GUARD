@@ -27,7 +27,9 @@ namespace {
 using namespace guard;
 constexpr int kPrio = 8, kMaxClients = 4;
 constexpr std::int64_t kPollNs = 20'000'000, kHoldNs = 200'000'000;
-const char *kSources[] = {"sim", "gate", "supervisor", "planner"};
+// Ring names; "guardctl" carries the process-fault events (src "harness") of guardctl inject.
+const char *kSources[] = {"sim", "gate", "supervisor", "planner", "guardctl"};
+constexpr int kRings = 5;
 
 std::int64_t now_ns() {
     struct timespec ts {};
@@ -63,7 +65,7 @@ bool is_kind(const std::string &s, const char *kind) {
 }
 
 struct Bridge {
-    qnx::TlmReader rings[4];
+    qnx::TlmReader rings[kRings];
     std::vector<Line> pending;
     std::uint64_t order = 0, seq = 0, sent = 0, client_drops = 0;
     std::int64_t last_t = 0;
@@ -160,7 +162,7 @@ std::string complete_run_end(const std::string &s, std::int64_t t) {
 
 void poll_rings(std::int64_t now) {
     char buf[qnx::kTlmLine];
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < kRings; ++i) {
         auto &r = b.rings[i];
         if (!r.is_open() && r.open(kSources[i]) != EOK)
             continue;
@@ -174,7 +176,7 @@ void poll_rings(std::int64_t now) {
             l.order = b.order++;
             b.pending.push_back(std::move(l));
         }
-        if (auto d = r.take_dropped()) {
+        if (auto d = r.take_dropped(); d && i < 4) { // drop.ring names the four processes
             Line l;
             l.t = now - kHoldNs;
             l.order = b.order++;

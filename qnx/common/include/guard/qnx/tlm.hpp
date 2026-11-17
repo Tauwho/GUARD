@@ -41,8 +41,8 @@ class TlmWriter {
     ~TlmWriter();
 
     // shm_open(O_CREAT, 0644) + mmap, then resets the ring. Call before dropping root.
-    // Returns EOK or errno.
-    int open(const char *src);
+    // `label` is the C8 src written in each line (default: the ring name). Returns EOK or errno.
+    int open(const char *src, const char *label = nullptr);
     // Writes one C8 line {"v":1,"t_ns":..,"src":..,"seq":..,"kind":..,"payload":{<payload>}}.
     // `payload` is the JSON object body without braces. Returns false (and counts a local
     // drop) if the ring is not open or the line does not fit.
