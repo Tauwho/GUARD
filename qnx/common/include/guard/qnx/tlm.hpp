@@ -22,7 +22,7 @@ struct TlmSlot {
 };
 
 struct TlmRing {
-    std::uint32_t magic;
+    std::atomic<std::uint32_t> magic;
     std::uint32_t slots;
     std::atomic<std::uint64_t> head;       // lines written so far
     std::atomic<std::uint64_t> generation; // new value each time a writer (re)creates it

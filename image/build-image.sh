@@ -57,8 +57,10 @@ python3 - "$INPUTS" <<'EOF' || { echo "inputs.json hash mismatch" >&2; exit 1; }
 import hashlib, json, pathlib, sys
 root = pathlib.Path(sys.argv[1])
 manifest = json.loads((root / "inputs.json").read_text())
+files = {p.relative_to(root).as_posix() for p in root.rglob("*") if p.is_file()}
 bad = [p for p, h in manifest.items() if hashlib.sha256((root / p).read_bytes()).hexdigest() != h]
-sys.exit(1 if bad or not manifest else 0)
+# Every packed file is listed, and nothing listed is missing.
+sys.exit(1 if bad or not manifest or files != set(manifest) | {"inputs.json"} else 0)
 EOF
 (cd "$INPUTS" && find . -type f | sort) | while read -r f; do
     echo "[perms=444] guard/scenarios/${f#./}=$INPUTS/${f#./}" >> "$FILES"

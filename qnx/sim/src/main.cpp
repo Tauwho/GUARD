@@ -72,7 +72,8 @@ struct Sim {
     WorldLoad load{};
     char map_path[160] = "", config_path[160] = "default";
     std::int64_t t0 = 0, rel = 0;
-    std::uint64_t ticks = 0, motor_ok = 0, motor_rejected = 0, unauthorized = 0, last_seq = 0;
+    std::uint64_t ticks = 0, run_ticks = 0, motor_ok = 0, motor_rejected = 0, unauthorized = 0,
+                  last_seq = 0;
     std::array<bool, 9> fault_on{};
     std::array<Injected, 8> injected{};
     std::size_t injected_count = 0;
@@ -116,11 +117,14 @@ int errno_of(DecodeError e) {
     }
 }
 
+// messages.md 1.4: shorter than the header -> EBADMSG; header checks, then the size.
 template <class T> int read_struct(io_devctl_t *msg, T &out) {
-    if (msg->i.nbytes < sizeof(T))
-        return EMSGSIZE;
+    if (msg->i.nbytes < sizeof(Header))
+        return EBADMSG;
+    if (msg->i.nbytes > sizeof(T))
+        return EMSGSIZE; // never read past the fixed-size message
     return errno_of(
-        decode(static_cast<const std::uint8_t *>(_DEVCTL_DATA(msg->i)), sizeof(T), out));
+        decode(static_cast<const std::uint8_t *>(_DEVCTL_DATA(msg->i)), msg->i.nbytes, out));
 }
 
 int allowed(resmgr_context_t *ctp, const uid_t *uids, std::size_t n) {
@@ -134,7 +138,7 @@ int allowed(resmgr_context_t *ctp, const uid_t *uids, std::size_t n) {
 void emit(std::int64_t t, const char *kind, const char *fmt, ...)
     __attribute__((format(printf, 3, 4)));
 void emit(std::int64_t t, const char *kind, const char *fmt, ...) {
-    char payload[1900];
+    char payload[qnx::kTlmLine];
     va_list ap;
     va_start(ap, fmt);
     int n = std::vsnprintf(payload, sizeof payload, fmt, ap);
@@ -186,13 +190,16 @@ void deliver(Feed &feed, Observation obs, std::uint8_t which) {
 }
 
 void emit_observation(const Observation &o) {
-    char obstacles[1200];
+    char obstacles[1600] = ""; // 16 entries of at most 3 x %.17g fit
     std::size_t at = 0;
-    for (unsigned i = 0; i < o.obstacle_count && at < sizeof obstacles; ++i)
-        at += std::snprintf(obstacles + at, sizeof obstacles - at,
-                            "%s{\"x\":%.17g,\"y\":%.17g,\"r\":%.17g}", i ? "," : "",
-                            o.obstacles[i].x, o.obstacles[i].y, o.obstacles[i].r);
-    obstacles[at < sizeof obstacles ? at : sizeof obstacles - 1] = '\0';
+    for (unsigned i = 0; i < o.obstacle_count; ++i) {
+        int n = std::snprintf(obstacles + at, sizeof obstacles - at,
+                              "%s{\"x\":%.17g,\"y\":%.17g,\"r\":%.17g}", i ? "," : "",
+                              o.obstacles[i].x, o.obstacles[i].y, o.obstacles[i].r);
+        if (n < 0 || static_cast<std::size_t>(n) >= sizeof obstacles - at)
+            return; // would not be valid JSON; the line is skipped rather than cut
+        at += static_cast<std::size_t>(n);
+    }
     emit(o.stamp_ns, "observation",
          "\"obs_id\":%" PRIu64 ",\"seq\":%" PRIu64
          ",\"feed\":\"planner\",\"x\":%.17g,\"y\":%.17g,\"theta\":%.17g,\"v_meas\":%.17g,"
@@ -257,7 +264,9 @@ void start_run(std::int64_t now) {
     g->contacts = g->breaches = 0;
     g->min_margin = 1000;
     g->zone_override = -1;
+    g->run_ticks = 0;
     g->sup.seq = g->plan.seq = 0;
+    g->plant.emplace(g->config, g->map.start, now); // first step is one tick after start
     char ablate[64] = "";
     const char *names[] = {"freshness", "stopping", "expiry", "epoch"};
     std::size_t at = 0;
@@ -279,6 +288,7 @@ void do_tick() {
     ++g->ticks;
     if (g->run != Run::running)
         return;
+    ++g->run_ticks;
     g->rel = now - g->t0;
     if (!g->world->update(g->rel)) {
         std::printf("guard-sim: world update failed\n");
@@ -286,7 +296,7 @@ void do_tick() {
         return;
     }
     g->scene = g->world->scene();
-    if (g->zone_override >= 0 && !g->scene.zones[g->zone_override].active) {
+    if (g->zone_override >= 0 && injected(6) && !g->scene.zones[g->zone_override].active) {
         g->scene.zones[g->zone_override].active = true; // injected F6
         ++g->scene.map_version;
     }
@@ -325,7 +335,7 @@ void do_tick() {
     g->breach = truth.zone_breach;
     release_lagged(now, false);
     const std::uint64_t every = 1000 / g->config.obs_rate_hz / g->config.t_tick_ms;
-    if (every > 0 && g->ticks % every == 0)
+    if (every > 0 && g->run_ticks % every == 0)
         sample(now);
     const auto pose = g->plant->pose();
     if (std::hypot(pose.x - g->map.goal.x, pose.y - g->map.goal.y) <= 0.15)
@@ -344,6 +354,12 @@ int do_load(const WorldLoad &load) {
     if (g->run == Run::running)
         return EBUSY;
     const char *path = load.scenario_path.data();
+    // Only packed inputs, never a device path (opening our own path would block this loop).
+    static const char kRoot[] = "/system/guard/scenarios/", kData[] = "/data/guard/scenarios/";
+    if ((std::strncmp(path, kRoot, sizeof kRoot - 1) != 0 &&
+         std::strncmp(path, kData, sizeof kData - 1) != 0) ||
+        std::strstr(path, "..") != nullptr)
+        return ENOENT;
     std::size_t n = 0;
     char id[40], rest[64];
     int rc = qnx::read_file(path, g->file, sizeof g->file, n);
@@ -368,16 +384,22 @@ int do_load(const WorldLoad &load) {
     config.ablate_stopping = load.ablation_mask & 2;
     config.ablate_expiry = load.ablation_mask & 4;
     config.ablate_epoch = load.ablation_mask & 8;
-    if (!valid(config) || config.obs_rate_hz == 0 || 1000 % config.obs_rate_hz)
-        return EINVAL;
+    if (!valid(config) || config.t_tick_ms != kTickNs / kMs || config.obs_rate_hz == 0 ||
+        1000 % config.obs_rate_hz)
+        return EINVAL; // the tick timer is fixed at 10 ms
+    static MapSpec map;
+    static ScenarioSpec scenario;
     if (qnx::read_file(map_path, g->file, sizeof g->file, n) != EOK)
         return ENOENT;
-    if (!load_map({g->file, n}, g->map))
+    if (!load_map({g->file, n}, map))
         return EINVAL;
     if (qnx::read_file(path, g->file, sizeof g->file, n) != EOK)
         return ENOENT;
-    if (!load_scenario({g->file, n}, g->map, g->scenario))
+    if (!load_scenario({g->file, n}, map, scenario))
         return EINVAL;
+    g->map = map; // only now: a failed load leaves the previous inputs untouched
+    g->scenario = scenario;
+    g->last_seq = 0;
     g->config = config;
     g->world.emplace(g->map, g->scenario);
     g->plant.emplace(config, g->map.start, now_ns());
@@ -420,16 +442,18 @@ int do_inject(const WorldInject &in) {
         param = in.fault == 1 ? 600 : in.fault == 5 ? 1200 : in.fault == 8 ? 1000 : 0;
     if (in.fault == 4)
         param = 1; // C7: F4 pauses the supervisor feed
-    if (in.fault == 6) {
-        for (std::size_t z = 0; z < g->map.scene.zone_count && g->zone_override < 0; ++z)
-            if (std::strstr(name_view(g->map.zone_names[z]).data(), "mri") != nullptr)
-                g->zone_override = static_cast<int>(z);
-        if (g->zone_override < 0)
-            return EINVAL;
-    }
     if (param < 0 || (in.fault == 1 && param > 10000) || (in.fault == 5 && param > 1200) ||
         (in.fault == 8 && param > 1000))
         return EINVAL;
+    if (in.fault == 6) {
+        int zone = -1;
+        for (std::size_t z = 0; z < g->map.scene.zone_count && zone < 0; ++z)
+            if (std::strstr(name_view(g->map.zone_names[z]).data(), "mri") != nullptr)
+                zone = static_cast<int>(z);
+        if (zone < 0)
+            return EINVAL;
+        g->zone_override = zone; // applies while the F6 injection is active
+    }
     f.until = duration ? f.from + static_cast<std::int64_t>(duration) * kMs : 0;
     f.param = param;
     g->injected[g->injected_count++] = f;
@@ -476,10 +500,10 @@ int world_devctl(resmgr_context_t *ctp, io_devctl_t *msg, void *ocb) {
 }
 
 std::size_t format_world(char *out, std::size_t cap) {
-    char faults[128] = "none";
+    char faults[256] = "none"; // 8 x ",F<n>:<i64>" fits
     std::size_t at = 0;
     if (g->run == Run::running)
-        for (unsigned f = 1; f <= 8; ++f)
+        for (unsigned f = 1; f <= 8 && at < sizeof faults; ++f)
             if (fault_active(f))
                 at += std::snprintf(faults + at, sizeof faults - at, "%sF%u:%" PRId64,
                                     at ? "," : "", f, fault_param(f));
@@ -654,6 +678,6 @@ int main(int argc, char **argv) {
         return fail("tick", rc);
     std::printf("guard-sim: ready, uid %d\n", static_cast<int>(geteuid()));
     for (;;)
-        if ((rc = g->rm.run_once()) != EOK)
+        if ((rc = g->rm.run_once()) != EOK && rc != EINTR)
             return fail("dispatch", rc);
 }

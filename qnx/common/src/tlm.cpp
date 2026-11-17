@@ -44,7 +44,7 @@ int TlmWriter::open(const char *src) {
         return e;
     ring_ = static_cast<TlmRing *>(p);
     // Reset: readers that see the new generation start again at line 0.
-    ring_->magic = 0;
+    ring_->magic.store(0, std::memory_order_relaxed);
     for (auto &s : ring_->slot)
         s.stamp.store(0, std::memory_order_relaxed);
     ring_->head.store(0, std::memory_order_relaxed);
@@ -53,7 +53,7 @@ int TlmWriter::open(const char *src) {
     clock_gettime(CLOCK_MONOTONIC, &ts);
     ring_->generation.store(static_cast<std::uint64_t>(ts.tv_sec) * 1000000000u + ts.tv_nsec + 1,
                             std::memory_order_release);
-    ring_->magic = kTlmMagic;
+    ring_->magic.store(kTlmMagic, std::memory_order_release);
     std::strcpy(src_, src);
     seq_ = 0;
     return EOK;
@@ -62,18 +62,20 @@ int TlmWriter::open(const char *src) {
 bool TlmWriter::emit(std::int64_t t_ns, const char *kind, const char *payload) {
     if (ring_ == nullptr || t_ns < 0)
         return false;
-    std::uint64_t idx = ring_->head.load(std::memory_order_relaxed);
-    TlmSlot &s = ring_->slot[idx % kTlmSlots];
-    s.stamp.store(0, std::memory_order_relaxed);
-    std::atomic_thread_fence(std::memory_order_release);
-    int n = std::snprintf(s.line, kTlmLine,
+    char line[kTlmLine];
+    int n = std::snprintf(line, sizeof line,
                           "{\"v\":1,\"t_ns\":%" PRId64 ",\"src\":\"%s\",\"seq\":%" PRIu64
                           ",\"kind\":\"%s\",\"payload\":{%s}}",
                           t_ns, src_, seq_, kind, payload);
     if (n <= 0 || static_cast<std::size_t>(n) >= kTlmLine) {
         ++too_long_;
-        return false; // slot stays uncommitted; head does not move, so readers never see it
+        return false; // nothing written; the ring is unchanged
     }
+    std::uint64_t idx = ring_->head.load(std::memory_order_relaxed);
+    TlmSlot &s = ring_->slot[idx % kTlmSlots];
+    s.stamp.store(0, std::memory_order_relaxed);
+    std::atomic_thread_fence(std::memory_order_release);
+    std::memcpy(s.line, line, static_cast<std::size_t>(n));
     s.len = static_cast<std::uint32_t>(n);
     s.stamp.store(idx + 1, std::memory_order_release);
     ring_->head.store(idx + 1, std::memory_order_release);
@@ -107,7 +109,7 @@ int TlmReader::open(const char *src) {
 }
 
 bool TlmReader::next(char *out, std::size_t len, std::size_t &n) {
-    if (ring_ == nullptr || ring_->magic != kTlmMagic)
+    if (ring_ == nullptr || ring_->magic.load(std::memory_order_acquire) != kTlmMagic)
         return false;
     std::uint64_t gen = ring_->generation.load(std::memory_order_acquire);
     if (gen != generation_) {
@@ -140,6 +142,11 @@ bool TlmReader::next(char *out, std::size_t len, std::size_t &n) {
         if (s.stamp.load(std::memory_order_relaxed) != before) {
             ++dropped_;
             ++read_;
+            continue;
+        }
+        if (ring_->generation.load(std::memory_order_acquire) != generation_) {
+            generation_ = ring_->generation.load(std::memory_order_acquire);
+            read_ = 0; // the writer restarted while we copied: start over on its new lines
             continue;
         }
         ++read_;
