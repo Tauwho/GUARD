@@ -12,6 +12,12 @@ binaries.txt, slog2.txt, results.json and manifest.json (C13). The --binary file
 described, never copied into the bundle. Home paths and ssh key fingerprints are
 redacted. The bundle is checked against the 1 MiB limit and, if jsonschema is
 installed, against contracts/evidence-manifest.schema.json.
+
+Scenario runs (B4): --scenario-result <out>.results.json --trace <out>.jsonl from
+eval/target_runner.py put the summary, mismatches and the C8 trace into results.json.
+D11 (nothing measured on QNX is published): every t_ns becomes the event index, *_ns
+payload fields and the summary's time fields are removed. The trace is checked against
+contracts/telemetry.schema.json when jsonschema is installed.
 """
 
 import argparse
@@ -79,6 +85,51 @@ def doctest_summary(text):
     return out
 
 
+def timed(key):
+    """Summary keys left out (D11): time (*_s, *_ns, durations) and derived numeric results
+    (rates, margins). Counts, states and reason names stay."""
+    return key.endswith(("_s", "_ns")) or any(
+        word in key for word in ("duration", "time", "rate", "margin")
+    )
+
+
+def sanitize_trace(lines):
+    """D11: keep the order and every functional field, drop what measures time on QNX."""
+    events = []
+    for index, line in enumerate(x for x in lines if x.strip()):
+        event = json.loads(line)
+        event["t_ns"] = index
+        payload = event["payload"].items()
+        event["payload"] = {k: v for k, v in payload if not k.endswith("_ns") and "margin" not in k}
+        events.append(event)
+    return events
+
+
+def scenario_results(result_path, trace_path):
+    result = json.loads(Path(result_path).read_text(encoding="utf-8"))
+    trace = sanitize_trace(Path(trace_path).read_text(encoding="utf-8").splitlines())
+    try:
+        import jsonschema
+    except ImportError:
+        jsonschema = None
+    if jsonschema is not None:
+        schema = json.loads((ROOT / "contracts" / "telemetry.schema.json").read_text())
+        validator = jsonschema.Draft202012Validator(schema)
+        for event in trace:
+            validator.validate(event)
+    summary = {k: v for k, v in result.get("summary", {}).items() if not timed(k)}
+    # Mismatch texts can quote measured values; keep only which metric differed.
+    mismatches = [str(m).split(":")[0].split()[0] for m in result.get("mismatches") or []]
+    return {
+        "source": result.get("source"),
+        "commands": result.get("commands"),
+        "summary": summary,
+        "mismatches": mismatches,
+        "trace_schema": "contracts/telemetry.schema.json (t_ns = event index, D11)",
+        "trace": trace,
+    }
+
+
 def first_line(run, args, fallback):
     code, out = run(args)
     line = out.strip().splitlines()[0] if code == 0 and out.strip() else ""
@@ -90,7 +141,10 @@ def capture(args, run_target, run_host=run_local, now=None, home=None):
     sha = args.sha or first_line(run_host, ["git", "-C", str(ROOT), "rev-parse", "HEAD"], "")
     if not re.fullmatch(r"[0-9a-f]{40}", sha):
         raise ValueError(f"not a full commit sha: {sha!r}")
-    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,47}", args.topic):
+    # The folder keeps the brief's spelling (scenario-F0, SCOPE.yaml globs); C13 wants the
+    # manifest topic in lower case.
+    topic = args.topic.lower()
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,47}", topic):
         raise ValueError(f"bad topic: {args.topic!r}")
     now = now or datetime.datetime.now(datetime.timezone.utc)
     bundle = Path(args.out) / f"{now:%Y%m%d}-{sha[:7]}-{args.topic}"
@@ -110,7 +164,16 @@ def capture(args, run_target, run_host=run_local, now=None, home=None):
     write("binaries.txt", "".join(describe_binary(b, run_host) for b in args.binary) or "none\n")
     text = "\n".join(transcript)
     results = {"commands": args.run, "exit_codes": exit_codes, "doctest": doctest_summary(text)}
-    write("results.json", json.dumps(results, indent=2) + "\n")
+    if args.scenario_result:
+        results["scenario_run"] = scenario_results(args.scenario_result, args.trace)
+        lines = [json.dumps(e, separators=(",", ":")) for e in results["scenario_run"].pop("trace")]
+        body = json.dumps(results, indent=2)
+        # One event per line keeps the trace readable and the bundle small.
+        results_text = body[:-2] + ',\n  "trace": [\n    ' + ",\n    ".join(lines) + "\n  ]\n}\n"
+        json.loads(results_text)
+        write("results.json", results_text)
+    else:
+        write("results.json", json.dumps(results, indent=2) + "\n")
 
     uname = (bundle / "uname.txt").read_text().split()
     qcc = first_line(run_host, ["qcc", "-Vgcc_ntox86_64", "--version"], "unknown")
@@ -118,7 +181,7 @@ def capture(args, run_target, run_host=run_local, now=None, home=None):
         "version": 1,
         "sha": sha,
         "date": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "topic": args.topic,
+        "topic": topic,
         "runner_role": args.role,
         "host_os": args.host_os[:120],
         "sdp_version": args.sdp,
@@ -127,6 +190,10 @@ def capture(args, run_target, run_host=run_local, now=None, home=None):
         "contracts": args.contracts,
         "files": FILES,
     }
+    if args.scenario:
+        manifest["scenario"], manifest["mode"] = args.scenario, args.mode
+        if args.seed is not None:
+            manifest["seeds"] = [args.seed]
     if args.notes:
         manifest["notes"] = args.notes[:1000]
     write("manifest.json", json.dumps(manifest, indent=2) + "\n")
@@ -158,14 +225,22 @@ def parser():
     p.add_argument("--host-os", default=host_os)
     p.add_argument("--sdp", default="8.0.0")
     p.add_argument("--image", default="mkqnximage --type=qemu --arch=x86_64 (QSTI)")
-    p.add_argument("--contracts", default="contracts-v1.1")
+    p.add_argument("--contracts", default="contracts-v1.2")
     p.add_argument("--notes", default="")
     p.add_argument("--out", default=str(ROOT / "evidence"))
+    p.add_argument("--scenario-result", help="eval/target_runner.py <out>.results.json")
+    p.add_argument("--trace", help="the C8 trace (JSONL) of that run")
+    p.add_argument("--scenario", help="F0..F8, recorded in the manifest")
+    p.add_argument("--mode", default="B2", choices=["B0", "B1", "B2"])
+    p.add_argument("--seed", type=int)
     return p
 
 
 def main(argv=None):
     args = parser().parse_args(argv)
+    if bool(args.scenario_result) != bool(args.trace):
+        print("capture-evidence: --scenario-result and --trace go together", file=sys.stderr)
+        return 2
     try:
         bundle = capture(args, ssh_runner(args.target))
     except (ValueError, OSError) as error:

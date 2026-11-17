@@ -1,0 +1,50 @@
+$ sh /tmp/guardctl_check.sh
+CHECK usage error (exit 2, got 2) PASS
+  err: usage:
+CHECK bad flag value (exit 2, got 2) PASS
+  err: usage:
+CHECK --version (exit 0, got 0) PASS
+  out: guardctl 1.0 (contracts-v1.2)
+CHECK --help (exit 0, got 0) PASS
+  out: usage:
+CHECK status (C4 text) (exit 0, got 0) PASS
+  out: version=1
+CHECK status --json (exit 0, got 0) PASS
+  out: {"version":1,"mode":"LATCHED","epoch":1,"lease_id":0,"lease_seq":0,"latch_cause":"BOOT","recovery_unmet_mask":0,"v_cmd":0.000,"w_cmd":0.000,"counts":{}}
+CHECK status --json has counts PASS
+CHECK status as uid 1105 works for any uid (exit 0, got 0) PASS
+  out: version=1
+CHECK recover as uid 1104 -> EPERM (exit 3, got 3) PASS
+  err: guardctl: recover: Operation not permitted
+CHECK scenario load missing file -> invalid (exit 6, got 6) PASS
+  err: guardctl: scenario load: No such file or directory
+CHECK scenario load relative path -> usage (exit 2, got 2) PASS
+  err: guardctl: scenario load: path must be absolute and shorter than 96 bytes
+CHECK scenario load F0 (exit 0, got 0) PASS
+  out: loaded F0 mode=B2 seed=1000
+CHECK scenario load --json (exit 0, got 0) PASS
+  out: {"ok":true,"result":"loaded F0 mode=B2 seed=1000"}
+CHECK scenario start (recovers a latched gate) (exit 0, got 0) PASS
+  out: started
+CHECK recover while not latched -> refused (exit 1, got 1) PASS
+  out: not latched: mode=MOVING
+CHECK inject F4 (exit 0, got 0) PASS
+  out: injected F4 at t_ns=<n>
+CHECK inject F9 -> usage (exit 2, got 2) PASS
+  err: usage:
+CHECK inject F2 without guard-hog -> missing (exit 5, got 5) PASS
+  err: guardctl: inject: process faults need the test image (run-demo.sh --test)
+CHECK recover after F4 latch (exit 0, got 0) PASS
+  out: recovered: mode=READY epoch=1
+CHECK scenario stop (exit 0, got 0) PASS
+  out: stopped
+CHECK scenario start after end -> EBUSY (exit 6, got 6) PASS
+  err: guardctl: scenario start: Resource busy
+CHECK sim stopped: scenario stop -> timeout (exit 4, got 4) PASS
+  err: guardctl: scenario stop: Connection timed out
+CHECK sim gone: scenario stop -> device missing (exit 5, got 5) PASS
+  err: guardctl: scenario stop: No such file or directory
+CHECK sim back: scenario load F0 (exit 0, got 0) PASS
+  out: loaded F0 mode=B2 seed=0
+RESULT PASS (0 failed)
+[exit 0]

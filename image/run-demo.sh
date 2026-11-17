@@ -2,7 +2,7 @@
 # Boot the GUARD image and get the demo going (B-9, #43). Run on the QNX host, SDP env sourced.
 #   image/run-demo.sh [--net user|bridge] [--rebuild] [--test]
 # Builds the image if needed (image/build-image.sh), boots QEMU in the background, waits for
-# ssh and the GUARD start log, then starts the dashboard relay when the repo has one (#24).
+# ssh and the GUARD start log, then prints the live dashboard command (dashboard/relay.py).
 # Stop the target: image/run-demo.sh --stop
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -33,7 +33,7 @@ else
     KVM=(); [ -w /dev/kvm ] && KVM=(-enable-kvm -cpu host)
     setsid qemu-system-x86_64 "${KVM[@]}" -smp 2 -m 1G \
         -drive file=output/disk-qemu.vmdk,if=ide,id=drv0 \
-        -netdev user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22 -device virtio-net-pci,netdev=net0 \
+        -netdev user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22,hostfwd=tcp:127.0.0.1:7700-:7700 -device virtio-net-pci,netdev=net0 \
         -object rng-random,filename=/dev/urandom,id=rng0 -device virtio-rng-pci,rng=rng0 \
         -kernel output/ifs.bin -serial file:output/qemu.out -display none \
         -pidfile output/qemu.pid < /dev/null > /dev/null 2>&1 &
@@ -49,7 +49,5 @@ done
 echo "target up: ${SSH[*]}"
 "${SSH[@]}" cat /data/var/log/guard-start.log
 
-if [ -x "$ROOT/dashboard/relay.sh" ]; then
-    exec "$ROOT/dashboard/relay.sh"
-fi
-echo "dashboard relay not in the repo yet (#24); the bridge streams C8 to the host on TCP 7700"
+echo "C8 telemetry: guard-bridge on 127.0.0.1:7700 (forwarded). Live dashboard:"
+echo "  python3 dashboard/relay.py --bridge 127.0.0.1:7700   # then open http://127.0.0.1:8765"
