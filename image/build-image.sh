@@ -47,6 +47,24 @@ for entry in $PROCS; do
     echo "add  $exe"
 done
 
+# Normalized inputs (#141, INTERFACES.md I5): validated JSON-subset YAML from the host step,
+# packed read-only under /system/guard/scenarios with the same layout as scenarios/.
+INPUTS=$OUT/inputs
+rm -rf "$INPUTS"
+python3 "$ROOT/host/prepare_inputs.py" --out "$INPUTS" > "$OUT/inputs.log" 2>&1 \
+    || { cat "$OUT/inputs.log" >&2; exit 1; }
+python3 - "$INPUTS" <<'EOF' || { echo "inputs.json hash mismatch" >&2; exit 1; }
+import hashlib, json, pathlib, sys
+root = pathlib.Path(sys.argv[1])
+manifest = json.loads((root / "inputs.json").read_text())
+bad = [p for p, h in manifest.items() if hashlib.sha256((root / p).read_bytes()).hexdigest() != h]
+sys.exit(1 if bad or not manifest else 0)
+EOF
+(cd "$INPUTS" && find . -type f | sort) | while read -r f; do
+    echo "[perms=444] guard/scenarios/${f#./}=$INPUTS/${f#./}" >> "$FILES"
+done
+echo "add  $(grep -c guard/scenarios "$FILES") input files (inputs.json hashes match)"
+
 IP=dhcp
 [ "$NET" = bridge ] && IP=10.10.10.2
 cd "$OUT/qsti"

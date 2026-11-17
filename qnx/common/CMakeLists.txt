@@ -18,7 +18,8 @@ add_library(guard_qnx_common STATIC
   src/priv.cpp
   src/resmgr.cpp
   src/sched.cpp
-  src/timer.cpp)
+  src/timer.cpp
+  src/tlm.cpp)
 target_include_directories(guard_qnx_common PUBLIC include)
 
 include(FetchContent)
@@ -29,5 +30,5 @@ FetchContent_Declare(doctest
 FetchContent_MakeAvailable(doctest)
 
 add_executable(guard_qnx_common_tests tests/main.cpp tests/test_sched.cpp tests/test_ipc.cpp
-  tests/test_timer.cpp tests/test_resmgr.cpp tests/test_priv.cpp)
+  tests/test_timer.cpp tests/test_resmgr.cpp tests/test_priv.cpp tests/test_tlm.cpp)
 target_link_libraries(guard_qnx_common_tests PRIVATE guard_qnx_common doctest::doctest)

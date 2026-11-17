@@ -24,6 +24,15 @@ struct guard_passthru_t {
 struct guard_motor_cmd_t {
     std::uint8_t b[48];
 };
+struct guard_world_load_t {
+    std::uint8_t b[120];
+};
+struct guard_world_inject_t {
+    std::uint8_t b[24];
+};
+struct guard_world_pause_t {
+    std::uint8_t b[16];
+};
 } // namespace guard::qnx
 
 #define DCMD_GUARD_REGISTER __DIOF(_DCMD_MISC, 0xA0, guard::qnx::guard_register_reply_t)
@@ -32,3 +41,6 @@ struct guard_motor_cmd_t {
 #define DCMD_GUARD_RECOVER __DIOTF(_DCMD_MISC, 0xA3, guard::qnx::guard_recover_t)
 #define DCMD_GUARD_PASSTHRU __DIOT(_DCMD_MISC, 0xA4, guard::qnx::guard_passthru_t)
 #define DCMD_SIM_MOTOR __DIOT(_DCMD_MISC, 0xB0, guard::qnx::guard_motor_cmd_t)
+#define DCMD_SIM_WORLD_LOAD __DIOT(_DCMD_MISC, 0xB1, guard::qnx::guard_world_load_t)
+#define DCMD_SIM_WORLD_INJECT __DIOT(_DCMD_MISC, 0xB2, guard::qnx::guard_world_inject_t)
+#define DCMD_SIM_WORLD_PAUSE __DIOT(_DCMD_MISC, 0xB3, guard::qnx::guard_world_pause_t)
