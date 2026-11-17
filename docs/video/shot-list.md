@@ -19,7 +19,7 @@ refer to [storyboard.md](storyboard.md). Two takes of each shot.
 | S2 | 2 | 1 | Host terminal: both F3 replays, exit codes visible | ready |
 | S3 | 4 | 3 | Dashboard replay of `out/F6-B2.jsonl` with `--map scenarios/maps/mri_suite.yaml` (robot waits, reason journal) | ready |
 | S4 | 4 | 3 | Dashboard replay of `out/F6-B0.jsonl` with the same `--map` (robot crosses the zone) | ready |
-| S5 | 5 | 4 | Target terminal: the `run-demo.sh --dashboard` start log (QEMU runs headless), then the four `ssh ... guardctl` lines with their filtered output | ready |
+| S5 | 5 | 4 | Target terminal: the `run-demo.sh --test --dashboard` start log (QEMU runs headless), then the four `ssh ... guardctl` lines with their filtered output | ready |
 | S6 | 5 | 4 | Live dashboard following the target bridge during S5; speed and lease-time readouts cropped (no QNX numbers) | ready |
 | S7 | 6 | 5 | `build_readme.py --check` PASS, then README Results and Limits scrolled on GitHub (DEMO step 5) | ready |
 | S8 | - | - | 30 s cut of S1 (kill, lease drains, stop, latch) for social posts | ready |

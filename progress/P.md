@@ -212,6 +212,30 @@ URL) and release-tag, which P3 (10 Dec) and the recording (13 Dec) produce.
   `python tools/check.py --fast` -> `RESULT: GREEN`.
 - S3 (B5 decision on 7 Dec) is settled early: B5 is DONE, the target scene is recorded.
 
+### F2 — dry run of DEMO steps 1-5 (2026-11-17)
+
+Fresh clone at `cb1b7fc` in WSL Ubuntu 22.04 (Python 3.11 venv, cmake 4.4.5); nightly
+run [44098010412](https://github.com/Tauwho/GUARD/actions/runs/44098010412) on the same
+commit passed `make check` and `tools/fresh_clone_demo.sh`.
+
+- Host setup: build OK; `out/` created.
+- Step 1: F3 B2 exit 0, `final_state LATCHED`; F3 B1 exit 0, `final_state MOVING`.
+- Step 2: relay serves `http://127.0.0.1:8765` (checked in the step 3/4 runs).
+- Step 3: F6 B2 exit 0, `final_state READY`, first rejection `REJ_MAP_VERSION`; F6 B0
+  exit 0, robot reaches the goal through the zone (margin below 0).
+- Target setup: `image/run-demo.sh --dashboard` builds, boots, starts sim, gate,
+  supervisor, planner, bridge, loads F0 and starts the relay; the dashboard follows the
+  target live (READY, decisions, journal).
+- Step 4: `guardctl status` -> `mode=MOVING`, `latch_cause=NONE`; `inject F3` on the
+  default image -> "process faults need the test image (run-demo.sh --test)". With
+  `image/run-demo.sh --test --dashboard`: `injected F3`, then `mode=LATCHED`,
+  `latch_cause=SUPERVISOR_LOST`; `recover` -> `unmet: supervisor_registered`, exit 1
+  (the documented refusal path). DEMO target setup now uses `--test --dashboard`.
+- Step 5: `python tools/build_readme.py --check` -> PASS.
+- Local only: with cmake 4.x the QNX projects need `CMAKE_POLICY_VERSION_MINIMUM=3.5`
+  in the environment (doctest's old `cmake_minimum_required`); B's own machine and CI
+  are unaffected. Recorded under Known issues; no repo change by P.
+
 ## Next
 - P5 (architecture SVG + Limits), then P6, P3 (10 Dec), P4 (13 Dec).
 - Mon 7 Dec: if B5 is not DONE, switch DEMO step 4 to the host fallback by hand.
@@ -223,6 +247,9 @@ URL) and release-tag, which P3 (10 Dec) and the recording (13 Dec) produce.
 - (P1: README/video structure of strong hackathon entries goes here.)
 
 ## Known issues
+
+- Building the QNX image with cmake 4.x needs `CMAKE_POLICY_VERSION_MINIMUM=3.5` in the
+  environment (FetchContent doctest). B-owned build files; P works around it locally.
 - A9 (STRETCH, A): the brief's "second-laptop evidence" is replaced by the PO decision on
   #29 (issuecomment-6921570197): Dat's real Qwen2.5-1.5B run plus the CI offline/recorded
   tests are the acceptance; a second machine is optional. SCOPE.yaml is frozen, so A9 keeps
