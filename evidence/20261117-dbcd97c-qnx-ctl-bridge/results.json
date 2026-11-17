@@ -1,0 +1,9 @@
+{
+  "commands": [
+    "sh /tmp/guardctl_check.sh"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "doctest": {}
+}
