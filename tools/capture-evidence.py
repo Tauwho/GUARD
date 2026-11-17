@@ -137,7 +137,10 @@ def capture(args, run_target, run_host=run_local, now=None, home=None):
     sha = args.sha or first_line(run_host, ["git", "-C", str(ROOT), "rev-parse", "HEAD"], "")
     if not re.fullmatch(r"[0-9a-f]{40}", sha):
         raise ValueError(f"not a full commit sha: {sha!r}")
-    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,47}", args.topic):
+    # The folder keeps the brief's spelling (scenario-F0, SCOPE.yaml globs); C13 wants the
+    # manifest topic in lower case.
+    topic = args.topic.lower()
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,47}", topic):
         raise ValueError(f"bad topic: {args.topic!r}")
     now = now or datetime.datetime.now(datetime.timezone.utc)
     bundle = Path(args.out) / f"{now:%Y%m%d}-{sha[:7]}-{args.topic}"
@@ -174,7 +177,7 @@ def capture(args, run_target, run_host=run_local, now=None, home=None):
         "version": 1,
         "sha": sha,
         "date": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "topic": args.topic,
+        "topic": topic,
         "runner_role": args.role,
         "host_os": args.host_os[:120],
         "sdp_version": args.sdp,
