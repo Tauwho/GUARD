@@ -86,8 +86,12 @@ def doctest_summary(text):
 
 
 def timed(key):
-    """Summary keys that measure time (D11): *_s, *_ns, durations."""
-    return key.endswith(("_s", "_ns")) or "duration" in key or "time" in key
+    """Summary keys left out (D11): time (*_s, *_ns, durations) and derived numeric results
+    (rates, margins). Counts, states and reason names stay."""
+    return (
+        key.endswith(("_s", "_ns"))
+        or any(word in key for word in ("duration", "time", "rate", "margin"))
+    )
 
 
 def sanitize_trace(lines):
