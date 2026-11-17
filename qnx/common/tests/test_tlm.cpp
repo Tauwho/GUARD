@@ -78,6 +78,25 @@ TEST_CASE("telemetry ring: too-long line is refused; a restarted writer starts o
     shm_unlink("/guard_tlm_test");
 }
 
+TEST_CASE("telemetry ring: append keeps a valid ring and continues seq") {
+    shm_unlink("/guard_tlm_test");
+    TlmReader r;
+    {
+        TlmWriter w;
+        REQUIRE(w.open("test", "harness", true) == EOK); // no ring yet: created
+        REQUIRE(w.emit(1, "fault", ""));
+    }
+    REQUIRE(r.open("test") == EOK);
+    TlmWriter again;
+    REQUIRE(again.open("test", "harness", true) == EOK);
+    CHECK(again.seq() == 1);
+    REQUIRE(again.emit(2, "fault", ""));
+    CHECK(next_line(r).find("\"src\":\"harness\",\"seq\":0,") != std::string::npos);
+    CHECK(next_line(r).find("\"src\":\"harness\",\"seq\":1,") != std::string::npos);
+    CHECK(r.dropped() == 0);
+    shm_unlink("/guard_tlm_test");
+}
+
 TEST_CASE("kv_get reads C4-style lines") {
     const char *t = "version: 1\nmode: READY\nscenario_path: /a/F0.yaml\nmodex: 2\n";
     char v[32];

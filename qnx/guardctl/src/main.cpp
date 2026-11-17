@@ -344,7 +344,7 @@ int cmd_inject(unsigned fault, long duration, long long param) {
     switch (fault) {
     case 2: // F2: delayed authorization, guard-hog at 32 (REF-PRIORITIES)
         // One hog per CPU, each pinned, so the priority-32 load covers the whole machine.
-        for (unsigned cpu = 0; cpu < _syspage_ptr->num_cpu && rc == EOK; ++cpu)
+        for (unsigned cpu = 0; cpu < _syspage_ptr->num_cpu && cpu < 32 && rc == EOK; ++cpu)
             rc = run({"/system/bin/guard-hog", "32", std::to_string(duration > 0 ? duration : 400),
                       "-c", std::to_string(cpu)},
                      true);
@@ -385,8 +385,8 @@ int cmd_inject(unsigned fault, long duration, long long param) {
         std::snprintf(payload, sizeof payload,
                       "\"fault\":\"F%u\",\"phase\":\"start\",\"detail\":\"guardctl inject\"",
                       fault);
-        if (tlm.open("guardctl", "harness") == EOK)
-            tlm.emit(t_inject, "fault", payload);
+        if (tlm.open("guardctl", "harness", true) != EOK || !tlm.emit(t_inject, "fault", payload))
+            std::fprintf(stderr, "guardctl: inject: fault event not written to telemetry\n");
     }
     return result(ok);
 }
