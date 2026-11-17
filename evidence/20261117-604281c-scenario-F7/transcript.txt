@@ -1,0 +1,17 @@
+$ guardctl status | grep -v -e _ns= -e ticks=
+version=1
+mode=LATCHED
+epoch=2
+lease_id=0
+lease_seq=186
+latch_cause=EPOCH_CHANGED
+recovery_unmet_mask=0x00000000
+v_cmd=0.000
+w_cmd=0.000
+count.GATE_LEASE_ACCEPTED=185
+count.GATE_EPOCH_STALE=350
+count.GATE_NOT_READY=1
+count.GATE_EPOCH_CHANGED=1
+count.GATE_STANDSTILL=1
+count.GATE_RECOVERED=1
+[exit 0]

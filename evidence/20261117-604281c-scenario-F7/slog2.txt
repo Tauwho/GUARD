@@ -1,0 +1,300 @@
+Nov 17 06:28:17.996              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:17.996              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:17.996              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2a5e0 
+Nov 17 06:28:17.996                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:17.996              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:17.996              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab2a5e0, 252aadc870
+Nov 17 06:28:17.997                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:18.997              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:18.997              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:18.997              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2d1d0 
+Nov 17 06:28:18.998              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:18.998              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab2d1d0, 252aad5860
+Nov 17 06:28:18.998                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:18.998              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:18.998              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:18.998              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2fe30 
+Nov 17 06:28:18.998                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:18.998              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:18.998              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab2fe30, 252aadc870
+Nov 17 06:28:18.998                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:19.999              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:19.999              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:20.000              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab1fc50 
+Nov 17 06:28:20.000              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:20.000              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab1fc50, 252aad5860
+Nov 17 06:28:20.000                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:20.000              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:20.000              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:20.000              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab228b0 
+Nov 17 06:28:20.001                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:20.001              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:20.001              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab228b0, 252aadc870
+Nov 17 06:28:20.001                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:21.002              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:21.002              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:21.002              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2a5e0 
+Nov 17 06:28:21.003              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:21.003              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab2a5e0, 252aad5860
+Nov 17 06:28:21.003                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:21.003              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:21.003              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:21.003              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2d1d0 
+Nov 17 06:28:21.004                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:21.004              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:21.004              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab2d1d0, 252aadc870
+Nov 17 06:28:21.004                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:22.005              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:22.005              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:22.005              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2fe30 
+Nov 17 06:28:22.005              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:22.005              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab2fe30, 252aad5860
+Nov 17 06:28:22.006                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:22.006              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:22.006              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:22.006              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab1fc50 
+Nov 17 06:28:22.006                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:22.006              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:22.006              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab1fc50, 252aadc870
+Nov 17 06:28:22.006                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:23.007              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:23.007              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:23.007              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab228b0 
+Nov 17 06:28:23.007              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:23.007              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab228b0, 252aad5860
+Nov 17 06:28:23.008                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:23.008              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:23.008              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:23.008              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2a5e0 
+Nov 17 06:28:23.008                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:23.008              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:23.008              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab2a5e0, 252aadc870
+Nov 17 06:28:23.008                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:24.009              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:24.009              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:24.010              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2d1d0 
+Nov 17 06:28:24.010              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:24.010              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab2d1d0, 252aad5860
+Nov 17 06:28:24.010                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:24.010              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:24.010              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:24.010              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2fe30 
+Nov 17 06:28:24.010                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:24.010              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:24.010              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab2fe30, 252aadc870
+Nov 17 06:28:24.010                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:25.011              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:25.011              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:25.012              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab1fc50 
+Nov 17 06:28:25.012              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:25.012              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab1fc50, 252aad5860
+Nov 17 06:28:25.012                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:25.012              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:25.012              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:25.012              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab228b0 
+Nov 17 06:28:25.012                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:25.012              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:25.012              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab228b0, 252aadc870
+Nov 17 06:28:25.013                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:26.014              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:26.014              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:26.014              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2a5e0 
+Nov 17 06:28:26.014              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:26.014              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab2a5e0, 252aad5860
+Nov 17 06:28:26.015                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:26.015              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:26.015              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:26.015              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2d1d0 
+Nov 17 06:28:26.015                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:26.015              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:26.015              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab2d1d0, 252aadc870
+Nov 17 06:28:26.015                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:27.017              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:27.017              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:27.017              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2fe30 
+Nov 17 06:28:27.017              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:27.017              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab2fe30, 252aad5860
+Nov 17 06:28:27.017                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:27.017              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:27.017              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:27.017              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab1fc50 
+Nov 17 06:28:27.018                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:27.018              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:27.018              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab1fc50, 252aadc870
+Nov 17 06:28:27.018                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:28.019              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:28.019              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:28.019              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab228b0 
+Nov 17 06:28:28.019              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:28.019              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab228b0, 252aad5860
+Nov 17 06:28:28.020                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:28.020              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:28.020              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:28.020              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2a5e0 
+Nov 17 06:28:28.020                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:28.020              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:28.020              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab2a5e0, 252aadc870
+Nov 17 06:28:28.020                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:29.021              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:29.021              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:29.021              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2d1d0 
+Nov 17 06:28:29.022              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:29.022              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab2d1d0, 252aad5860
+Nov 17 06:28:29.022                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:29.022              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:29.022              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:29.022              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2fe30 
+Nov 17 06:28:29.022                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:29.022              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:29.022              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab2fe30, 252aadc870
+Nov 17 06:28:29.022                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:30.024              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:30.024              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:30.024              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab1fc50 
+Nov 17 06:28:30.024              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:30.024              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab1fc50, 252aad5860
+Nov 17 06:28:30.024                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:30.025              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:30.025              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:30.025              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab228b0 
+Nov 17 06:28:30.025                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:30.025              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:30.025              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab228b0, 252aadc870
+Nov 17 06:28:30.025                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:31.026              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:31.026              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:31.027              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2a5e0 
+Nov 17 06:28:31.027              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:31.027              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab2a5e0, 252aad5860
+Nov 17 06:28:31.027                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:31.027              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:31.027              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:31.027              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2d1d0 
+Nov 17 06:28:31.027                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:31.027              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:31.027              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab2d1d0, 252aadc870
+Nov 17 06:28:31.027                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:32.029              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:32.029              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:32.030              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2fe30 
+Nov 17 06:28:32.030              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:32.030              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab2fe30, 252aad5860
+Nov 17 06:28:32.030                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:32.030              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:32.030              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:32.030              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab1fc50 
+Nov 17 06:28:32.031                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:32.031              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:32.031              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab1fc50, 252aadc870
+Nov 17 06:28:32.031                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:33.033              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:33.033              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:8]: 
+Nov 17 06:28:33.034              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:8]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab228b0 
+Nov 17 06:28:33.034              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:8]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:33.034              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:8]: usbdi_client 0x252ab228b0, 252aad5860
+Nov 17 06:28:33.034                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:33.034              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:33.034              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:33.034              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2a5e0 
+Nov 17 06:28:33.034                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:33.034              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:33.034              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab2a5e0, 252aadc870
+Nov 17 06:28:33.034                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:34.037              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:34.037              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:34.037              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2d1d0 
+Nov 17 06:28:34.037              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:34.037              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab2d1d0, 252aad5860
+Nov 17 06:28:34.037                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:34.037              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:34.037              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:34.037              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2fe30 
+Nov 17 06:28:34.037                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:34.037              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:34.038              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab2fe30, 252aadc870
+Nov 17 06:28:34.038                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:35.040              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:35.040              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:35.040              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab1fc50 
+Nov 17 06:28:35.040              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:35.040              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab1fc50, 252aad5860
+Nov 17 06:28:35.041                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:35.041              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:35.041              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:35.041              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab228b0 
+Nov 17 06:28:35.042                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:35.042              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:35.042              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab228b0, 252aadc870
+Nov 17 06:28:35.042                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:36.044              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:36.044              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:36.044              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2a5e0 
+Nov 17 06:28:36.044              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:36.044              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab2a5e0, 252aad5860
+Nov 17 06:28:36.045                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:36.045              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:36.045              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:36.045              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2d1d0 
+Nov 17 06:28:36.045                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:36.045              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:36.045              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab2d1d0, 252aadc870
+Nov 17 06:28:36.045                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:37.046              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:37.046              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:37.046              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2fe30 
+Nov 17 06:28:37.046              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:37.046              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab2fe30, 252aad5860
+Nov 17 06:28:37.047                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:37.047              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:37.047              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:37.047              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab1fc50 
+Nov 17 06:28:37.047                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:37.047              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:37.047              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab1fc50, 252aadc870
+Nov 17 06:28:37.047                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:38.049              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:38.049              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:38.049              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab228b0 
+Nov 17 06:28:38.049              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:38.049              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab228b0, 252aad5860
+Nov 17 06:28:38.049                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:38.050              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:38.050              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:38.050              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2a5e0 
+Nov 17 06:28:38.050                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:38.050              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2a5e0
+Nov 17 06:28:38.050              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab2a5e0, 252aadc870
+Nov 17 06:28:38.050                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:39.052              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:39.052              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:39.052              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2d1d0 
+Nov 17 06:28:39.053              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2d1d0
+Nov 17 06:28:39.053              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab2d1d0, 252aad5860
+Nov 17 06:28:39.053                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:39.053              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:39.053              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:39.053              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab2fe30 
+Nov 17 06:28:39.053                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:39.053              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab2fe30
+Nov 17 06:28:39.053              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab2fe30, 252aadc870
+Nov 17 06:28:39.053                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:40.056              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:40.056              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:40.056              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab1fc50 
+Nov 17 06:28:40.057              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab1fc50
+Nov 17 06:28:40.057              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab1fc50, 252aad5860
+Nov 17 06:28:40.057                 io_sock.163853          main_buffer     34  iousb0: <io-usb-otg> on QNX
+Nov 17 06:28:40.057              io_usb_otg.364568           io-usb-otg     12  usbdi_client_connect(62)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:40.057              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_connect(53)[tid:7]: 
+Nov 17 06:28:40.057              io_usb_otg.364568           io-usb-otg     12  usbdi_resmgr_connect(313)[tid:7]: usbdi_resmgr_connect: pid 163853 usbdi_client 252ab228b0 
+Nov 17 06:28:40.057                 io_sock.163853          main_buffer     34  iousb0: IOUSB rw connect failed
+Nov 17 06:28:40.057              io_usb_otg.364568           io-usb-otg     12  usbdi_client_disconnect(102)[tid:7]: pid 163853 proc=io-sock 163853 usbdi_client 252ab228b0
+Nov 17 06:28:40.057              io_usb_otg.364568           io-usb-otg     12  usbdi_sci1xx_disconnect(118)[tid:7]: usbdi_client 0x252ab228b0, 252aadc870
+Nov 17 06:28:40.057                 io_sock.163853          main_buffer     34  device_attach: iousb0 attach returned 6
+Nov 17 06:28:40.423        sshd_session.1048578..1                 slog*     0  <38>Nov 17 06:28:40 sshd-session[1048578-1]: Accepted publickey for root from 10.0.2.2 port 35634 ssh2: ED25519 SHA256:<redacted>
+Nov 17 06:28:40.445           sshd_session.1060882                 slog*     0  <38>Nov 17 06:28:40 sshd-session[1060882-1]: Received disconnect from 10.0.2.2 port 35634:11: disconnected by user
+Nov 17 06:28:40.446        sshd_session.1060882..0                 slog*     0  <38>Nov 17 06:28:40 sshd-session[1060882-1]: Disconnected from user root 10.0.2.2 port 35634
+Nov 17 06:28:40.553        sshd_session.1085442..1                 slog*     0  <38>Nov 17 06:28:40 sshd-session[1085442-1]: Accepted publickey for root from 10.0.2.2 port 35640 ssh2: ED25519 SHA256:<redacted>
+Nov 17 06:28:40.576           sshd_session.1097746                 slog*     0  <38>Nov 17 06:28:40 sshd-session[1097746-1]: Received disconnect from 10.0.2.2 port 35640:11: disconnected by user
+Nov 17 06:28:40.578        sshd_session.1097746..0                 slog*     0  <38>Nov 17 06:28:40 sshd-session[1097746-1]: Disconnected from user root 10.0.2.2 port 35640
+Nov 17 06:28:40.691        sshd_session.1122306..1                 slog*     0  <38>Nov 17 06:28:40 sshd-session[1122306-1]: Accepted publickey for root from 10.0.2.2 port 35656 ssh2: ED25519 SHA256:<redacted>

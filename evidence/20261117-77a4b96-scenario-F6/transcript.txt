@@ -1,0 +1,16 @@
+$ guardctl status | grep -v -e _ns= -e ticks=
+version=1
+mode=READY
+epoch=1
+lease_id=0
+lease_seq=153
+latch_cause=NONE
+recovery_unmet_mask=0x00000000
+v_cmd=0.000
+w_cmd=0.000
+count.GATE_LEASE_ACCEPTED=152
+count.GATE_NOT_READY=1
+count.GATE_LEASE_EXPIRED=1
+count.GATE_STANDSTILL=1
+count.GATE_RECOVERED=1
+[exit 0]

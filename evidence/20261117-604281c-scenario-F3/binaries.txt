@@ -1,0 +1,154 @@
+/mnt/c/GUARD/image/out/build/bridge/guard-bridge: sha256 0ca93160b889d9ae874b0cfee7728d978bf1875011d7643b5ca735807cef1426 size 140224
+/mnt/c/GUARD/image/out/build/bridge/guard-bridge: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /usr/lib/ldqnx-64.so.2, BuildID[md5/uuid]=575af8a5a8286522012a7d5fd5b880a2, with debug_info, not stripped
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Position-Independent Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x2220
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          137920 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         8
+  Size of section headers:           64 (bytes)
+  Number of section headers:         36
+  Section header string table index: 35
+/mnt/c/GUARD/image/out/build/gate/guard-gate: sha256 476794af880d90efb8d3672bf6d5fd52c7d0938998c77c91dd2e6912f6b9a8db size 140304
+/mnt/c/GUARD/image/out/build/gate/guard-gate: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /usr/lib/ldqnx-64.so.2, BuildID[md5/uuid]=5caf0c373a3d95c6d8a67899fc18b8b4, with debug_info, not stripped
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Position-Independent Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x19b0
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          138192 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         8
+  Size of section headers:           64 (bytes)
+  Number of section headers:         33
+  Section header string table index: 32
+/mnt/c/GUARD/image/out/build/hog/guard-hog: sha256 edcd317815012ec9923ef6e3ce2e45cd738e7e4a39559cc109e621080cc5b6ad size 14200
+/mnt/c/GUARD/image/out/build/hog/guard-hog: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /usr/lib/ldqnx-64.so.2, BuildID[md5/uuid]=8e741330ca7ba46b3dc04dda7606e137, with debug_info, not stripped
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Position-Independent Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x9a0
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          12152 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         8
+  Size of section headers:           64 (bytes)
+  Number of section headers:         32
+  Section header string table index: 31
+/mnt/c/GUARD/image/out/build/planner/guard-planner: sha256 392200b93d05a7925256f588eff041a5c8c864162c6b4cdbffb8c2a95412a3e2 size 347280
+/mnt/c/GUARD/image/out/build/planner/guard-planner: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /usr/lib/ldqnx-64.so.2, BuildID[md5/uuid]=c46ba592eb331078b3d92c3731d7e9c1, with debug_info, not stripped
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Position-Independent Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x2180
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          345104 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         8
+  Size of section headers:           64 (bytes)
+  Number of section headers:         34
+  Section header string table index: 33
+/mnt/c/GUARD/image/out/build/sim/guard-sim: sha256 4a89ba526e1f94db1fff41fed02ef8dc9a0dabd33f8c67878eb7873badb64842 size 376352
+/mnt/c/GUARD/image/out/build/sim/guard-sim: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /usr/lib/ldqnx-64.so.2, BuildID[md5/uuid]=229f4c40c71701032269c52d4252050c, with debug_info, not stripped
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Position-Independent Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x21e0
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          374176 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         8
+  Size of section headers:           64 (bytes)
+  Number of section headers:         34
+  Section header string table index: 33
+/mnt/c/GUARD/image/out/build/supervisor/guard-supervisor: sha256 a8659bc260d4e85ece4cc994cead678116db76fae2f7fb40e51b31e995525d89 size 254296
+/mnt/c/GUARD/image/out/build/supervisor/guard-supervisor: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /usr/lib/ldqnx-64.so.2, BuildID[md5/uuid]=fcf801466c2ea35f61f055fcd328fe58, with debug_info, not stripped
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Position-Independent Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x21b0
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          252120 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         8
+  Size of section headers:           64 (bytes)
+  Number of section headers:         34
+  Section header string table index: 33
+/mnt/c/GUARD/image/out/build/guardctl/guardctl: sha256 18f5db945c626bd1851cb205c1b37b1b5a8d9ce56dfd0033473bc358a0f09f31 size 277040
+/mnt/c/GUARD/image/out/build/guardctl/guardctl: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /usr/lib/ldqnx-64.so.2, BuildID[md5/uuid]=2df1291440aacf37191496092e093699, with debug_info, not stripped
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Position-Independent Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x20a0
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          274928 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         8
+  Size of section headers:           64 (bytes)
+  Number of section headers:         33
+  Section header string table index: 32
