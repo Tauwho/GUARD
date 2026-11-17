@@ -5,7 +5,7 @@ Boot-to-GUARD QSTI image built with `mkqnximage --extra-dirs` (layout from spike
 | File | Role |
 |---|---|
 | `build-image.sh` | Builds every `qnx/<process>` project that exists and the image, into `image/out/` (git-ignored) |
-| `run-demo.sh` | Builds if needed, boots QEMU in the background, waits for ssh, shows the start log, starts the dashboard relay once it exists (#24) |
+| `run-demo.sh` | Builds if needed, boots QEMU in the background, waits for ssh, shows the start log; `--dashboard [Fn]` also starts `dashboard/relay.py` on the bridge and runs Fn (default F0) |
 | `mkqnximage/snippets/passwd_file.guard`, `group_file.guard` | uids 1101-1106 (`guard_sim` … `guard_op`) |
 | `mkqnximage/snippets/post_start.guard` | Start order sim → gate → supervisor → planner → bridge; skips binaries not built yet |
 
@@ -16,6 +16,7 @@ source ~/qnx800/qnxsdp-env.sh
 image/run-demo.sh                 # user-mode networking, ssh on 127.0.0.1:2222, no sudo
 image/run-demo.sh --net bridge    # br0, 10.10.10.2 (docs/setup.md Option B)
 image/run-demo.sh --test          # adds guard-hog (fault F2)
+image/run-demo.sh --dashboard     # boot, live dashboard on http://127.0.0.1:8765, run F0
 image/run-demo.sh --stop
 ```
 

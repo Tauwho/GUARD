@@ -1,0 +1,15 @@
+$ cat /data/var/log/guard-start.log
+guard start Tue Nov 17 06:45:12 UTC 2026
+inputs: RESULT PASS (12 files, 0 failed)
+started guard-sim
+started guard-gate
+started guard-supervisor
+started guard-planner
+started guard-bridge
+[exit 0]
+
+$ guardctl status | grep -e mode= -e epoch= -e latch_cause=
+mode=MOVING
+epoch=1
+latch_cause=NONE
+[exit 0]
