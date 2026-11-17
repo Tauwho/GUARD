@@ -1,0 +1,9 @@
+{
+  "commands": [
+    "slay -f guard-planner; /tmp/guard_planner_check /tmp/guard-planner /system/guard/scenarios/F0.yaml"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "doctest": {}
+}

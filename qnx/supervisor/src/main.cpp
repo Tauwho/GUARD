@@ -207,7 +207,9 @@ void refresh_world(std::int64_t now) {
 
 // ---- C6 reader thread (priority 30) ----
 void *reader(void *) {
-    sem_wait(&g->go); // first read only after the drop to guard_sup (the sim checks the uid)
+    while (sem_wait(&g->go) == -1 && errno == EINTR) {
+        // first read only after the drop to guard_sup (the sim checks the uid)
+    }
     std::uint8_t buf[sizeof(Observation)];
     for (;;) {
         ssize_t n = read(g->obs_fd, buf, sizeof buf);

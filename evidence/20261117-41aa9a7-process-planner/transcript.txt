@@ -1,0 +1,19 @@
+$ slay -f guard-planner; /tmp/guard_planner_check /tmp/guard-planner /system/guard/scenarios/F0.yaml
+CHECK image runs guard-sim, guard-gate, guard-supervisor       PASS
+CHECK C7 load F0                                               PASS
+CHECK supervisor telemetry ring readable                       PASS
+guard-planner: ready, uid 1104
+guard-planner: run /system/guard/scenarios/F0.yaml seed 1000
+CHECK C7 start                                                 PASS
+CHECK C3 recover -> GATE_RECOVERED                             PASS
+decisions 158, authorized 154
+CHECK planner proposals reach the supervisor (planner_id 1)    PASS
+CHECK rule planner on F0: most proposals AUTHORIZED            PASS
+CHECK robot moved along the route (> 1 m in 8 s)               PASS
+CHECK no contact, no zone breach                               PASS
+CHECK C7 inject F8 (planner flood 1000 Hz)                     PASS
+during F8: decisions 499, REJ_RATE_LIMIT 485
+CHECK F8: supervisor refuses the excess with REJ_RATE_LIMIT    PASS
+CHECK after F8: AUTHORIZED again                               PASS
+RESULT PASS (0 failed)
+[exit 0]
