@@ -82,14 +82,15 @@ def test_py_launcher_and_bash_script_forms():
 
 
 def test_ssh_remote_program_needs_target_sources():
-    found = one("ssh -i key -p 2222 root@127.0.0.1 guardctl status")
-    assert found == ["DEMO.md:7: target program not on main: qnx/guardctl/"]
+    # A name with no qnx/<name>/ sources; guardctl itself has them since #42.
+    found = one("ssh -i key -p 2222 root@127.0.0.1 guard-nothere status")
+    assert found == ["DEMO.md:7: target program not on main: qnx/guard-nothere/"]
 
 
 def test_ssh_port_forward_and_quoted_remote_pipeline():
     assert one("ssh -N -L 7700:127.0.0.1:7700 -p 2222 root@127.0.0.1") == []
-    found = one("ssh -L 1:h:1 -p 2222 root@h 'guardctl status | grep -E \"^mode=\"'")
-    assert found == ["DEMO.md:7: target program not on main: qnx/guardctl/"]
+    found = one("ssh -L 1:h:1 -p 2222 root@h 'guard-nothere status | grep -E \"^mode=\"'")
+    assert found == ["DEMO.md:7: target program not on main: qnx/guard-nothere/"]
     assert one("ssh -p 2222 root@h ..") == ["DEMO.md:7: not a target program name: .."]
 
 
