@@ -3,7 +3,10 @@
 Brief: [BRIEF-P.md](../docs/streams/BRIEF-P.md). Resume from this file after any restart. Live scope: `python tools/scope_gate.py --stream P`.
 
 ## Now
-- P0, P1, P2, P5 and P6 closed; package gate on main. Left: P3 tag (10 Dec), P4 video + captions (13 Dec).
+- Video ready at C:/Data/Singapore/SMU/GUARD/video/GUARD-demo.mp4 (2:46); waiting for
+  LISTEN-NOTES.txt (PO listening check), then the upload URL in VIDEO-URL.txt.
+- P0, P1, P2, P3, P5 and P6 DONE (`v1.0-rc1` = `bf4c417`). Left: P4 needs only the video
+  URL in README and the submission draft (`check_package.py`: readme-video, submission).
 
 ## Done (with evidence: command + last lines, commit or run link)
 
