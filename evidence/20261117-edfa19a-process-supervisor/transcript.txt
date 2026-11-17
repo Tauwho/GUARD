@@ -1,0 +1,33 @@
+$ /tmp/guard_supervisor_check /tmp/guard-supervisor /system/guard/scenarios/F0.yaml
+CHECK image runs guard-sim and guard-gate                      PASS
+CHECK C7 load F0                                               PASS
+guard-supervisor: registered, epoch 1
+guard-supervisor: world /system/guard/scenarios/F0.yaml seed 1000
+guard-supervisor: ready, uid 1103, epoch 1
+CHECK name_attach guard/supervisor                             PASS
+CHECK C2 supervisor registered with the gate (epoch >= 1)      PASS
+CHECK C7 start                                                 PASS
+CHECK C3 recover -> GATE_RECOVERED                             PASS
+CHECK C1 from uid 1105 (not planner) -> EPERM                  PASS
+CHECK planner: observation from the planner feed               PASS
+CHECK C1 small step -> AUTHORIZED, lease issued                PASS
+  decision: OK_AUTHORIZED epoch 1
+CHECK gate MOVING on the lease                                 PASS
+CHECK C1 replayed seq -> REJ_SEQ_REPLAY                        PASS
+  decision: REJ_SEQ_REPLAY
+CHECK C1 unknown obs_id -> REJ_UNKNOWN_OBSERVATION             PASS
+  decision: REJ_UNKNOWN_OBSERVATION
+CHECK C1 v_cmd 1.3 > v_max -> REJ_SPEED_ENVELOPE               PASS
+  decision: REJ_SPEED_ENVELOPE
+CHECK C1 version 2 -> Decision REJ_SCHEMA                      PASS
+CHECK C1 4-byte message -> EBADMSG                             PASS
+CHECK C1 300 ms old observation -> REJ_STALE_OBSERVATION       PASS
+  decision: REJ_STALE_OBSERVATION
+CHECK lease before F4 -> AUTHORIZED                            PASS
+CHECK C7 inject F4 (supervisor feed paused)                    PASS
+telemetry: decision 7, lease 2, revoke(sensor health) 1
+CHECK F4: monitor re-check revokes (REVOKE_SENSOR_HEALTH)      PASS
+CHECK C8 ring: one decision per readable proposal (7)          PASS
+CHECK gate stops and latches SENSOR_LOST on the revoke         PASS
+RESULT PASS (0 failed)
+[exit 0]

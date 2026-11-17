@@ -1,0 +1,9 @@
+{
+  "commands": [
+    "/tmp/guard_supervisor_check /tmp/guard-supervisor /system/guard/scenarios/F0.yaml"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "doctest": {}
+}
