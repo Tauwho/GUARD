@@ -1,0 +1,9 @@
+{
+  "commands": [
+    "slay -f guard-gate guard-sim; /tmp/guard_sim_check /tmp/guard-sim /system/guard/scenarios/F0.yaml"
+  ],
+  "exit_codes": [
+    0
+  ],
+  "doctest": {}
+}
