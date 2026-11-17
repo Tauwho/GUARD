@@ -19,6 +19,7 @@
 #include <array>
 #include <cerrno>
 #include <cinttypes>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <devctl.h>
@@ -46,7 +47,8 @@ struct State {
     int obs_fd = -1, sup_coid = -1, gate_fd = -1;
     qnx::TlmWriter tlm;
     sem_t go;
-    std::uint64_t sent = 0, timeouts = 0, authorized = 0, passthru_seq = 0;
+    std::uint64_t sent = 0, timeouts = 0, authorized = 0, passthru_seq = 0, run_gen = 0;
+    std::int64_t backoff_until = 0; // after a failed C1 send (supervisor gone, F3/F7)
     char file[qnx::kInputMax];
 } *g;
 
@@ -63,7 +65,9 @@ void sleep_ns(std::int64_t ns) {
 }
 
 void *reader(void *) {
-    sem_wait(&g->go); // first read only after the drop to guard_plan (the sim checks the uid)
+    while (sem_wait(&g->go) == -1 && errno == EINTR) {
+        // first read only after the drop to guard_plan (the sim checks the uid)
+    }
     std::uint8_t buf[sizeof(Observation)];
     for (;;) {
         if (read(g->obs_fd, buf, sizeof buf) != static_cast<ssize_t>(sizeof buf)) {
@@ -107,6 +111,7 @@ void refresh_world(std::int64_t now) {
             g->config = config;
             g->scenario = scenario;
             g->planner.emplace(map, config, 1);
+            ++g->run_gen;
             std::printf("guard-planner: run %s seed %" PRIu64 "\n", s.scenario_path, s.seed);
         } else {
             g->planner.reset();
@@ -150,7 +155,7 @@ int send_proposal(const Proposal &p, Decision &d) {
         return EINVAL;
     int rc =
         qnx::send_bounded(g->sup_coid, wire.data(), wire.size(), reply, sizeof reply, kC1TimeoutNs);
-    if (rc == EBADF || rc == ESRCH) { // supervisor gone (F3): look the name up again
+    if (rc != EOK && rc != ETIMEDOUT && rc != EBADMSG) { // supervisor gone: look it up again
         name_close(g->sup_coid);
         g->sup_coid = -1;
     }
@@ -169,7 +174,7 @@ void passthrough(const Proposal &p, std::int64_t now) {
     c.w = p.w_cmd;
     c.stamp_ns = now;
     std::array<std::uint8_t, sizeof c> wire{};
-    if (!encode(c, wire))
+    if (!std::isfinite(c.v) || !std::isfinite(c.w) || !encode(c, wire))
         return;
     struct sigevent ev;
     SIGEV_UNBLOCK_INIT(&ev);
@@ -192,6 +197,8 @@ void step() {
     bool ready = g->planner && g->world.running() && !g->planner->at_goal() &&
                  g->planner->propose(now, options(), p);
     bool guarded = std::strcmp(g->world.mode, "B2") == 0;
+    ready = ready && now >= g->backoff_until;
+    const auto gen = g->run_gen;
     pthread_mutex_unlock(&g->lock);
     if (!ready)
         return;
@@ -201,15 +208,18 @@ void step() {
     }
     Decision d;
     int rc = send_proposal(p, d); // no lock held while blocked on the supervisor
-    ++g->sent;
+    if (rc == EOK || rc == ETIMEDOUT)
+        ++g->sent;
     if (rc == ETIMEDOUT)
         ++g->timeouts; // dropped; the next proposal has a higher seq (C1)
+    if (rc != EOK && rc != ETIMEDOUT)
+        g->backoff_until = now + 50'000'000;
     if (rc != EOK)
         return;
     g->authorized += d.verdict == 1 ? 1 : 0;
     pthread_mutex_lock(&g->lock);
-    if (g->planner)
-        g->planner->decision(d);
+    if (g->planner && g->run_gen == gen && d.proposal_id == p.proposal_id)
+        g->planner->decision(d); // never a reply from the previous run
     pthread_mutex_unlock(&g->lock);
 }
 
