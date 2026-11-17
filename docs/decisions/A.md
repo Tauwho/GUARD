@@ -27,3 +27,5 @@ Decide, log one line, continue (D26). Never edit `DECISIONS.md`.
 | 2026-11-16 | Coalesce live dashboard work per animation frame with bounded ingestion | F8 telemetry must not trigger a full history render per message; preserve recorded-time pause/seek semantics. |
 
 | 2026-11-17 | Accept A9 using existing actual inference on Dat's laptop plus main Linux offline/recorded CI; another laptop is optional | [PO decision #29](https://github.com/Tauwho/GUARD/issues/29#issuecomment-6921570197) supersedes second-device acceptance; no second-machine inference claim or public timings; frozen scope stays MANUAL. |
+
+| 2026-11-17 | Replace floating from_chars with bounded integer-significand/exponent normalization followed by strtod | QNX SDP 8.0 lacks double from_chars; omit decimal separator to preserve locale independence without global locale mutation. Stream B captures target evidence after merge. |
