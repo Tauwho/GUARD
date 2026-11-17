@@ -236,6 +236,28 @@ commit passed `make check` and `tools/fresh_clone_demo.sh`.
   in the environment (doctest's old `cmake_minimum_required`); B's own machine and CI
   are unaffected. Recorded under Known issues; no repo change by P.
 
+### F1 — release candidate tag v1.0-rc1 (2026-11-17)
+
+- Commit `bf4c417` (#204): CI green (host-ci, stream-a, governance, host-evaluation) and
+  nightly run [44099787680](https://github.com/Tauwho/GUARD/actions/runs/44099787680)
+  green (`make check`, `tools/fresh_clone_demo.sh bf4c417`).
+- `git tag -a v1.0-rc1 bf4c417 -m "GUARD v1.0-rc1"`; `git push origin v1.0-rc1` ->
+  `* [new tag] v1.0-rc1 -> v1.0-rc1`. Scope gate: P3 DONE.
+
+### F3 — demo video produced (2026-11-17)
+
+- Final cut 2:46 (166 s), 1920x1080 30 fps H.264 + AAC, recorded from `v1.0-rc1`. Kept
+  outside the repo with its build scripts, claims ledger, audio licence log and QC report.
+- Footage: host replays (F0, F3, F6 B2/B0) and the README on GitHub recorded as Edge's own
+  rendering; terminal shots replay real captured runs verbatim (the target start log is trimmed to
+  the GUARD lines, marked on screen); the target scene is a live
+  QEMU run of DEMO step 4 with the dashboard's numeric readouts hidden (D11).
+- Voice-over: offline Windows TTS (synthetic, disclosed in `docs/devpost/description.md`
+  and on the end card). No music, no sound effects.
+- `docs/video/captions.srt` (26 cues, last ends 164.7 s) and `docs/video/duration.txt`
+  (2:46); storyboard re-timed to the cut. `check_package.py`: only readme-video and
+  submission (video URL) remain.
+
 ## Next
 - P5 (architecture SVG + Limits), then P6, P3 (10 Dec), P4 (13 Dec).
 - Mon 7 Dec: if B5 is not DONE, switch DEMO step 4 to the host fallback by hand.

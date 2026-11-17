@@ -53,20 +53,23 @@ step 4 needs: on the default image `guardctl inject` answers "process faults nee
 test image". Open `http://127.0.0.1:8765`. Stop everything
 afterwards with `image/run-demo.sh --stop`.
 
-### 1. Supervisor killed, host replay [0:00-0:35]
+### 1. Supervisor killed, host replay [0:00-0:39]
 Status: ready
 
 ```sh
+python host/guard-replay --scenario scenarios/F0.yaml --seed 1000 --mode B2 --out out/F0-B2.jsonl
+python dashboard/relay.py --trace out/F0-B2.jsonl
 python host/guard-replay --scenario scenarios/F3.yaml --seed 1003 --mode B2 --out out/F3-B2.jsonl
 python host/guard-replay --scenario scenarios/F3.yaml --seed 1003 --mode B1 --out out/F3-B1.jsonl
 ```
 
-Expected: both runs exit 0 (actual outcome matches the scenario's hypothesis). Under
+Expected: the opening shot is the dashboard replaying the normal F0 run (exit 0, final
+state `GOAL`); stop the relay with Ctrl-C. Both F3 runs exit 0 (actual outcome matches the scenario's hypothesis). Under
 B2 the gate ends `LATCHED` with `GATE_SUPERVISOR_LOST` and `GATE_STANDSTILL`; under the
 heartbeat baseline B1 the robot is still `MOVING`, because the planner's heartbeat is
 alive (`scenarios/F3.yaml`, `expected`).
 
-### 2. Dashboard replay of the same run [0:35-1:10]
+### 2. Dashboard replay of the same run [0:39-1:09]
 Status: ready
 
 ```sh
@@ -78,7 +81,7 @@ dies, the mode goes STOPPING then LATCHED, and the reason journal shows
 `GATE_SUPERVISOR_LOST`. The relay is read-only and binds to loopback only. Stop it
 with Ctrl-C before step 3.
 
-### 3. A refusal with its reason code [1:10-1:45]
+### 3. A refusal with its reason code [1:09-1:41]
 Status: ready
 
 ```sh
@@ -96,7 +99,7 @@ the robot drives through the active zone (at least one violation). Both runs exi
 because each matches its own hypothesis. Run the two relays one after the other
 (Ctrl-C between them); `--map` is needed so the dashboard draws the MRI zone.
 
-### 4. The same fault on the QNX target [1:45-2:30]
+### 4. The same fault on the QNX target [1:41-2:21]
 Status: ready
 
 ```sh
@@ -113,7 +116,7 @@ exit 1 (`GATE_RECOVERY_UNMET`, `contracts/guardctl.md`). The dashboard follows t
 target live through the relay `run-demo.sh --dashboard` started. Target evidence for
 the same fault: `evidence/20261117-604281c-scenario-F3/`.
 
-### 5. Results and limits [2:30-2:55]
+### 5. Results and limits [2:21-2:41]
 Status: ready
 
 ```sh
