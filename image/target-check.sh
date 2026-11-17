@@ -11,6 +11,7 @@
 # Options:
 #   --project <dir>   build a standalone project (e.g. qnx/gate) instead of the qnx-x86_64 preset
 #   --bin <name>      test binary inside the build dir (repeatable; default guard_core_tests)
+#   --copy <name>     binary to copy to /tmp but not run by itself (repeatable)
 #   --run <cmd>       extra command to run on the target after the binaries (repeatable)
 #   --alias <host>    ssh alias (default $GUARD_TARGET or guard-target, see ENV.md)
 #   --net user|bridge passed to run-demo.sh (default $GUARD_NET or user)
@@ -20,15 +21,16 @@
 # Needs the SDP env sourced (qnxsdp-env.sh). Prints pass/fail and counts only, no timings.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-PROJECT="" BINS=() RUNS=() KEEP=0 DRY=0 TOPIC=""
+PROJECT="" BINS=() COPIES=() RUNS=() KEEP=0 DRY=0 TOPIC=""
 ALIAS=${GUARD_TARGET:-guard-target}
 NET=${GUARD_NET:-user}
 
-usage() { sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'; }
 while [ $# -gt 0 ]; do
     case $1 in
         --project) PROJECT=$2; shift 2 ;;
         --bin) BINS+=("$2"); shift 2 ;;
+        --copy) COPIES+=("$2"); shift 2 ;;
         --run) RUNS+=("$2"); shift 2 ;;
         --alias) ALIAS=$2; shift 2 ;;
         --net) NET=$2; shift 2 ;;
@@ -40,7 +42,7 @@ while [ $# -gt 0 ]; do
     esac
 done
 [ -n "$TOPIC" ] || { echo "missing <topic>" >&2; usage >&2; exit 2; }
-[ ${#BINS[@]} -gt 0 ] || BINS=(guard_core_tests)
+[ ${#BINS[@]} -gt 0 ] || [ ${#RUNS[@]} -gt 0 ] || BINS=(guard_core_tests)
 
 step() { echo "== $*"; }
 do_run() { if [ "$DRY" = 1 ]; then echo "   (dry-run) $*"; else "$@"; fi; }
@@ -68,8 +70,8 @@ else
     BOOTED=1
 fi
 
-step "3/6 copy ${BINS[*]}"
-for b in "${BINS[@]}"; do
+step "3/6 copy ${BINS[*]} ${COPIES[*]}"
+for b in "${BINS[@]}" "${COPIES[@]}"; do
     [ "$DRY" = 1 ] || [ -f "$BUILD/$b" ] || { echo "missing $BUILD/$b" >&2; exit 1; }
     if [ "$DRY" = 1 ]; then
         echo "   (dry-run) ${SSH[*]} 'cat > /tmp/$b && chmod +x /tmp/$b' < $BUILD/$b"
@@ -84,6 +86,7 @@ for b in "${BINS[@]}"; do
     do_run "${SSH[@]}" "/tmp/$b 2>&1 | tail -3"
     CAP+=(--binary "$BUILD/$b" --run "/tmp/$b")
 done
+for b in "${COPIES[@]}"; do CAP+=(--binary "$BUILD/$b"); done
 for r in "${RUNS[@]}"; do CAP+=(--run "$r"); done
 
 step "5/6 capture evidence ($TOPIC)"

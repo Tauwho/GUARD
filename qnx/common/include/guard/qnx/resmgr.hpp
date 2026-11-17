@@ -26,6 +26,10 @@ class ResMgr {
     // (_RESMGR_FLAG_SELF lets this process open its own path, e.g. in tests).
     // Returns EOK or errno.
     int attach(const char *path, mode_t mode, unsigned flags = 0);
+    // A further path on the same dispatch (one loop, one channel), with its own handlers and
+    // attribute, which the caller owns and keeps alive. Call after attach(). EOK or errno.
+    int add_path(const char *path, resmgr_connect_funcs_t *connect, resmgr_io_funcs_t *io,
+                 iofunc_attr_t *attr, unsigned flags = 0);
     // pulse_attach for `code`. Returns EOK or errno.
     int on_pulse(int code, int (*fn)(message_context_t *, int, unsigned, void *), void *handle);
     // pulse_attach with an allocated code, written to `code`. Returns EOK or errno.
