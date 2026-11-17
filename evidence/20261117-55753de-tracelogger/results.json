@@ -1,0 +1,11 @@
+{
+  "commands": [
+    "guard-trace-check",
+    "guard-trace-check | tail -6"
+  ],
+  "exit_codes": [
+    0,
+    0
+  ],
+  "doctest": {}
+}
