@@ -56,6 +56,8 @@ TEST_CASE("bounded decimals preserve range and output on rejection without float
     };
     for (const auto &sample : {Sample{"1.25e2", 125.0}, Sample{"-0.125e+1", -1.25},
                                Sample{"1.7976931348623157e308", 1.7976931348623157e308},
+                               Sample{"1.7976931348623158e308", 1.7976931348623157e308},
+                               Sample{"-1.7976931348623158e308", -1.7976931348623157e308},
                                Sample{"4.9406564584124654e-324", 4.9406564584124654e-324},
                                Sample{"2.2250738585072014e-308", 2.2250738585072014e-308}}) {
         guard::BufferJson json(sample.raw);
@@ -66,7 +68,8 @@ TEST_CASE("bounded decimals preserve range and output on rejection without float
     }
     for (auto raw :
          {"1e99999999999999999999999999999999999", "1e-99999999999999", "1.7976931348623159e308",
-          "1e-324", "1234567890123456789012345678901234567890123456789012345678901234"}) {
+          "1.79769313486231581e308", "-1.79769313486231581e308", "1e-324",
+          "1234567890123456789012345678901234567890123456789012345678901234"}) {
         guard::BufferJson json(raw);
         REQUIRE(json.valid());
         double output = 42;
