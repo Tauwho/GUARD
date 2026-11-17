@@ -1,22 +1,30 @@
 #!/bin/bash
 # Boot the GUARD image and get the demo going (B-9, #43). Run on the QNX host, SDP env sourced.
-#   image/run-demo.sh [--net user|bridge] [--rebuild] [--test]
+#   image/run-demo.sh [--net user|bridge] [--rebuild] [--test] [--dashboard [Fn]]
 # Builds the image if needed (image/build-image.sh), boots QEMU in the background, waits for
 # ssh and the GUARD start log, then prints the live dashboard command (dashboard/relay.py).
-# Stop the target: image/run-demo.sh --stop
+#   --dashboard [Fn]  also start the dashboard relay on the bridge and run scenario Fn
+#                     (default F0) with guardctl: one command from boot to a live dashboard
+# Stop the target (and the relay): image/run-demo.sh --stop
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT=$ROOT/image/out
-NET=user REBUILD=0 BUILD_ARGS=()
+NET=user REBUILD=0 BUILD_ARGS=() DASH=""
 while [ $# -gt 0 ]; do
     case $1 in
         --net) NET=$2; BUILD_ARGS+=(--net "$2"); shift 2 ;;
         --rebuild) REBUILD=1; shift ;;
         --test) BUILD_ARGS+=(--test); REBUILD=1; shift ;;
+        --dashboard)
+            DASH=F0
+            case ${2:-} in F[0-8]) DASH=$2; shift ;; esac
+            shift ;;
         --stop)
+            [ -f "$OUT/relay.pid" ] && kill "$(cat "$OUT/relay.pid")" 2>/dev/null && rm -f "$OUT/relay.pid"
             [ -f "$OUT/qsti/output/qemu.pid" ] && kill "$(cat "$OUT/qsti/output/qemu.pid")" 2>/dev/null
             echo "target stopped"; exit 0 ;;
-        *) echo "usage: $0 [--net user|bridge] [--rebuild] [--test] | --stop" >&2; exit 2 ;;
+        -h|--help) sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        *) echo "usage: $0 [--net user|bridge] [--rebuild] [--test] [--dashboard [Fn]] | --stop" >&2; exit 2 ;;
     esac
 done
 KEY=$HOME/.ssh/guard_target_ed25519
@@ -49,5 +57,20 @@ done
 echo "target up: ${SSH[*]}"
 "${SSH[@]}" cat /data/var/log/guard-start.log
 
-echo "C8 telemetry: guard-bridge on 127.0.0.1:7700 (forwarded). Live dashboard:"
-echo "  python3 dashboard/relay.py --bridge 127.0.0.1:7700   # then open http://127.0.0.1:8765"
+if [ -z "$DASH" ]; then
+    echo "C8 telemetry: guard-bridge on 127.0.0.1:7700 (forwarded). Live dashboard:"
+    echo "  python3 dashboard/relay.py --bridge 127.0.0.1:7700   # then open http://127.0.0.1:8765"
+    exit 0
+fi
+[ "$NET" = user ] || { echo "--dashboard needs --net user (the bridge is forwarded to 127.0.0.1:7700)" >&2; exit 2; }
+python3 -c 'import websockets, jsonschema, yaml' 2>/dev/null \
+    || { echo "dashboard needs: python3 -m pip install -r dashboard/requirements.txt" >&2; exit 1; }
+[ -f "$OUT/relay.pid" ] && kill "$(cat "$OUT/relay.pid")" 2>/dev/null
+setsid nohup python3 "$ROOT/dashboard/relay.py" --bridge 127.0.0.1:7700 > "$OUT/relay.log" 2>&1 < /dev/null &
+echo $! > "$OUT/relay.pid"
+sleep 2
+"${SSH[@]}" guardctl scenario stop > /dev/null 2>&1 || true
+"${SSH[@]}" guardctl scenario load "/system/guard/scenarios/$DASH.yaml" --seed \
+    "$(sed -n 's/^seed: *//p' "$ROOT/scenarios/$DASH.yaml")"
+"${SSH[@]}" guardctl scenario start
+echo "dashboard: http://127.0.0.1:8765 shows $DASH live from the target (relay log $OUT/relay.log)"
