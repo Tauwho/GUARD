@@ -123,6 +123,7 @@ The target run must end with doctest's `Status: SUCCESS!` line. Capture `evidenc
 ```sh
 source ~/qnx800/qnxsdp-env.sh
 image/run-demo.sh                 # --net bridge for br0 (Option B), --test adds guard-hog, --stop
+image/run-demo.sh --dashboard     # also starts dashboard/relay.py and runs F0: open http://127.0.0.1:8765
 ```
 Build output stays in `image/out/` (git-ignored). Processes not in the repo yet are skipped; see `image/README.md`.
 
