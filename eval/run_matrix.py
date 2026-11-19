@@ -59,7 +59,9 @@ def run_case(case):
         "reference": mode.split("-")[0],
     }
     try:
+        began = time.monotonic()
         execution = subprocess.run(command, capture_output=True, text=True, timeout=30)
+        record["replay_seconds"] = round(time.monotonic() - began, 3)
         if execution.returncode:
             raise ValueError(execution.stderr.strip() or f"exit {execution.returncode}")
         lines = trace.read_text(encoding="utf-8").splitlines()
@@ -171,12 +173,15 @@ def main(argv=None):
     destination = args.out / "results.json"
     destination.write_text(json.dumps(result, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     mismatched = sum(bool(record["mismatches"]) for record in records)
+    timed = [record["replay_seconds"] for record in records if "replay_seconds" in record]
     print(
         json.dumps(
             {
                 "runs": len(records),
                 "mismatched": mismatched,
                 "errors": sum("error" in record for record in records),
+                "max_replay_seconds": max(timed, default=None),
+                "wall_seconds": round(result["wall_seconds_internal"], 1),
                 "results": str(destination),
             }
         ),

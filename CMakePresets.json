@@ -9,6 +9,13 @@
       "cacheVariables": {"CMAKE_BUILD_TYPE": "Debug", "BUILD_TESTING": "ON"}
     },
     {
+      "name": "host-release",
+      "displayName": "Host Release replay for the evaluation matrix (no tests)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {"CMAKE_BUILD_TYPE": "Release", "BUILD_TESTING": "OFF"}
+    },
+    {
       "name": "host-asan",
       "inherits": "host-debug",
       "binaryDir": "${sourceDir}/build/${presetName}",
@@ -25,6 +32,7 @@
   ],
   "buildPresets": [
     {"name": "host-debug", "configurePreset": "host-debug"},
+    {"name": "host-release", "configurePreset": "host-release", "targets": ["guard-replay-core"]},
     {"name": "host-asan", "configurePreset": "host-asan"},
     {"name": "qnx-x86_64", "configurePreset": "qnx-x86_64"}
   ],

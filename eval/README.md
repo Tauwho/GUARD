@@ -3,9 +3,15 @@
 Build the host executable first (host/README.md). From the repository root:
 
 ```sh
-python eval/run_matrix.py --seeds 50 --jobs 4 --out out/matrix
+cmake --preset host-release && cmake --build --preset host-release
+python eval/run_matrix.py --seeds 50 --jobs 4 --binary build/host-release/host/guard-replay-core --out out/matrix
 python eval/report.py out/matrix/results.json --out out/eval-report
 ```
+
+Without `--binary` the matrix uses the Debug build, which produces byte-identical traces
+but takes about three times as long. Each record carries `replay_seconds` (the wall time of
+that one replay process). The printed summary reports `max_replay_seconds` and `wall_seconds`
+for the host that ran it.
 
 The default matrix executes 9 scenarios × 50 seeds × 7 configurations (3,150 runs).
 `--seeds 1` is the 63-run smoke matrix. Exit 1 means mismatches were recorded;
@@ -29,6 +35,17 @@ ADR0011/D11 applies: publish numeric results only from the host Linux harness. T
 records the real host platform and marks Windows reports preliminary/internal. Target
 verification is described separately in words; target numeric tables are not imported.
 Generated JSONL, JSON reports and PNGs belong under ignored `out/`, not in git.
+
+## Property tests
+
+`pytest eval/tests -k hypothesis` needs the Debug build (`guard-core-probe`). Five
+properties draw 500 examples each against the core probe. One draws 40 shifted
+F0-F8 schedules (faults and zones, and staff crossings, moved separately) with
+seeds 0..49 and replays each under B2. It asserts zero zone breaches and no contact
+while the gate is MOVING. `tests/counterexamples/` holds the shrunk scenarios where
+B2 still records a contact (#215). They are strict xfails, so once a fix makes them
+pass, the suite fails until the xfail mark is removed. They are kept out of `scenarios/` so the image does not install
+them.
 
 
 ## C14 target runner
