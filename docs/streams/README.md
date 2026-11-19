@@ -162,7 +162,7 @@ Balance (remaining effort estimate, hours):
 
 **Fresh-clone demo test:** `tools/fresh_clone_demo.sh` (P) clones `main` into a temp dir and runs the README host quick start: build, `host/guard-replay` on F0 and F3, `eval/run_matrix.py --seeds 1 --modes B2` (records mismatches, does not fail on them), and a headless relay smoke (`dashboard/relay.py --trace`, fetch `/meta.json`). Runs nightly on main (`nightly.yml`) and before every tag.
 
-**Green tags:** `nightly.yml` tags the newest main commit whose checks passed as `green-<yyyymmdd>`. Streams base work on the newest green tag, so a red main never blocks anyone.
+**Green tags:** `nightly.yml` tags the newest main commit whose checks passed as `green-<yyyymmdd>` (a second green commit that day gets `green-<yyyymmdd>-<sha7>`; published tags never move). Streams base work on the newest green tag, so a red main never blocks anyone.
 
 ---
 

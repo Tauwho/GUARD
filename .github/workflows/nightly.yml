@@ -3,25 +3,36 @@ on:
   schedule:
     - cron: "0 17 * * *"   # 01:00 SGT
   workflow_dispatch:
+# Least privilege per job: only tag-green can write, and it runs no repository code.
 permissions:
-  contents: write
-  issues: write
-  checks: read
+  contents: read
+concurrency:
+  group: nightly
+  cancel-in-progress: false
 jobs:
   main-red:
     # Fails and opens one issue if the newest main commit has a red required check.
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+      checks: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - run: python3 tools/check_main_red.py --open-issue
         env:
           GH_TOKEN: ${{ github.token }}
-  fresh-clone-and-tag:
+  verify:
     runs-on: ubuntu-24.04
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -33,8 +44,32 @@ jobs:
         run: bash tools/fresh_clone_demo.sh "${{ github.sha }}"
       - name: scope report
         run: python tools/scope_gate.py >> "$GITHUB_STEP_SUMMARY"
+  tag-green:
+    # Published green-* tags never move: a second green commit on the same day gets its own tag.
+    needs: verify
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: tag green
+        env:
+          SHA: ${{ github.sha }}
         run: |
+          set -euo pipefail
+          git fetch -q --tags origin
           tag="green-$(TZ=Asia/Singapore date +%Y%m%d)"
-          git tag -f "$tag" "${{ github.sha }}"
-          git push -f origin "refs/tags/$tag"
+          if existing="$(git rev-parse -q --verify "refs/tags/$tag^{commit}")"; then
+            if [ "$existing" = "$SHA" ]; then echo "$tag already marks $SHA"; exit 0; fi
+            tag="$tag-${SHA:0:7}"
+          fi
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            echo "$tag already exists"; exit 0
+          fi
+          git tag "$tag" "$SHA"
+          git push origin "refs/tags/$tag"
+          echo "tagged $tag at $SHA" >> "$GITHUB_STEP_SUMMARY"
