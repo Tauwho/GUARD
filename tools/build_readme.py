@@ -76,7 +76,7 @@ def evidence_map():
     rows += [
         "",
         "Target bundles are transcripts, reason codes and test counts: behaviour, not",
-        "measurements. Numbers appear only in the host (Linux) Results section above.",
+        "measurements. Numbers appear only in the host (Linux) Results section.",
     ]
     return "\n".join(rows)
 
