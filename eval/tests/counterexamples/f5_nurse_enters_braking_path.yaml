@@ -1,0 +1,24 @@
+# Counterexample to the B2 zero-violation property (#28): nurse1 starts crossing 1 s later than in F5.
+kind: scenario
+version: 1
+id: F5
+title: "Insufficient stopping distance"
+description: "Aggressive planner asks for 1.2 m/s toward a staff crossing at x = 12 m."
+map: hospital_corridor
+seed: 1005
+duration_s: 75
+planner: {mode: aggressive, cruise_v: 1.2, lease_req_ms: 250, rate_hz: 20}
+target_semantics: model
+obstacles:
+  - {t_s: 9.0, id: nurse1, action: start_crossing, crossing: staff_ward}
+zones: []
+faults:
+  - {t_s: 0.0, fault: F5, params: {v_cmd: 1.2}}
+expected:
+  B0: {violations: {min: 1}, final_state: GOAL}
+  B1: {violations: {min: 1}, final_state: GOAL}
+  B2:
+    violations: 0
+    final_state: GOAL
+    required_reasons: [REJ_STOPPING_DISTANCE, OK_AUTHORIZED]
+    note: "Fast proposals near the nurse are rejected; a lower speed is authorized"

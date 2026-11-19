@@ -1,11 +1,16 @@
 """Generated properties exercise production C++ code, not a Python reimplementation."""
 
+import copy
 import json
 import struct
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
+import jsonschema
+import pytest
+import yaml
 from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
@@ -15,7 +20,15 @@ PROBE = (
     / "build/host-debug/host"
     / ("guard-core-probe.exe" if sys.platform == "win32" else "guard-core-probe")
 )
-PROPERTY = settings(max_examples=100, derandomize=True, database=None, deadline=None)
+REPLAY = PROBE.with_name("guard-replay-core" + PROBE.suffix)
+PROPERTY = settings(max_examples=500, derandomize=True, database=None, deadline=None)
+# Each replay is a full 75 s scenario, so this property draws fewer examples than the probe ones.
+REPLAY_PROPERTY = settings(max_examples=40, derandomize=True, database=None, deadline=None)
+SCENARIOS = {
+    path.stem: yaml.safe_load(path.read_text(encoding="utf-8"))
+    for path in sorted((ROOT / "scenarios").glob("F*.yaml"))
+}
+COUNTEREXAMPLES = sorted((Path(__file__).parent / "counterexamples").glob("*.yaml"))
 
 
 def call(*arguments):
@@ -121,3 +134,81 @@ def test_hypothesis_gate_ack_expiry_refusal_and_nonincreasing_brake(speed, durat
         previous = velocity
     assert previous == 0
     assert result["ticks"][-1][1] == 2  # READY after bounded braking/standstill.
+
+
+def replay(scenario, seed, mode="B2"):
+    world_path = ROOT / "scenarios/maps" / (scenario["map"] + ".yaml")
+    inputs = {
+        "scenario": scenario,
+        "map": yaml.safe_load(world_path.read_text(encoding="utf-8")),
+        "config": {"version": 1, "mode": mode},
+    }
+    with tempfile.TemporaryDirectory() as directory:
+        folder = Path(directory)
+        command = [str(REPLAY)]
+        for name, data in inputs.items():
+            (folder / f"{name}.json").write_text(json.dumps(data), encoding="utf-8")
+            command += [f"--{name}", str(folder / f"{name}.json")]
+        command += ["--seed", str(seed), "--out", str(folder / "trace.jsonl")]
+        result = subprocess.run(command, capture_output=True, text=True, timeout=60)
+        assert result.returncode == 0, result.stderr
+        lines = (folder / "trace.jsonl").read_text(encoding="utf-8").splitlines()
+    return [json.loads(line) for line in lines]
+
+
+@st.composite
+def shifted_scenarios(draw):
+    """Move the fault/zone schedule and the staff crossings by independent offsets."""
+    scenario = copy.deepcopy(SCENARIOS[draw(st.sampled_from(sorted(SCENARIOS)))])
+    latest = scenario["duration_s"] - 5
+    for group in (scenario["faults"] + scenario["zones"], scenario["obstacles"]):
+        if not group:
+            continue
+        times = [event["t_s"] for event in group]
+        later = max(0, round((latest - max(times)) * 10))
+        tenths = draw(st.integers(-round(min(times) * 10), later))
+        for event in group:
+            event["t_s"] = round(event["t_s"] + tenths / 10, 1)
+    return scenario
+
+
+def contacts_under_moving_lease(events):
+    mode, touched = "LATCHED", []
+    for event in events:
+        if event["kind"] == "gate_transition":
+            mode = event["payload"]["to"]
+        elif event["kind"] == "sim_event" and event["payload"]["code"] == "SIM_CONTACT":
+            if mode == "MOVING":
+                touched.append(event["t_ns"])
+    return touched
+
+
+@REPLAY_PROPERTY
+@given(shifted_scenarios(), st.integers(0, 49))
+def test_hypothesis_b2_timing_shifts_never_breach_zones_or_touch_under_a_moving_lease(
+    scenario, index
+):
+    events = replay(scenario, scenario["seed"] + index)
+    assert events[-1]["kind"] == "run_end"
+    assert events[-1]["payload"]["zone_breaches"] == 0
+    assert contacts_under_moving_lease(events) == []
+
+
+def test_hypothesis_moving_lease_contact_detector_flags_the_b0_baseline():
+    scenario = SCENARIOS["F5"]
+    assert contacts_under_moving_lease(replay(scenario, scenario["seed"], mode="B0"))
+
+
+def test_hypothesis_counterexamples_are_valid_scenarios():
+    schema = json.loads((ROOT / "contracts/scenario.schema.json").read_text(encoding="utf-8"))
+    assert COUNTEREXAMPLES
+    for path in COUNTEREXAMPLES:
+        jsonschema.validate(yaml.safe_load(path.read_text(encoding="utf-8")), schema)
+
+
+@pytest.mark.xfail(strict=True, reason="#215: B2 contact with a crossing pedestrian")
+@pytest.mark.parametrize("path", COUNTEREXAMPLES, ids=lambda path: path.stem)
+def test_hypothesis_counterexample_has_zero_b2_violations(path):
+    scenario = yaml.safe_load(path.read_text(encoding="utf-8"))
+    summary = replay(scenario, scenario["seed"])[-1]["payload"]
+    assert summary["contacts"] == 0 and summary["zone_breaches"] == 0
