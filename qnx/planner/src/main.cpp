@@ -5,7 +5,11 @@
 //    to Planner::decision. In B0/B1 the command goes to the gate as DCMD_GUARD_PASSTHRU.
 //  - Scenario, map, config and active faults (F5 aggressive, F8 flood) come from
 //    /dev/sim/world. The planner is untrusted: priority 10, uid guard_plan (1104).
-//   guard-planner [--keep-root]
+//  - --remote IP:PORT (B-12d, #49): an advisor thread sends C9 obs_requests to the host LLM
+//    advisor. Each route is checked with guard::check_route against the planner's own retained
+//    observation and current world; a usable route only replaces the waypoints that
+//    Planner::propose steers by. Motion still needs a C1 decision and a gate lease.
+//   guard-planner [--keep-root] [--remote IP:PORT]
 #include "guard/codec.hpp"
 #include "guard/planner.hpp"
 #include "guard/qnx/dcmd.hpp"
@@ -15,19 +19,26 @@
 #include "guard/qnx/sched.hpp"
 #include "guard/qnx/tlm.hpp"
 #include "guard/qnx/world_status.hpp"
+#include "guard/reason_codes.hpp"
+#include "guard/route.hpp"
 
+#include <arpa/inet.h>
 #include <array>
 #include <cerrno>
 #include <cinttypes>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <devctl.h>
 #include <fcntl.h>
+#include <netinet/in.h>
 #include <optional>
 #include <pthread.h>
 #include <semaphore.h>
 #include <sys/neutrino.h>
+#include <sys/socket.h>
+#include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -36,10 +47,13 @@ using namespace guard;
 constexpr int kPrio = 10;
 constexpr std::uint64_t kC1TimeoutNs = 50'000'000, kGateTimeoutNs = 5'000'000;
 constexpr std::int64_t kWorldEveryNs = 50'000'000;
+constexpr std::int64_t kAdvisorGapNs = 500'000'000, kAdvisorBackoffNs = 1'000'000'000;
+constexpr std::size_t kAdvisorLine = 8192;
 
 struct State {
     pthread_mutex_t lock;
     std::optional<Planner> planner;
+    MapSpec map;
     ScenarioSpec scenario;
     Config config;
     qnx::WorldStatus world;
@@ -50,6 +64,14 @@ struct State {
     std::uint64_t sent = 0, timeouts = 0, authorized = 0, passthru_seq = 0, run_gen = 0;
     std::int64_t backoff_until = 0; // after a failed C1 send (supervisor gone, F3/F7)
     char file[qnx::kInputMax];
+    // --remote: own observation ring (covers the 5 s route age at 20 Hz) and a one-route mailbox.
+    bool remote = false;
+    sockaddr_in advisor{};
+    std::array<Observation, 128> seen{};
+    std::size_t seen_count = 0, seen_next = 0;
+    bool route_ready = false;
+    RouteProposal route;
+    std::uint32_t followed_map = 0; // map version of the followed advisory route; 0 = static
 } *g;
 
 std::int64_t now_ns() {
@@ -78,8 +100,12 @@ void *reader(void *) {
         if (decode(buf, sizeof buf, obs) != DecodeError::none)
             continue;
         pthread_mutex_lock(&g->lock);
-        if (g->planner)
-            g->planner->observe(obs);
+        if (g->planner && g->planner->observe(obs) && g->remote) {
+            g->seen[g->seen_next] = obs;
+            g->seen_next = (g->seen_next + 1) % g->seen.size();
+            if (g->seen_count < g->seen.size())
+                ++g->seen_count;
+        }
         pthread_mutex_unlock(&g->lock);
     }
     return nullptr;
@@ -107,10 +133,14 @@ void refresh_world(std::int64_t now) {
         ok = ok && qnx::read_file(s.scenario_path, g->file, sizeof g->file, n) == EOK &&
              load_scenario({g->file, n}, map, scenario);
         if (ok) {
+            g->map = map;
             g->config = config;
             g->scenario = scenario;
             g->planner.emplace(map, config, 1);
             ++g->run_gen;
+            g->seen_count = g->seen_next = 0;
+            g->route_ready = false;
+            g->followed_map = 0;
             std::printf("guard-planner: run %s seed %" PRIu64 "\n", s.scenario_path, s.seed);
         } else {
             g->planner.reset();
@@ -125,9 +155,10 @@ PlannerOptions options() {
     o.cruise_v = g->scenario.cruise_v;
     o.rate_hz = g->scenario.rate_hz;
     o.lease_req_ms = g->scenario.lease_req_ms;
-    if (g->scenario.planner == ScenarioSpec::Planner::shortcut)
+    // Remote mode steers by the advisor route, so the scenario's rule-planner mode is not used.
+    if (!g->remote && g->scenario.planner == ScenarioSpec::Planner::shortcut)
         o.mode = PlannerMode::shortcut;
-    if (g->scenario.planner == ScenarioSpec::Planner::aggressive)
+    if (!g->remote && g->scenario.planner == ScenarioSpec::Planner::aggressive)
         o.mode = PlannerMode::aggressive;
     // F1 is the sim's delayed planner feed (C6); the planner itself stays nominal.
     std::int64_t p = 0;
@@ -187,11 +218,172 @@ void passthrough(const Proposal &p, std::int64_t now) {
     g->tlm.emit(now, "proposal", payload);
 }
 
+// --remote host link. Socket waits are bounded (SO_RCVTIMEO/SO_SNDTIMEO) and happen only on
+// the advisor thread, never in the C1 loop.
+int advisor_connect() {
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0)
+        return -1;
+    struct timeval tv {
+        35, 0
+    }; // the host advisor bounds a model call to 30 s
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv);
+    setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof tv);
+    if (connect(fd, reinterpret_cast<const sockaddr *>(&g->advisor), sizeof g->advisor) != 0) {
+        close(fd);
+        return -1;
+    }
+    return fd;
+}
+bool send_all(int fd, const char *data, std::size_t len) {
+    while (len) {
+        ssize_t n = send(fd, data, len, 0);
+        if (n < 0 && errno == EINTR)
+            continue;
+        if (n <= 0)
+            return false;
+        data += n;
+        len -= static_cast<std::size_t>(n);
+    }
+    return true;
+}
+// One '\n'-terminated C9 line; false on EOF, timeout or a line longer than kAdvisorLine.
+bool read_line(int fd, char *line, std::size_t &len) {
+    len = 0;
+    for (;;) {
+        char c;
+        ssize_t n = recv(fd, &c, 1, 0);
+        if (n < 0 && errno == EINTR)
+            continue;
+        if (n != 1)
+            return false;
+        if (c == '\n')
+            return true;
+        if (len == kAdvisorLine)
+            return false;
+        line[len++] = c;
+    }
+}
+
+// One request in flight; the reply goes to the mailbox that step() checks.
+void *advisor(void *) {
+    static char line[kAdvisorLine];
+    int fd = -1;
+    std::uint64_t request = 0;
+    for (;;) {
+        sleep_ns(kAdvisorGapNs);
+        Observation obs;
+        Point goal{};
+        std::uint64_t gen = 0;
+        pthread_mutex_lock(&g->lock);
+        bool ready = g->planner && g->world.running() && g->seen_count && !g->route_ready &&
+                     !g->planner->at_goal();
+        if (ready) {
+            obs = g->seen[(g->seen_next + g->seen.size() - 1) % g->seen.size()];
+            goal = {g->map.goal.x, g->map.goal.y};
+            gen = g->run_gen;
+        }
+        pthread_mutex_unlock(&g->lock);
+        if (!ready)
+            continue;
+        if (fd < 0 && (fd = advisor_connect()) < 0) {
+            sleep_ns(kAdvisorBackoffNs);
+            continue;
+        }
+        ++request;
+        // A mm-rounded pose keeps the model's echoed numbers short (latency is output-bound);
+        // the route check starts from our own current pose, not from this one.
+        int n = std::snprintf(line, sizeof line,
+                              "{\"v\":1,\"type\":\"obs_request\",\"req_id\":%" PRIu64
+                              ",\"obs\":{\"obs_id\":%" PRIu64 ",\"stamp_ns\":%" PRId64
+                              ",\"x\":%.3f,\"y\":%.3f,\"theta\":%.3f,\"map_version\":%" PRIu32
+                              "},\"goal\":[%.3f,%.3f]}\n",
+                              request, obs.obs_id, obs.stamp_ns, obs.x, obs.y, obs.theta,
+                              obs.map_version, goal.x, goal.y);
+        RouteProposal route;
+        std::size_t len = 0;
+        bool ok = n > 0 && static_cast<std::size_t>(n) < sizeof line &&
+                  send_all(fd, line, static_cast<std::size_t>(n)) && read_line(fd, line, len) &&
+                  load_route({line, len}, route) && route.request_id == request;
+        if (!ok) { // C9 has no error reply: the advisor closes the link instead
+            close(fd);
+            fd = -1;
+            sleep_ns(kAdvisorBackoffNs);
+            continue;
+        }
+        pthread_mutex_lock(&g->lock);
+        if (gen == g->run_gen) {
+            g->route = route;
+            g->route_ready = true;
+        }
+        pthread_mutex_unlock(&g->lock);
+    }
+    return nullptr;
+}
+
+// Checks a mailbox route against our own retained source and the current world, as the
+// supervisor would. Caller holds the lock. A usable route only changes the waypoints.
+void apply_route(std::int64_t now) {
+    if (g->followed_map && g->world.map_version != g->followed_map) {
+        g->planner->follow(nullptr, 0); // the map changed under the advisory route
+        g->followed_map = 0;
+    }
+    if (!g->route_ready)
+        return;
+    g->route_ready = false;
+    auto &route = g->route;
+    const auto &latest = g->seen[(g->seen_next + g->seen.size() - 1) % g->seen.size()];
+    trim_route(route, {latest.x, latest.y}); // the robot kept moving while the model thought
+    Scene scene = g->map.scene;
+    for (std::size_t z = 0; z < scene.zone_count; ++z)
+        scene.zones[z].active = (g->world.zones_active >> z) & 1u;
+    scene.map_version = g->world.map_version;
+    auto code = static_cast<std::uint16_t>(Reason::REJ_UNKNOWN_OBSERVATION);
+    for (std::size_t i = 0; i < g->seen_count; ++i)
+        if (g->seen[i].obs_id == route.observation_id) {
+            code = check_route(route, g->seen[i], latest, scene, g->config, now);
+            break;
+        }
+    if (code == 0 && g->planner->follow(route.waypoints.data(), route.waypoint_count))
+        g->followed_map = route.map_version;
+    const auto name = code == 0 ? std::string_view("ROUTE_USABLE") : reason_name(code);
+    char payload[320];
+    std::snprintf(payload, sizeof payload,
+                  "\"req_id\":%" PRIu64 ",\"route_id\":%" PRIu64
+                  ",\"based_on\":{\"obs_id\":%" PRIu64 ",\"map_version\":%" PRIu32
+                  "},\"current_map_version\":%" PRIu32
+                  ",\"waypoints\":%zu,\"route\":\"%s\",\"route_reason\":\"%.*s\"",
+                  route.request_id, route.route_id, route.observation_id, route.map_version,
+                  g->world.map_version, route.waypoint_count, code == 0 ? "USABLE" : "REJECTED",
+                  static_cast<int>(name.size()), name.data());
+    g->tlm.emit(now, "proposal", payload);
+}
+
+bool parse_endpoint(const char *text, sockaddr_in &out) {
+    char host[INET_ADDRSTRLEN];
+    const char *colon = std::strrchr(text, ':');
+    if (!colon || colon == text || static_cast<std::size_t>(colon - text) >= sizeof host)
+        return false;
+    std::memcpy(host, text, static_cast<std::size_t>(colon - text));
+    host[colon - text] = '\0';
+    char *end = nullptr;
+    errno = 0;
+    unsigned long port = std::strtoul(colon + 1, &end, 10);
+    if (errno || end == colon + 1 || *end || port == 0 || port > 65535)
+        return false;
+    out = {};
+    out.sin_family = AF_INET;
+    out.sin_port = htons(static_cast<std::uint16_t>(port));
+    return inet_pton(AF_INET, host, &out.sin_addr) == 1;
+}
+
 void step() {
     auto now = now_ns();
     pthread_mutex_lock(&g->lock);
     if (now - g->world_read_ns >= kWorldEveryNs)
         refresh_world(now);
+    if (g->remote && g->planner)
+        apply_route(now);
     Proposal p;
     bool ready = g->planner && g->world.running() && !g->planner->at_goal() &&
                  g->planner->propose(now, options(), p);
@@ -230,17 +422,21 @@ int fail(const char *what, int rc) {
 
 int main(int argc, char **argv) {
     setvbuf(stdout, nullptr, _IOLBF, 0);
+    static State state;
+    g = &state;
     bool keep_root = false;
     for (int i = 1; i < argc; ++i) {
         if (!std::strcmp(argv[i], "--keep-root")) {
             keep_root = true;
+        } else if (!std::strcmp(argv[i], "--remote") && i + 1 < argc &&
+                   parse_endpoint(argv[i + 1], g->advisor)) {
+            g->remote = true;
+            ++i;
         } else {
-            std::fprintf(stderr, "usage: guard-planner [--keep-root]\n");
+            std::fprintf(stderr, "usage: guard-planner [--keep-root] [--remote IP:PORT]\n");
             return 2;
         }
     }
-    static State state;
-    g = &state;
     sem_init(&g->go, 0, 0);
     pthread_mutexattr_t ma;
     pthread_mutexattr_init(&ma);
@@ -259,7 +455,11 @@ int main(int argc, char **argv) {
     if (!keep_root && (rc = qnx::drop_and_lock(1104, 1104, nullptr, 0)) != EOK)
         return fail("drop to guard_plan (1104)", rc);
     sem_post(&g->go);
-    std::printf("guard-planner: ready, uid %d\n", static_cast<int>(geteuid()));
+    pthread_t advisor_tid;
+    if (g->remote && (rc = pthread_create(&advisor_tid, nullptr, advisor, nullptr)) != EOK)
+        return fail("advisor thread", rc);
+    std::printf("guard-planner: ready, uid %d%s\n", static_cast<int>(geteuid()),
+                g->remote ? ", remote advisor" : "");
     for (;;) {
         step();
         std::uint32_t hz = 20;

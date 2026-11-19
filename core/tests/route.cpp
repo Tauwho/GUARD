@@ -46,6 +46,17 @@ TEST_CASE("route footprint checks whole segments including thin active restricte
     scene.zones[0].active = false;
     CHECK(guard::check_route(route(), source, source, scene, {}, 0) == 0);
 }
+TEST_CASE("route segments through an inflated wall are rejected, clear ones pass") {
+    auto source = observation();
+    guard::Scene scene;
+    scene.wall_count = 1;
+    scene.walls[0] = {{4, 0.56}, {5, 1}}; // 0.56 m beside the path: just clear of 0.35 + 0.20
+    CHECK(guard::check_route(route(), source, source, scene, {}, 0) == 0);
+    scene.walls[0].min.y = 0.54;
+    CHECK(guard::check_route(route(), source, source, scene, {}, 0) == 211);
+    scene.walls[0].min.y = -1; // across the path
+    CHECK(guard::check_route(route(), source, source, scene, {}, 0) == 211);
+}
 TEST_CASE("C9 route buffer loader is bounded and transactional") {
     guard::RouteProposal output;
     REQUIRE(guard::load_route(
@@ -57,6 +68,50 @@ TEST_CASE("C9 route buffer loader is bounded and transactional") {
     auto invalid = route();
     invalid.waypoint_count = 17;
     CHECK(guard::check_route(invalid, observation(), observation(), {}, {}, 0) == 200);
+}
+TEST_CASE("trim drops waypoints the robot reached or passed while the advisor was thinking") {
+    auto behind = route();
+    behind.waypoint_count = 3;
+    behind.waypoints[0] = {20.88, 2.5};
+    behind.waypoints[1] = {22, 2.5};
+    behind.waypoints[2] = {26, 9};
+    guard::trim_route(behind, {24.5, 2.5});
+    REQUIRE(behind.waypoint_count == 1);
+    CHECK(behind.waypoints[0].x == 26);
+    auto echoed = behind; // the model echoed the request pose twice before the goal
+    echoed.waypoint_count = 3;
+    echoed.waypoints[0] = echoed.waypoints[1] = {2, 2.5};
+    echoed.waypoints[2] = {26, 9};
+    guard::trim_route(echoed, {2.1, 2.5});
+    CHECK(echoed.waypoint_count == 1);
+    echoed.waypoint_count = 3; // and when the robot has since driven well past it
+    echoed.waypoints[0] = echoed.waypoints[1] = {2, 2.5};
+    echoed.waypoints[2] = {26, 9};
+    guard::trim_route(echoed, {6.3, 2.5});
+    CHECK(echoed.waypoint_count == 1);
+    auto detour = route(); // a waypoint beside the robot is a real detour, not a passed one
+    detour.waypoint_count = 2;
+    detour.waypoints[0] = {0, 2};
+    detour.waypoints[1] = {5, 2};
+    guard::trim_route(detour, {0, 0});
+    CHECK(detour.waypoint_count == 2);
+    auto last = route();
+    guard::trim_route(last, {20, 0});
+    CHECK(last.waypoint_count == 1);
+}
+TEST_CASE("a trimmed route is checked from the current pose") {
+    auto value = route();
+    value.waypoint_count = 2;
+    value.waypoints[0] = {0, 0};
+    value.waypoints[1] = {10, 0};
+    auto source = observation(), current = observation();
+    current.x = 5;
+    guard::Scene scene;
+    scene.zone_count = 1;
+    scene.zones[0] = {{{7, -0.1}, {7.01, 0.1}}, true, true};
+    guard::trim_route(value, {current.x, current.y});
+    REQUIRE(value.waypoint_count == 1);
+    CHECK(guard::check_route(value, source, current, scene, {}, 0) == 210);
 }
 
 TEST_CASE("route provenance outlives C1 history and wraps at its independent capacity") {

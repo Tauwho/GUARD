@@ -2,6 +2,7 @@
 #include "guard/buffer_json.hpp"
 #include "guard/codec.hpp"
 #include "guard/reason_codes.hpp"
+#include <algorithm>
 #include <cmath>
 #include <limits>
 
@@ -69,6 +70,25 @@ bool load_route(std::string_view buffer, RouteProposal &output) {
     return true;
 }
 
+void trim_route(RouteProposal &route, Point position) {
+    if (route.waypoint_count > route.waypoints.size())
+        return;
+    std::size_t start = 0;
+    while (start + 1 < route.waypoint_count) {
+        const auto a = route.waypoints[start], b = route.waypoints[start + 1];
+        const double dx = position.x - a.x, dy = position.y - a.y;
+        const bool repeated = std::hypot(b.x - a.x, b.y - a.y) <= 0.15;
+        if (!repeated && std::hypot(dx, dy) > 0.15 && dx * (b.x - a.x) + dy * (b.y - a.y) <= 0)
+            break;
+        ++start;
+    }
+    if (!start)
+        return;
+    std::copy(route.waypoints.begin() + start, route.waypoints.begin() + route.waypoint_count,
+              route.waypoints.begin());
+    route.waypoint_count -= start;
+}
+
 std::uint16_t check_route(const RouteProposal &route, const Observation &source,
                           const Observation &current, const Scene &scene, const Config &config,
                           std::int64_t now) {
@@ -102,6 +122,11 @@ std::uint16_t check_route(const RouteProposal &route, const Observation &source,
                 segment_distance(previous, point, scene.zones[z].rect) <=
                     config.r_robot_m + config.margin_m)
                 return code(Reason::REJ_RESTRICTED_ZONE);
+        // A segment through an inflated wall leaves no free distance (checker 11's meaning).
+        for (std::size_t w = 0; w < scene.wall_count; ++w)
+            if (segment_distance(previous, point, scene.walls[w]) <=
+                config.r_robot_m + config.margin_m)
+                return code(Reason::REJ_STOPPING_DISTANCE);
         previous = point;
     }
     return 0;
