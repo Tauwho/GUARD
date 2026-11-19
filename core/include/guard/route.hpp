@@ -12,6 +12,9 @@ struct RouteProposal {
     std::size_t waypoint_count = 0;
 };
 bool load_route(std::string_view buffer, RouteProposal &output);
+// Drops leading waypoints that are reached or repeated (0.15 m) or passed along their next
+// segment; the last waypoint stays. Trim before check_route so the checked polyline is followed.
+void trim_route(RouteProposal &route, Point position);
 // Source must be the caller's retained own observation, never a planner-supplied copy.
 // Returns zero for a usable advisory route; this never grants motion permission.
 std::uint16_t check_route(const RouteProposal &route, const Observation &source,

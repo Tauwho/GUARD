@@ -383,7 +383,7 @@ allow planner_t self:ability {
     nonroot
     prot_exec
     map_fixed
-    channel_connect:devb_t,supervisor_t
+    channel_connect:devb_t,supervisor_t,io_sock_t
 };
 allow planner_t self:ability {
     setuid:1104

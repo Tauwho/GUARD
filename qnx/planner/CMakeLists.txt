@@ -8,7 +8,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../common qnx-common)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../.. guard-root EXCLUDE_FROM_ALL)
 
 add_executable(guard-planner src/main.cpp)
-target_link_libraries(guard-planner PRIVATE guard_core guard_qnx_common)
+target_link_libraries(guard-planner PRIVATE guard_core guard_qnx_common socket)
 target_compile_options(guard-planner PRIVATE -Wall -Wextra)
 
 # On-target check against the image's guard-sim, guard-gate and guard-supervisor.

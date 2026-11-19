@@ -29,7 +29,7 @@ Each JSONL record has `request` and `response` objects exactly per C9, `delay_ns
 The service listens only on localhost:7701, preserves response fields and recorded
 delays, and requires an exact request match. Every connection starts at record zero.
 It never updates an old observation stamp to make a replay look fresh. Synthetic
-tests are not evidence of an actual LLM run. QNX connection wiring belongs to #49.
+tests are not evidence of an actual LLM run. QNX wiring: see "On the target" below.
 
 For a retained single-record JSON object from an actual call, run the same core checker:
 
@@ -62,8 +62,8 @@ as `REJ_MAP_VERSION`, while the cold/slow response rejects as stale. Live C9 TCP
 preserves the goal/provenance; recorded TCP replay preserves the exact response
 and delay across fresh connections. Numeric timings and raw recordings remain in
 ignored local `out/s7-1p5b/`; inference on other laptops is optional.
-The earlier 3B experiments are historical only. This remains a stationary-pose
-host experiment; target integration is pending.
+The earlier 3B experiments are historical only. The measurements above are a
+stationary-pose host experiment; target integration is described below.
 The route
 checker treats creation time as opaque metadata and derives age from its own source
 observation. The recorded service never synthesizes a new creation time.
@@ -99,6 +99,58 @@ Only timeout/unavailable service errors fall back, and only for an exact recorde
 request. Invalid model output is not hidden. The original response and delay remain
 unchanged; a response whose source expired during the live timeout is still rejected
 by the core. Recorded default mode works without Ollama or a network connection.
+
+## On the target (#49)
+
+`guard-planner --remote IP:PORT` adds an advisor thread to the QNX planner. It sends
+a C9 `obs_request` (the planner's latest observation, pose rounded to millimetres,
+and the goal) with one request in flight. Socket waits are bounded and happen only
+on that thread; the C1 loop never waits for the host. Each reply goes to a one-route
+mailbox. The main loop then:
+
+1. drops waypoints the robot reached or passed while the model was computing
+   (`guard::trim_route`), so the checked polyline is the one that will be followed;
+2. runs `guard::check_route` against the planner's own retained source observation
+   (a 128-entry ring, enough for the 5 s route age at 20 Hz), its latest observation,
+   and the map version and zone state read from `/dev/sim/world`;
+3. on a usable route, replaces only the waypoints that `Planner::propose` steers by.
+
+Every motion command is still a C1 proposal that needs a supervisor decision and a
+gate lease. A map change sends the planner back to the static route. `check_route`
+also rejects a segment through an inflated wall (`REJ_STOPPING_DISTANCE`), so the
+planner does not follow a model route into a wall where the supervisor would only
+stop it. Each checked route is a C8 `proposal` event with `route` (`USABLE` or
+`REJECTED`) and `route_reason`.
+
+```sh
+python host/llm_advisor.py --ollama            # host side, 127.0.0.1:7701
+image/run-demo.sh                              # develop image; user networking reaches the host as 10.0.2.2
+ssh guard-target 'slay -f guard-planner; on -d /system/bin/guard-planner --remote 10.0.2.2:7701 > /tmp/planner.log 2>&1'
+python eval/target_runner.py --target ssh:guard-target --bridge 127.0.0.1:7700 --scenario scenarios/F6.yaml --out out/target-F6.jsonl
+```
+
+Evidence: [remote-planner](../evidence/20261119-36f0bf2-remote-planner/manifest.json)
+and [llm-route](../evidence/20261119-36f0bf2-llm-route/manifest.json) (one F6 B2 run,
+behaviour only). On the target, the route based on map 1 that arrived after the MRI
+zone activated was rejected `REJ_MAP_VERSION`. Other routes were rejected for the
+restricted zone or age, or were followed. The run had 0 contacts, 0 zone breaches
+and 0 latches.
+
+Limits of this mode:
+
+- Remote mode ignores the scenario's planner mode (`shortcut`, `aggressive`). Under
+  `--remote`, F6 ends at GOAL where the scenario file expects READY. The supervisor
+  may also never see the C1 `REJ_MAP_VERSION` that F6 requires, because the planner
+  rejects the stale route itself. The runner reports these two mismatches; both are
+  expected in this mode.
+- Live inference shares the host CPU with QEMU. A cold model can delay the first
+  route past the 5 s route age, and in our runs it once starved the priority-10
+  planner long enough for the gate to stop and latch. Warm the model before booting.
+  Which routes are rejected, and for which reason, depends on inference time, so a
+  live run is not deterministic; the recorded mode above is.
+- Remote mode on the `--secpol secure` image is not verified. Root cannot slay the
+  boot planner there (by design), and one try with a second `on -T planner_t`
+  planner made no advisor connection.
 
 
 ## Verification

@@ -28,6 +28,26 @@ void Planner::decision(const Decision &reply) {
     if (valid(reply) && reply.proposal_id == previous_.proposal_id)
         retry_nominal_ = reply.verdict == 2 && reply.primary_reason == 212;
 }
+bool Planner::follow(const Point *points, std::size_t count) {
+    if (count > route_.size() || (count && !points))
+        return false;
+    for (std::size_t i = 0; i < count; ++i)
+        if (!std::isfinite(points[i].x) || !std::isfinite(points[i].y))
+            return false;
+    if (!count) {
+        if (following_)
+            waypoint_ = static_waypoint_;
+        following_ = false;
+        return true;
+    }
+    if (!following_)
+        static_waypoint_ = waypoint_;
+    std::copy_n(points, count, route_.begin());
+    route_count_ = count;
+    waypoint_ = 0;
+    following_ = true;
+    return true;
+}
 bool Planner::at_goal() const {
     if (!count_)
         return false;
@@ -80,11 +100,12 @@ bool Planner::propose(std::int64_t now, const PlannerOptions &options, Proposal 
     const Point position{source->x, source->y};
     Point target{map_.goal.x, map_.goal.y};
     if (options.mode != PlannerMode::shortcut) {
-        while (waypoint_ < map_.waypoint_count &&
-               distance(position, map_.waypoints[waypoint_]) <= 0.15)
+        const Point *waypoints = following_ ? route_.data() : map_.waypoints.data();
+        const std::size_t waypoint_count = following_ ? route_count_ : map_.waypoint_count;
+        while (waypoint_ < waypoint_count && distance(position, waypoints[waypoint_]) <= 0.15)
             ++waypoint_;
-        if (waypoint_ < map_.waypoint_count)
-            target = map_.waypoints[waypoint_];
+        if (waypoint_ < waypoint_count)
+            target = waypoints[waypoint_];
     }
     const double remaining = distance(position, target);
     const double heading = std::remainder(

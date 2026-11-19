@@ -3,11 +3,11 @@
 **Stale decisions can't move the robot.**
 
 GUARD is an independent runtime supervisor for a *simulated* autonomous mobile
-robot on QNX 8.0. An untrusted planner (rule-based today, an LLM later) only
-*proposes* motion. GUARD checks each proposal for provenance freshness, stopping
-distance and restricted zones, then grants a short, epoch-fenced lease. A
-separate gate process uses its own timer to stop the robot when the lease
-expires, even if the supervisor has died.
+robot on QNX 8.0. An untrusted planner (rule-based, optionally steered by a local
+LLM advisor) only *proposes* motion. GUARD checks each proposal for provenance
+freshness, stopping distance and restricted zones, then grants a short,
+epoch-fenced lease. A separate gate process uses its own timer to stop the robot
+when the lease expires, even if the supervisor has died.
 
 The checks, lease rules and gate state machine are a portable C++17 core. The
 same core runs under a deterministic host harness and inside QNX 8.0 processes
@@ -96,6 +96,9 @@ B2 mismatches are failures (CI gates them). Baseline mismatches are expected: B0
 
 | Evidence | Where it ran | Commit | Contracts | Bundle |
 |---|---|---|---|---|
+| llm-route | QNX 8.0 target (behaviour only) | `36f0bf2` | contracts-v1.2 | [20261119-36f0bf2-llm-route](evidence/20261119-36f0bf2-llm-route/manifest.json) |
+| remote-planner | QNX 8.0 target (behaviour only) | `36f0bf2` | contracts-v1.2 | [20261119-36f0bf2-remote-planner](evidence/20261119-36f0bf2-remote-planner/manifest.json) |
+| core-on-target | QNX 8.0 target (behaviour only) | `bdb25b9` | contracts-v1.2 | [20261119-bdb25b9-core-on-target](evidence/20261119-bdb25b9-core-on-target/manifest.json) |
 | scenario-f0 | QNX 8.0 target (behaviour only) | `db1dcc7` | contracts-v1.2 | [20261117-db1dcc7-scenario-F0](evidence/20261117-db1dcc7-scenario-F0/manifest.json) |
 | slm | QNX 8.0 target (behaviour only) | `db1dcc7` | contracts-v1.2 | [20261117-db1dcc7-slm](evidence/20261117-db1dcc7-slm/manifest.json) |
 | tracelogger | QNX 8.0 target (behaviour only) | `55753de` | contracts-v1.2 | [20261117-55753de-tracelogger](evidence/20261117-55753de-tracelogger/manifest.json) |
@@ -191,3 +194,8 @@ machines.
 ## Licence
 MIT. The QNX SDP is not included or redistributed. Each developer installs it
 under their own non-commercial licence; CI never touches QNX.
+
+The optional LLM advisor (`host/ADVISOR.md`) uses
+[Qwen2.5-1.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/blob/main/LICENSE)
+(Apache-2.0) through a local Ollama service. The model weights are never committed
+or redistributed.

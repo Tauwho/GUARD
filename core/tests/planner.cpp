@@ -1,4 +1,6 @@
 #include "guard/planner.hpp"
+#include <array>
+#include <cmath>
 #include <doctest/doctest.h>
 
 namespace {
@@ -135,4 +137,53 @@ TEST_CASE("aggressive yields only after a matching stopping-distance rejection")
     CHECK(retry.v_cmd == 0);
     REQUIRE(planner.propose(300'000'000, options, retry));
     CHECK(retry.v_cmd == first.v_cmd);
+}
+
+TEST_CASE("follow replaces the static route, keeps the sequence and rejects bad routes") {
+    auto route = map();
+    route.waypoint_count = 1;
+    route.waypoints[0] = {0, 5};
+    guard::Planner planner(route);
+    REQUIRE(planner.observe(observation()));
+    const guard::Point ahead[] = {{5, 0}};
+    REQUIRE(planner.follow(ahead, 1));
+    guard::Proposal result;
+    REQUIRE(planner.propose(0, {}, result));
+    CHECK(result.v_cmd > 0);
+    CHECK(result.w_cmd == 0);
+    std::array<guard::Point, 17> many{};
+    CHECK_FALSE(planner.follow(many.data(), many.size()));
+    CHECK_FALSE(planner.follow(nullptr, 1));
+    const guard::Point bad[] = {{std::nan(""), 0}};
+    CHECK_FALSE(planner.follow(bad, 1));
+    REQUIRE(planner.propose(100'000'000, {}, result));
+    CHECK(result.w_cmd == 0);
+    REQUIRE(planner.follow(nullptr, 0));
+    REQUIRE(planner.propose(200'000'000, {}, result));
+    CHECK(result.v_cmd == 0);
+    CHECK(result.w_cmd > 0);
+    CHECK(result.seq == 3);
+}
+
+TEST_CASE("leaving an advisory route resumes the static route where it was left") {
+    auto route = map();
+    route.waypoint_count = 2;
+    route.waypoints[0] = {0, 0};
+    route.waypoints[1] = {5, 0};
+    guard::Planner planner(route);
+    REQUIRE(planner.observe(observation()));
+    guard::Proposal result;
+    REQUIRE(planner.propose(0, {}, result));
+    const guard::Point north[] = {{0, 5}}, south[] = {{0, -5}};
+    REQUIRE(planner.follow(north, 1));
+    REQUIRE(planner.follow(south, 1));
+    REQUIRE(planner.propose(100'000'000, {}, result));
+    CHECK(result.w_cmd < 0);
+    auto moved = observation(2, 100'000'000);
+    moved.x = 1;
+    REQUIRE(planner.observe(moved));
+    REQUIRE(planner.follow(nullptr, 0));
+    REQUIRE(planner.propose(200'000'000, {}, result));
+    CHECK(result.v_cmd > 0);
+    CHECK(result.w_cmd == 0);
 }
