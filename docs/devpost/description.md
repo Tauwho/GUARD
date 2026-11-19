@@ -1,14 +1,13 @@
 # GUARD — Gated Unexpired Authorization for Robotic Drives
 
-Submission draft (P6). Each statement names its source on `main` in brackets, or says
-`planned (<SCOPE id>)` when the work is not built yet. P refreshes this file at P4
-(13 Dec) from `v1.0-rc1`; `python tools/check_submission.py` checks its shape. A person
-on the team does the upload, not an agent.
+Submission text (P6). Each statement names its source on `main` in brackets, or says
+`planned (<SCOPE id>)` when the work is not built yet. `python tools/check_submission.py`
+checks its shape. The PO filed the Devpost entry by hand on 2026-11-20; no agent uploads.
 
 - **Tagline:** Stale decisions can't move a simulated robot.
 - **Category:** Robotics & Medical
 - **Repo:** https://github.com/Tauwho/GUARD
-- **Video:** planned (P4) - under 3:00, recorded from `v1.0-rc1` per `demo/DEMO.md`
+- **Video:** https://youtu.be/THk9yHWtyRU (2:46, recorded from `v1.0-rc1` per `demo/DEMO.md`)
 - **Built with:** qnx, c++, cmake, python, qemu, github-actions
 
 ## Inspiration
