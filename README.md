@@ -6,9 +6,8 @@ GUARD is an independent runtime supervisor for a *simulated* autonomous mobile
 robot on QNX 8.0. An untrusted planner (rule-based, optionally steered by a local
 LLM advisor) only *proposes* motion. GUARD checks each proposal for provenance
 freshness, stopping distance and restricted zones, then grants a short,
-epoch-fenced lease. A
-separate gate process uses its own timer to stop the robot when the lease
-expires, even if the supervisor has died.
+epoch-fenced lease. A separate gate process uses its own timer to stop the robot
+when the lease expires, even if the supervisor has died.
 
 The checks, lease rules and gate state machine are a portable C++17 core. The
 same core runs under a deterministic host harness and inside QNX 8.0 processes
