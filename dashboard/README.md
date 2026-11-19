@@ -25,8 +25,12 @@ events; pause/seek inspects that local buffer and Follow live returns to its end
 Current view: map, zone schedules, observed obstacles, robot footprint/trajectory,
 gate mode/epoch, decision counts, reason journal, recorded lease bar and stopping arc.
 Lease/arc fields are shown only when present in the trace; the viewer does not invent
-missing target telemetry. Target-trace acceptance and the GIF remain pending (#24).
-No target numeric evaluation or QNX timings should be published (ADR0011/D11).
+missing target telemetry. Recorded target traces replay too: target `t_ns` is
+boot-relative `CLOCK_MONOTONIC`, so the clock, zone schedules and journal count from
+the trace's `run_start`. The replay GIF (host F3 trace) is a
+[release asset](https://github.com/Tauwho/GUARD/releases/download/v1.0-rc1/dashboard-f3-replay.gif),
+not a repository file (binaries stay out of git). No target numeric evaluation or QNX timings should be
+published (ADR0011/D11).
 
 
 Headless acceptance (no visible browser):

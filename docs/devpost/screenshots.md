@@ -10,8 +10,8 @@ No QNX logo in any image; no numbers measured on QNX (D11).
   `GATE_SUPERVISOR_LOST` (DEMO step 2). planned (P4)
 - **Dashboard, F6 stale map refused:** robot waiting outside the MRI zone, reason
   `REJ_MAP_VERSION` (DEMO step 3). planned (P4)
-- **Demo GIF:** the dashboard replay GIF from Stream A (`dashboard/demo.gif`,
-  BRIEF-A "after done" item 4) if it lands; otherwise P records one from DEMO step 2.
-  planned (P4)
+- **Demo GIF:** the dashboard replay GIF of the host F3 trace (DEMO step 2), a
+  [`v1.0-rc1` release asset](https://github.com/Tauwho/GUARD/releases/download/v1.0-rc1/dashboard-f3-replay.gif)
+  because binaries stay out of git.
 - **README Results:** host (Linux) harness table, labelled as such (DEMO step 5).
   planned (P4)

@@ -4,10 +4,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const elements = new Map();
-const dashedPoints = [];
+const dashedPoints = [], fills = [];
 let dashed = false, draws = 0;
-const canvasContext = new Proxy({}, {get(_target, name) {
+const canvasContext = new Proxy({}, {get(target, name) {
   if (name === 'clearRect') return () => {draws++;};
+  if (name === 'fillRect') return () => {fills.push(target.fillStyle);};
   if (name === 'setLineDash') return values => {dashed = values.length > 0;};
   if (name === 'moveTo') return (...point) => {if (dashed) dashedPoints.push(point);};
   return () => {};
@@ -45,6 +46,27 @@ assert.match(element('journal').children[0].children[1].textContent, /Supervisor
 vm.runInContext('seek(0);', context);
 assert.equal(element('mode').textContent, 'MOVING');
 console.log('Dashboard headless smoke: PASS (seek, lease, source arc, latch, reason feed)');
+
+// Target traces stamp CLOCK_MONOTONIC since boot: scenario time starts at run_start.
+vm.runInContext(`
+metadata = {map:{size:[20,10],walls:[],goal:{x:19,y:9},
+  zones:[{id:'mri',kind:'restricted',rect:{min:[1,1],max:[2,2]},active:[{from_s:1,to_s:null}]}]}};
+events = [
+ {t_ns:5000000000,kind:'run_start',payload:{}},
+ {t_ns:5500000000,kind:'gate_transition',payload:{to:'LATCHED',reason:'GATE_SUPERVISOR_LOST'}},
+ {t_ns:6500000000,kind:'observation',payload:{x:10,y:5,theta:0,v_meas:0}}
+];
+`, context);
+fills.length = 0;
+vm.runInContext('seek(0);', context);
+assert.equal(vm.runInContext('cursor', context), 5000000000);
+assert.equal(element('time').textContent, '0.00 s');
+assert.equal(fills.at(-1), '#31434366'); // Zone scheduled from 1 s is not active yet.
+vm.runInContext('seek(6500000000);', context);
+assert.equal(element('time').textContent, '1.50 s');
+assert.equal(fills.at(-1), '#cb9b4133');
+assert.equal(element('journal').children[0].children[0].textContent, '0.50 s');
+console.log('Boot-clock trace smoke: PASS (run_start origin for clock, zones and journal)');
 
 // A flood is ingested immediately but drawn once per animation frame.
 draws = 0;
