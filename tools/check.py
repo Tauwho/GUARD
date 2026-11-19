@@ -51,6 +51,8 @@ def stages(fast):
 
 
 FORMAT_TOOL_MISSING = 3  # tools/check_format.py exit code; it already fails in CI
+STAGE_TIMEOUT = 1200  # seconds; a hung stage fails instead of stalling the run
+FETCH_TIMEOUT = 60
 
 
 def stage_status(name, returncode):
@@ -72,11 +74,15 @@ def main():
     failed = []
     # The evidence policy (D21) accepts bundles whose SHA is in a PR head, as CI does.
     # Best effort: offline runs still check against local history only.
-    subprocess.run(
-        ["git", "fetch", "-q", "--no-tags", "origin", "+refs/pull/*/head:refs/remotes/pr/*"],
-        cwd=ROOT,
-        capture_output=True,
-    )
+    try:
+        subprocess.run(
+            ["git", "fetch", "-q", "--no-tags", "origin", "+refs/pull/*/head:refs/remotes/pr/*"],
+            cwd=ROOT,
+            capture_output=True,
+            timeout=FETCH_TIMEOUT,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        print("note: could not fetch PR heads; evidence is checked against local history")
     for name, command in stages(args.fast or args.skip_build):
         if command == CI_OWNERSHIP:
             print(
@@ -89,7 +95,18 @@ def main():
             failed.append(name)
             continue
         started = time.monotonic()
-        done = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
+        try:
+            done = subprocess.run(
+                command, cwd=ROOT, capture_output=True, text=True, timeout=STAGE_TIMEOUT
+            )
+        except OSError as error:
+            print(f"FAIL {name}: cannot run {command[0]}: {error}")
+            failed.append(name)
+            continue
+        except subprocess.TimeoutExpired:
+            print(f"FAIL {name}: timed out after {STAGE_TIMEOUT}s: {' '.join(command)}")
+            failed.append(name)
+            continue
         status = stage_status(name, done.returncode)
         print(f"{status} {name} ({time.monotonic() - started:.0f}s): {' '.join(command)}")
         if status == "SKIPPED":
@@ -101,7 +118,12 @@ def main():
     # Report only: never fails the build. cmd checks are not run here (they show
     # MANUAL); `python tools/scope_gate.py --report` runs the full table.
     env = dict(os.environ, GUARD_SCOPE_GATE_ACTIVE="1")
-    subprocess.run([PY, "tools/scope_gate.py", "--summary"], cwd=ROOT, env=env)
+    try:
+        subprocess.run(
+            [PY, "tools/scope_gate.py", "--summary"], cwd=ROOT, env=env, timeout=FETCH_TIMEOUT
+        )
+    except subprocess.TimeoutExpired:
+        print("scope: summary timed out (report only)")
     print("RESULT:", "GREEN" if not failed else "RED (" + ", ".join(failed) + ")")
     return 1 if failed else 0
 
