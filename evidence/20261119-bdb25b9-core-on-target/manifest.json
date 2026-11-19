@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "sha": "bdb25b9e8e8ad61e95f11a11138b8d26cd35d40d",
+  "date": "2026-11-19T15:57:53Z",
+  "topic": "core-on-target",
+  "runner_role": "po",
+  "host_os": "Linux 6.18.58.1-microsoft-standard-WSL2",
+  "sdp_version": "8.0.0",
+  "qcc_version": "Toolchain:  12.2.0\tVersion:  gcc_ntox86_64",
+  "image_id": "image/run-demo.sh --test (user-mode net, QSTI); 8.0.0 2026/10/30-09:10:05EDT x86pc",
+  "contracts": "contracts-v1.2",
+  "files": [
+    "transcript.txt",
+    "uname.txt",
+    "pidin.txt",
+    "binaries.txt",
+    "slog2.txt",
+    "results.json"
+  ],
+  "notes": "core-on-target for PR po/core-test-gaps at this sha (#18 #19 #20). Same commit on host (host-debug): [doctest] test cases:  121 |  121 passed | 0 failed | 0 skipped [doctest] assertions: 3787 | 3787 passed | 0 failed | [doctest] Status: SUCCESS! "
+}

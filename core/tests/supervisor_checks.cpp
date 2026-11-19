@@ -1,5 +1,7 @@
+#include "guard/scenario.hpp"
 #include "guard/supervisor.hpp"
 #include <doctest/doctest.h>
+#include <string>
 
 namespace {
 guard::Observation observation(std::uint64_t id = 1, std::int64_t stamp = 0) {
@@ -139,4 +141,99 @@ TEST_CASE("schema and acceleration envelope reject invalid proposals") {
     request.seq = 2;
     request.header.version = 99;
     CHECK(supervisor.evaluate(request, {}, 10'000'000).primary_reason == guard::Reason::REJ_SCHEMA);
+}
+
+TEST_CASE("worked example: 1.2 m/s needs 1.06 m of free arc, 1.61 m centre to obstacle") {
+    const guard::Config config;
+    auto current = observation();
+    current.v_meas = 1.2;
+    auto request = proposal();
+    request.v_cmd = 1.2;
+    const auto open = guard::stopping_check(current, request, {}, config);
+    CHECK(open.required == doctest::Approx(1.056));
+    CHECK(open.required + config.r_robot_m + config.margin_m == doctest::Approx(1.606));
+    auto verdict = [&](double edge_distance) {
+        const double radius = 0.3;
+        auto source = current;
+        source.obstacle_count = 1;
+        source.obstacles[0] = {edge_distance + radius, 0, radius};
+        guard::Supervisor supervisor;
+        REQUIRE(supervisor.observe(source, 0));
+        return supervisor.evaluate(request, {}, 10'000'000);
+    };
+    const auto clear = verdict(1.70);
+    CHECK(clear.authorized);
+    CHECK(clear.free_distance >= clear.required_distance);
+    const auto blocked = verdict(1.60);
+    CHECK(blocked.primary_reason == guard::Reason::REJ_STOPPING_DISTANCE);
+    CHECK(blocked.free_distance < blocked.required_distance);
+}
+
+TEST_CASE("map version must match the current observation and scene") {
+    guard::Supervisor supervisor;
+    REQUIRE(supervisor.observe(observation(), 0));
+    auto request = proposal();
+    request.based_on.map_version = 2;
+    auto result = supervisor.evaluate(request, {}, 10'000'000);
+    CHECK(result.primary_reason == guard::Reason::REJ_MAP_VERSION);
+    CHECK(result.reasons_mask == (std::uint64_t{1} << 6));
+    request = proposal(2);
+    guard::Scene scene;
+    scene.map_version = 2;
+    CHECK(supervisor.evaluate(request, scene, 10'000'000).primary_reason ==
+          guard::Reason::REJ_MAP_VERSION);
+    request = proposal(3);
+    request.based_on.map_version = 2;
+    request.v_cmd = 1.4;
+    result = supervisor.evaluate(request, {}, 10'000'000);
+    CHECK(result.primary_reason == guard::Reason::REJ_MAP_VERSION);
+    CHECK(result.reasons_mask == ((std::uint64_t{1} << 6) | (std::uint64_t{1} << 8)));
+    CHECK(result.reasons[8] == static_cast<unsigned>(guard::Reason::REJ_SPEED_ENVELOPE));
+    CHECK(supervisor.evaluate(proposal(4), {}, 10'000'000).authorized);
+}
+
+TEST_CASE("over-bound zones and obstacles are refused at every input boundary") {
+    auto source = observation();
+    source.obstacle_count = 17;
+    CHECK_FALSE(guard::valid(source));
+    guard::Supervisor supervisor;
+    CHECK_FALSE(supervisor.observe(source, 0));
+    CHECK_FALSE(supervisor.evaluate(proposal(), {}, 10'000'000).authorized);
+    REQUIRE(supervisor.observe(observation(), 0));
+    guard::Scene scene;
+    scene.zone_count = scene.zones.size() + 1;
+    auto result = supervisor.evaluate(proposal(2), scene, 10'000'000);
+    CHECK_FALSE(result.authorized);
+    CHECK(result.primary_reason == guard::Reason::UNV_INTERNAL);
+    scene = {};
+    scene.obstacle_count = scene.obstacles.size() + 1;
+    CHECK_FALSE(supervisor.evaluate(proposal(3), scene, 10'000'000).authorized);
+
+    auto map_with = [](std::size_t zones) {
+        std::string json =
+            R"({"kind":"map","version":1,"id":"ward","size":[40,6],"walls":[],"zones":[)";
+        for (std::size_t i = 0; i < zones; ++i)
+            json += (i ? "," : "") + std::string(R"({"id":"z)") + std::to_string(i) +
+                    R"(","kind":"restricted","rect":{"min":[1,1],"max":[2,2]},"active":true})";
+        return json + R"(],"start":{"x":2,"y":2,"theta":0},"goal":{"x":38,"y":2,"theta":0}})";
+    };
+    guard::MapSpec map;
+    CHECK(guard::load_map(map_with(32), map));
+    CHECK(map.scene.zone_count == 32);
+    CHECK_FALSE(guard::load_map(map_with(33), map));
+    CHECK(map.scene.zone_count == 32);
+
+    auto world_with = [](std::size_t obstacles) {
+        guard::ScenarioSpec scenario;
+        scenario.obstacle_count = obstacles;
+        for (std::size_t i = 0; i < obstacles; ++i) {
+            scenario.obstacles[i].id = {'o', static_cast<char>('a' + i)};
+            scenario.obstacles[i].position = {static_cast<double>(i), 3};
+        }
+        return guard::World(guard::MapSpec{}, scenario);
+    };
+    auto full = world_with(16);
+    REQUIRE(full.update(0));
+    CHECK(full.scene().obstacle_count == 16);
+    CHECK_FALSE(world_with(17).update(0));
 }
