@@ -24,8 +24,10 @@ bool Gate::register_supervisor(RegisterReply &reply) {
         record(Reason::GATE_UNAUTHORIZED_CLIENT);
         return false;
     }
+    // GCOVR_EXCL_BR_START: epoch overflow needs 2^32 registrations
     if (!valid(config_) || status_.epoch == std::numeric_limits<std::uint32_t>::max())
         return false;
+    // GCOVR_EXCL_BR_STOP
     ++status_.epoch;
     registered_ = true;
     pending_valid_ = false;
@@ -38,7 +40,7 @@ bool Gate::register_supervisor(RegisterReply &reply) {
 }
 void Gate::expire(std::int64_t now) {
     if (config_.mode == Mode::heartbeat && status_.mode == GateMode::moving &&
-        last_passthrough_ >= 0 &&
+        last_passthrough_ >= 0 && // GCOVR_EXCL_BR_LINE: B1 enters MOVING only by passthrough
         now - last_passthrough_ >= milliseconds(config_.heartbeat_timeout_ms))
         stop(Reason::GATE_HEARTBEAT_LOST);
     if (config_.mode == Mode::guarded && status_.mode == GateMode::moving &&
@@ -88,7 +90,10 @@ bool Gate::commit_lease(std::uint64_t sequence, std::int64_t now, bool ack_deliv
         return false;
     }
     expire(now);
-    if (now < last_tick_ || (!config_.ablate_epoch && pending_.epoch != status_.epoch) ||
+    if (now < last_tick_ ||
+        // GCOVR_EXCL_BR_START: every epoch change clears pending_valid_ before commit
+        (!config_.ablate_epoch && pending_.epoch != status_.epoch) ||
+        // GCOVR_EXCL_BR_STOP
         (!config_.ablate_expiry && now >= pending_.expires_ns) ||
         (status_.mode != GateMode::ready && status_.mode != GateMode::moving))
         return false;

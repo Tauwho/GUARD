@@ -1,5 +1,6 @@
 #include "guard/gate_fsm.hpp"
 #include <doctest/doctest.h>
+#include <limits>
 
 namespace {
 void ready(guard::Gate &gate) {
@@ -168,4 +169,70 @@ TEST_CASE("heartbeat refusal while braking does not consume passthrough sequence
     REQUIRE(gate.status(600'000'000).mode == guard::GateMode::ready);
     value.stamp_ns = 600'000'000;
     CHECK(gate.passthrough(value, value.stamp_ns) == guard::Reason::GATE_PASSTHRU_ACCEPTED);
+}
+
+TEST_CASE("heartbeat passthrough while moving replaces the held command") {
+    guard::Config config;
+    config.mode = guard::Mode::heartbeat;
+    guard::Gate gate(config);
+    guard::PassthruCmd value;
+    value.cmd_seq = 1;
+    value.v = 0.4;
+    REQUIRE(gate.passthrough(value, 0) == guard::Reason::GATE_PASSTHRU_ACCEPTED);
+    CHECK(gate.tick(10'000'000, 0.4).v == 0.4);
+    value.cmd_seq = 2;
+    value.v = 0.3;
+    value.stamp_ns = 10'000'000;
+    CHECK(gate.passthrough(value, 10'000'000) == guard::Reason::GATE_PASSTHRU_ACCEPTED);
+    CHECK(gate.tick(20'000'000, 0.4).v == 0.3);
+}
+
+TEST_CASE("commit requires the prepared lease sequence") {
+    guard::Gate gate;
+    ready(gate);
+    CHECK_FALSE(gate.commit_lease(1, 50'000'000, true));
+    REQUIRE(gate.prepare_lease(lease(), 50'000'000).reason == 500);
+    CHECK_FALSE(gate.commit_lease(2, 50'000'000, true));
+    CHECK(gate.status(50'000'000).mode == guard::GateMode::ready);
+    CHECK(gate.commit_lease(1, 50'000'000, true));
+    CHECK(gate.status(50'000'000).mode == guard::GateMode::moving);
+}
+
+TEST_CASE("commit rechecks clock, expiry and gate state after the ACK") {
+    guard::Gate rewound;
+    ready(rewound);
+    REQUIRE(rewound.prepare_lease(lease(), 50'000'000).reason == 500);
+    rewound.tick(60'000'000, 0);
+    CHECK_FALSE(rewound.commit_lease(1, 55'000'000, true));
+    CHECK(rewound.status(60'000'000).mode == guard::GateMode::ready);
+
+    guard::Gate late;
+    ready(late);
+    REQUIRE(late.prepare_lease(lease(), 50'000'000).reason == 500);
+    CHECK_FALSE(late.commit_lease(1, 300'000'000, true));
+    CHECK(late.status(300'000'000).mode == guard::GateMode::ready);
+    CHECK(late.status(300'000'000).lease_id == 0);
+
+    guard::Gate faulted;
+    ready(faulted);
+    REQUIRE(faulted.lease(lease(), 50'000'000).reason == 500);
+    auto renewal = lease();
+    renewal.lease_id = renewal.lease_seq = 2;
+    renewal.issued_ns = 60'000'000;
+    renewal.expires_ns = 310'000'000;
+    REQUIRE(faulted.prepare_lease(renewal, 60'000'000).reason == 500);
+    faulted.motor_timeout();
+    CHECK_FALSE(faulted.commit_lease(2, 60'000'000, true));
+    CHECK(faulted.status(60'000'000).mode == guard::GateMode::stopping);
+    CHECK(faulted.status(60'000'000).lease_id == 0);
+}
+
+TEST_CASE("non-finite angular measurement enters the internal fault path") {
+    guard::Gate gate;
+    ready(gate);
+    REQUIRE(gate.lease(lease(), 50'000'000).reason == 500);
+    const auto motor = gate.tick(60'000'000, 0.4, std::numeric_limits<double>::infinity());
+    CHECK(motor.w == 0);
+    CHECK(gate.status(60'000'000).mode == guard::GateMode::stopping);
+    CHECK(gate.status(60'000'000).latch == guard::LatchCause::internal);
 }
