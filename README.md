@@ -167,6 +167,7 @@ B2 mismatches are failures (CI gates them). Baseline mismatches are expected: B0
 - No real actuators, braking or vehicles. This is a simulation-only prototype.
 - No hard real-time guarantee on hardware. QEMU timing is not hardware timing.
 - No formal verification. Assurance comes from unit, scenario and property tests only.
+- No prediction of obstacle motion. The stopping-distance check treats each observation as a snapshot, so a pedestrian who walks into the braking path after a lease is granted can still reach the braking robot (#215).
 - No defence against a compromised kernel, supervisor or gate. Only the planner is treated as untrusted.
 - No QNX performance claims and no QNX-vs-Linux comparisons without BlackBerry's written approval.
 <!-- gen:limits-end -->
