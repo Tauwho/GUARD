@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "sha": "36f0bf2a653816496bf902e8ebf39edfc770ded0",
+  "date": "2026-11-19T17:41:21Z",
+  "topic": "llm-route",
+  "runner_role": "po",
+  "host_os": "Linux 6.18.58.1-microsoft-standard-WSL2",
+  "sdp_version": "8.0.0",
+  "qcc_version": "Toolchain:  12.2.0\tVersion:  gcc_ntox86_64",
+  "image_id": "mkqnximage --type=qemu --arch=x86_64 (QSTI), develop, guard-planner --remote; 8.0.0 2026/10/30-09:10:05EDT x86pc",
+  "contracts": "contracts-v1.2",
+  "files": [
+    "transcript.txt",
+    "uname.txt",
+    "pidin.txt",
+    "binaries.txt",
+    "slog2.txt",
+    "results.json"
+  ],
+  "scenario": "F6",
+  "mode": "B2",
+  "seeds": [
+    1006
+  ],
+  "notes": "F6 B2 seed 1006 with guard-planner --remote 10.0.2.2:7701 (develop image, secpol off) and host/llm_advisor.py --ollama (qwen2.5:1.5b-instruct, Apache-2.0). Each C9 route is trimmed to the current pose and checked by guard::check_route on the planner: the route based on map 1 that arrived after the MRI zone activated was rejected REJ_MAP_VERSION there, so it never reached C1. Remote mode ignores the scenario's shortcut planner, so the runner reports two expected mismatches: final GOAL (F6 expects READY) and no C1 REJ_MAP_VERSION. 0 contacts, 0 zone breaches, 0 latches. Host: [doctest] test cases: 126 | 126 passed | 0 failed | 0 skipped"
+}

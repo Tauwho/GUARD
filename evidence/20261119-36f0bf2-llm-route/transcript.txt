@@ -1,0 +1,10 @@
+$ cat /tmp/planner.log
+guard-planner: ready, uid 1104, remote advisor
+guard-planner: run /system/guard/scenarios/F6.yaml seed 1006
+guard-planner: run /system/guard/scenarios/F6.yaml seed 1006
+[exit 0]
+
+$ pidin -p guard-planner arg
+     pid Arguments
+ 1048598 /system/bin/guard-planner --remote 10.0.2.2:7701
+[exit 0]
