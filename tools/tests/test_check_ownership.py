@@ -1,8 +1,11 @@
 """Ownership rules, including the D27 tooling-fix path (audit fix 6). Simulates PRs."""
 
 import importlib.util
+import os
+import subprocess
 from pathlib import Path
 
+import pytest
 import yaml
 
 TOOLS = Path(__file__).resolve().parents[1]
@@ -70,3 +73,51 @@ def test_streams_keep_their_own_files():
     assert own.evaluate("B", ["qnx/gate/gate.cpp"], RULES)[0]
     assert own.evaluate("A", ["core/src/fsm/gate_fsm.cpp"], RULES)[0]
     assert not own.evaluate("A", ["qnx/gate/gate.cpp"], RULES)[0]
+
+
+def pr_repo(tmp_path, change):
+    """A repo with main plus one PR commit made by change(root); returns its root."""
+    env = dict(
+        os.environ,
+        GIT_AUTHOR_NAME="t",
+        GIT_AUTHOR_EMAIL="t@example.invalid",
+        GIT_COMMITTER_NAME="t",
+        GIT_COMMITTER_EMAIL="t@example.invalid",
+    )
+
+    def git(*args):
+        subprocess.run(["git", *args], cwd=tmp_path, env=env, check=True, capture_output=True)
+
+    (tmp_path / "OWNERSHIP.yaml").write_bytes((TOOLS.parent / "OWNERSHIP.yaml").read_bytes())
+    for name in ("qnx/gate.cpp", "qnx/space name.cpp", "qnx/caf\u00e9.cpp", "core/a.cpp"):
+        (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / name).write_text("int x;\n")
+    git("init", "-q", "-b", "main")
+    git("add", ".")
+    git("commit", "-qm", "base")
+    git("switch", "-q", "-c", "pr")
+    change(tmp_path)
+    git("add", "-A")
+    git("commit", "-qm", "pr")
+    return tmp_path
+
+
+def run_gate(root, head):
+    return own.main(["--root", str(root), "--base", "main", "--head-ref", head, "--labels", ""])
+
+
+def test_move_out_of_another_streams_area_fails(tmp_path):
+    root = pr_repo(tmp_path, lambda r: (r / "qnx/gate.cpp").rename(r / "core/gate.cpp"))
+    assert run_gate(root, "a/1-move") == 1
+
+
+@pytest.mark.parametrize("name", ["qnx/space name.cpp", "qnx/caf\u00e9.cpp"])
+def test_unusual_file_names_keep_their_owner(tmp_path, name):
+    root = pr_repo(tmp_path, lambda r: (r / name).write_text("changed\n"))
+    assert run_gate(root, "po/1-edit") == 1
+    assert run_gate(root, "b/1-edit") == 0
+
+
+def test_pr_from_a_branch_named_main_is_checked(tmp_path):
+    root = pr_repo(tmp_path, lambda r: (r / "qnx/gate.cpp").write_text("changed\n"))
+    assert run_gate(root, "main") == 1

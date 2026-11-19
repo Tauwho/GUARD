@@ -114,7 +114,13 @@ def evaluate(stream, changed, rules, labels=(), title=""):
     return True, [f"ownership: PASS stream {stream}, {len(changed)} files"]
 
 
-def main():
+def changed_paths(git, base):
+    # --no-renames: a move must also report the path it removed. -z: no quoting or splitting.
+    out = git("diff", "--name-only", "--no-renames", "-z", f"{base}...HEAD")
+    return [path for path in out.split("\0") if path]
+
+
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", default="origin/main")
     parser.add_argument("--head-ref", default="")
@@ -125,12 +131,17 @@ def main():
     parser.add_argument(
         "--policy-from-base", action="store_true", help="read OWNERSHIP.yaml from --base"
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     root = Path(args.root).resolve()
 
     def git(*git_args):
         return subprocess.run(
-            ["git", *git_args], cwd=root, capture_output=True, text=True, check=True
+            ["git", *git_args],
+            cwd=root,
+            capture_output=True,
+            encoding="utf-8",
+            check=True,
+            timeout=60,
         ).stdout
 
     if args.policy_from_base:
@@ -139,7 +150,8 @@ def main():
         config = yaml.safe_load((root / "OWNERSHIP.yaml").read_text(encoding="utf-8"))
     rules = compile_rules(config)
     head = args.head_ref or (git("rev-parse", "--abbrev-ref", "HEAD").strip() if args.local else "")
-    if head in ("", "HEAD", "main"):
+    # Only a local run on main/detached has nothing to check; a PR head named main (a fork) does.
+    if head in ("", "HEAD") or (head == "main" and not args.head_ref):
         print("ownership: not on a stream branch (main or detached); nothing to check")
         return 0
     stream = next(
@@ -150,9 +162,12 @@ def main():
         print(f"ownership: FAIL branch '{head}' has no stream prefix ({prefixes})")
         return 1
     try:
-        changed = git("diff", "--name-only", f"{args.base}...HEAD").split()
+        changed = changed_paths(git, args.base)
     except subprocess.CalledProcessError as error:
         print(f"ownership: FAIL cannot diff against {args.base}: {error.stderr.strip()}")
+        return 1
+    except subprocess.TimeoutExpired:
+        print(f"ownership: FAIL git diff against {args.base} timed out")
         return 1
     ok, lines = evaluate(stream, changed, rules, args.labels.split(","), args.title)
     print("\n".join(lines))
