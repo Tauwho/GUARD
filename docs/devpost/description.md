@@ -7,7 +7,7 @@ checks its shape. The PO filed the Devpost entry by hand on 2026-11-20; no agent
 - **Tagline:** Stale decisions can't move a simulated robot.
 - **Category:** Robotics & Medical
 - **Repo:** https://github.com/Tauwho/GUARD
-- **Video:** https://youtu.be/THk9yHWtyRU (2:46, recorded from `v1.0-rc1` per `demo/DEMO.md`)
+- **Video:** https://youtu.be/vUtbbXYgL1M (2:46, recorded from `v1.0-rc1` per `demo/DEMO.md`)
 - **Built with:** qnx, c++, cmake, python, qemu, github-actions
 
 ## Inspiration

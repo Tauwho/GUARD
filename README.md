@@ -33,7 +33,7 @@ The 3-minute demo (host replay F3, dashboard, target `run-demo.sh` with
 `guardctl`, and a refusal with its reason code) is specified in [demo/DEMO.md](demo/DEMO.md)
 and recorded from `v1.0-rc1`.
 
-**Video:** [GUARD demo on YouTube](https://youtu.be/THk9yHWtyRU) (2:46, synthetic voice, no QNX logo;
+**Video:** [GUARD demo on YouTube](https://youtu.be/vUtbbXYgL1M) (2:46, synthetic voice, no QNX logo;
 [storyboard](docs/video/storyboard.md) and [captions](docs/video/captions.srt) in `docs/video/`).
 
 ## The problem
