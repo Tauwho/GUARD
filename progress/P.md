@@ -291,3 +291,14 @@ commit passed `make check` and `tools/fresh_clone_demo.sh`.
   authoritative.
 - `green-20261116` still points at 2011b07 (pre-audit). P1 refreshes it via the
   nightly run after the first P merge.
+
+
+## #222 local video re-cut (2026-11-24, prepared by A on po/ ownership branch)
+- Local H.264/AAC export: 1920x1080, 30 fps, duration 2:51.02. No video/raw trace/model committed.
+- Retain original scenes, insert remote-LLM scene from B take2 actual C8 telemetry at original pacing. Supplied dashboard MP4 froze, so this scene is a custom recorded-target-trace visualisation, explicitly labelled throughout, not new live capture.
+- REJ_MAP_VERSION is attributed to the planner; ROUTE_USABLE never authorises motion. Target numeric readouts omitted; excludes post-run MOTOR_TIMEOUT. Results and full current Limits are rendered repository excerpts, including obstacle-motion limitation.
+- New Kokoro af_heart voice, existing narration retained; no music/effects. Matching 33-cue SRT; no subtitle extends beyond the exported video.
+- #222 explicitly requests dngvmnh claims review before merge: keep PR draft pending that review, including approval of the replay/card substitutions. Old public video URL stays unchanged; upload/README/Devpost update belongs to P.
+- Validation results recorded in the PR; raw sources and local export stay in ignored out/video222/.
+
+- #222 validation: `python tools/check_package.py` -> `package-check: PASS`; `python tools/check_policy.py all` -> core-portable/no-qnx-files/claims-lint/schemas/evidence PASS. Full MP4 decode exits 0; audio peak below clipping. Fresh-context media/docs review: 0 blockers; required-reason wording corrected, no outstanding should findings.

@@ -17,23 +17,29 @@ Supersedes the v1 draft in PR #65 (scenes kept, re-cut to the DEMO steps).
 - No QNX logo. "QNX" appears only as plain text and in normal terminal output.
 - Every claim is backed by a file on `main` (claims table below).
 
-Total **2:46** (final cut, `docs/video/duration.txt`), hard limit under 3:00. Footage is
-recorded from tag `v1.0-rc1` (P3). Scene 1 uses the F0 replay (a normal run) to set the scene
-before any fault; the target scene uses `image/run-demo.sh --test --dashboard`.
+Total **2:51.02** (new local export for #222; duration.txt rounds up to 2:52),
+hard limit under 3:00. Existing scenes reuse the published v1.0-rc1 footage.
+The new remote scene comes from B's take2 on main `09491a1`, develop image,
+secpol off, actual Ollama Qwen2.5-1.5B run. Its supplied dashboard video froze;
+the new visualisation is rendered from the matching recorded target telemetry,
+continuously labelled **Recorded target trace replay**, at original event pacing.
+It is not a newly captured live dashboard. This explicit substitution and the
+claims table require @dngvmnh review before merge/upload (#222).
 
 ## Scenes
 
 | # | Time | DEMO step | On screen | Caption text |
 |---|---|---|---|---|
-| 1 | 0:00-0:17 | 1 | Dashboard replay of a normal F0 run (host, 1x), robot leaving Ward A | "An AI planner can be right about a world that no longer exists." / "GUARD: only fresh, checked decisions move the simulated robot." |
-| 2 | 0:17-0:39 | 1 | Host terminal: F3 replay under B2, then under B1; `final_state` and exit codes highlighted | "Supervisor killed: GUARD latches. A heartbeat baseline keeps moving." |
-| 3 | 0:39-1:09 | 2 | Dashboard replay of `out/F3-B2.jsonl` from 3 s (1x): supervisor lost at 12 s, STOPPING, LATCHED, reason journal | "No lease renewal, so the gate stops the robot on its own timer." |
-| 4 | 1:09-1:41 | 3 | Split: F6 under B2 (robot waits, `REJ_MAP_VERSION`) and under B0 (robot crosses the active MRI zone), both from 5 s at 1x | "Stale map: refused, with a reason code." |
-| 5 | 1:41-2:21 | 4 | Target terminal (start log, then the four `ssh ... guardctl` lines) + live dashboard with every numeric readout hidden | "Same fault on QNX 8.0 in QEMU: behaviour only." |
-| 6 | 2:21-2:41 | 5 | `build_readme.py --check` PASS, then README Results (host Linux harness) and the Limits list on GitHub at `v1.0-rc1` | "Results: host (Linux) harness. Simulation-only research prototype." |
-| end | 2:41-2:46 | - | End card: repository URL, simulation-only, synthetic-voice note | "Stale decisions can't move the robot." |
+| 1 | 0:00-0:16 | 1 | Retained F0 normal host replay | GUARD checks motion proposals. |
+| 2 | 0:16-0:36 | 1 | Retained F3 B2 vs B1 terminal | Supervisor lost: stop and latch. |
+| 3 | 0:36-1:01 | 2 | Retained F3 host dashboard | A separate gate expires motion leases. |
+| 4 | 1:01-1:26 | 3 | Retained F6 B2 vs B0 split | Stale map: refused with a reason. |
+| 5 | 1:26-1:56 | 4 | Retained QNX F3 footage; one silent gap removed, no speed change | Target behaviour only. |
+| 6 | 1:56-2:26 | 5 | Recorded target trace replay; original pacing; route reason text plus robot poses from the same trace | Planner rejects REJ_MAP_VERSION, then a later route is ROUTE_USABLE. |
+| 7 | 2:26-2:46 | 6 | Rendered excerpts of current repository Results and Limits, including obstacle-motion limitation | Host (Linux) results; simulation-only prototype. |
+| end | 2:46-2:51 | - | Repo URL, simulation-only, synthetic Kokoro voice and recorded-trace disclosure | Public upload remains with P. |
 
-## Narration (final, 228 words, synthetic voice)
+## Narration (re-cut; retained narration plus new synthetic voice)
 
 1. "An AI planner can be right about a world that no longer exists. In a hospital, that
    world changes fast. GUARD sits between the planner and a simulated robot, and only
@@ -51,9 +57,10 @@ before any fault; the target scene uses `image/run-demo.sh --test --dashboard`.
    its own process. guardctl injects the fault. The gate latches, and the cause is
    supervisor lost. Recovery is refused until its conditions hold. Here we show behaviour,
    not timings."
-6. "Every number in our results comes from the host Linux harness, and is labelled that
+6. "The planner can also ask a local language model for a route. It checks every suggestion itself. This route cites an old map, so it is rejected before it ever reaches the supervisor. Motion still needs a lease. The model advises; it never authorises."
+7. "Every number in our results comes from the host Linux harness, and is labelled that
    way. GUARD is a simulation-only research prototype, not for real robots or patients."
-7. "Stale decisions can't move the robot."
+8. "Stale decisions can't move the robot."
 
 ## Claims
 
@@ -69,3 +76,27 @@ before any fault; the target scene uses `image/run-demo.sh --test --dashboard`.
 | C8 | The target run is shown as behaviour only (modes, latch cause, reason text) | DEMO step 4 output filters; `progress/P.md` F2 transcript; dashboard numbers hidden in capture (`docs/decisions/P.md`) |
 | C9 | On the target each component is its own process | `qnx/README.md`; README Evidence Map (`process-*` bundles) |
 | C10 | End card "Stale decisions can't move the robot." is the project tagline, shown after the evidence for it in simulation | README tagline; C2-C4 (stale lease: stop; stale map: refused) |
+
+| C11 | The planner rejects the stale route itself as REJ_MAP_VERSION; a later route is ROUTE_USABLE | `host/ADVISOR.md` On the target; `qnx/planner/src/main.cpp`; `evidence/20261119-36f0bf2-remote-planner/manifest.json`; B take2 C8 source retained locally |
+| C12 | A usable model route never directly authorises motor motion | `host/ADVISOR.md`; ordinary C1 supervisor + gate path |
+| C13 | No prediction of obstacle motion | `docs/limits.md`; decision #215 |
+
+## New scene provenance and caveats (#222)
+
+- Source archive: guard-222-remote-planner-take2.zip, B's actual F6 B2 run with
+  Qwen2.5-1.5B, seed 1006, main 09491a1, develop image (not secure secpol).
+- Window retains original trace pacing and excludes run_end and the subsequent
+  MOTOR_TIMEOUT latch after the sim stopped publishing. No target counters,
+  clocks, speed, timestamps, lease durations or numeric results are shown.
+- The take2 dashboard file froze near the beginning. The new scene uses a custom
+  replay visualisation of the recorded robot poses/map state plus route reasons
+  from that same C8 trace, not simulated or fabricated replacement output. The
+  map geometry comes from scenarios/maps/mri_suite.yaml. Route messages are
+  deduplicated for readability; their first appearance follows trace timestamps.
+- Remote mode reaches GOAL rather than F6's expected READY; the planner rejects
+  the stale route before it reaches the supervisor, so the runner's required C1
+  reason is absent. These two expected runner differences are not called F6 PASS.
+- Results/limits cards are rendered repository excerpts, not new GitHub browser
+  recordings. The old published video URL remains unchanged until P uploads this
+  cut and updates README/Devpost. Package-check validates files, not that upload.
+- Raw footage, logs, scripts, model and inference timings remain ignored/local.
