@@ -12,3 +12,11 @@
 - Music: none in the main cut. Any later track must be CC0 and named in the description.
 - Check before export: total length under 3:00, captions in sync within 0.2 s, no
   word in `tools/claims-lint.txt` in any caption.
+
+
+## Re-cut #222
+The accompanying SRT is retimed to retained source intervals and individually
+synthesised new sentences. Continuous on-screen disclosure identifies the remote
+scene as recorded target trace replay. New captions attribute REJ_MAP_VERSION to
+the planner, not the supervisor. Target numeric results are absent. Video duration
+is 2:51.02; duration.txt rounds up to 2:52. P reviews claims before merge/upload.

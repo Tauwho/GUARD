@@ -1,8 +1,8 @@
 # GUARD 3-minute demo
 
 The demo as numbered, copy-pasteable commands. The video (`docs/video/`) is recorded
-from these steps on tag `v1.0-rc1`; nothing appears on screen that is not run or
-opened here.
+from these steps. Retained footage is from `v1.0-rc1`; the #222 remote scene
+is a labelled replay of B take2 recorded target telemetry from main `09491a1`.
 
 `python tools/check_demo_commands.py` checks this file: every command in a `ready`
 step must exist on `main` and answer `--help` with the flags used here (shell scripts:
@@ -53,7 +53,7 @@ step 4 needs: on the default image `guardctl inject` answers "process faults nee
 test image". Open `http://127.0.0.1:8765`. Stop everything
 afterwards with `image/run-demo.sh --stop`.
 
-### 1. Supervisor killed, host replay [0:00-0:39]
+### 1. Supervisor killed, host replay [0:00-0:36]
 Status: ready
 
 ```sh
@@ -69,7 +69,7 @@ B2 the gate ends `LATCHED` with `GATE_SUPERVISOR_LOST` and `GATE_STANDSTILL`; un
 heartbeat baseline B1 the robot is still `MOVING`, because the planner's heartbeat is
 alive (`scenarios/F3.yaml`, `expected`).
 
-### 2. Dashboard replay of the same run [0:39-1:09]
+### 2. Dashboard replay of the same run [0:36-1:01]
 Status: ready
 
 ```sh
@@ -81,7 +81,7 @@ dies, the mode goes STOPPING then LATCHED, and the reason journal shows
 `GATE_SUPERVISOR_LOST`. The relay is read-only and binds to loopback only. Stop it
 with Ctrl-C before step 3.
 
-### 3. A refusal with its reason code [1:09-1:41]
+### 3. A refusal with its reason code [1:01-1:26]
 Status: ready
 
 ```sh
@@ -99,7 +99,7 @@ the robot drives through the active zone (at least one violation). Both runs exi
 because each matches its own hypothesis. Run the two relays one after the other
 (Ctrl-C between them); `--map` is needed so the dashboard draws the MRI zone.
 
-### 4. The same fault on the QNX target [1:41-2:21]
+### 4. The same fault on the QNX target [1:26-1:56]
 Status: ready
 
 ```sh
@@ -116,7 +116,28 @@ exit 1 (`GATE_RECOVERY_UNMET`, `contracts/guardctl.md`). The dashboard follows t
 target live through the relay `run-demo.sh --dashboard` started. Target evidence for
 the same fault: `evidence/20261117-604281c-scenario-F3/`.
 
-### 5. Results and limits [2:21-2:41]
+### 5. Remote model route checks [1:56-2:26]
+Status: ready
+
+Follow host/ADVISOR.md On the target. Warm the local model before booting QEMU;
+use the develop image, not secure secpol. Capture several real takes if needed.
+
+```sh
+python host/llm_advisor.py --ollama
+image/run-demo.sh
+bash demo/remote-advisor.sh
+python eval/target_runner.py --target ssh:guard-target --bridge 127.0.0.1:7700 --scenario scenarios/F6.yaml --out out/target-F6.jsonl
+```
+
+Expected: planner C8 route events show REJECTED / REJ_MAP_VERSION after the map
+changes, and later USABLE / ROUTE_USABLE. Live inference is nondeterministic;
+never fabricate or retime output. Remote mode ends GOAL rather than static F6's
+READY; no C1 REJ_MAP_VERSION is required because rejection occurs in the planner.
+The local #222 cut uses B take2 recorded telemetry at original pacing, labelled
+Recorded target trace replay (the supplied dashboard footage froze). Hide every
+target numeric readout. Motion still needs supervisor and gate authorisation.
+
+### 6. Results and limits [2:26-2:46]
 Status: ready
 
 ```sh

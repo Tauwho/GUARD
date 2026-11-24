@@ -36,7 +36,7 @@ refer to [storyboard.md](storyboard.md). Two takes of each shot.
 Recorded headless with Microsoft Edge (Playwright, DevTools screencast) at 1920 x 1080: the
 dashboard and GitHub pages are the browser's own rendering; terminal shots replay the
 captured commands and verbatim output of real runs at `v1.0-rc1`. Edit, labels and mix with
-`ffmpeg`; voice-over is offline Windows text-to-speech. Scripts live outside the repo with
+`ffmpeg`; voice-over is offline Kokoro-82M, voice af_heart. Scripts live outside the repo with
 the footage.
 
 Original plan:
@@ -44,3 +44,17 @@ Original plan:
 OBS Studio, canvas and output 1920 x 1080 at 30 fps, MKV (remux to MP4), desktop audio
 off, microphone on its own track. Editing in Kdenlive (fallback Shotcut). Export 1080p
 MP4 (H.264 + AAC), under 3:00.
+
+
+## Re-cut #222 (local export)
+- Retain original six-scene footage; trim only gaps/tails at original playback speed.
+- New scene (1:56-2:26): custom replay of B take2 target trace and C8 route reasons,
+  labelled Recorded target trace replay throughout. Supplied dashboard MP4 froze;
+  it is not used as a live-motion shot. Raw source stays local.
+- Refuse stale-map route on the planner, then show ROUTE_USABLE; all target numeric
+  readouts omitted. Secure-image remote mode remains unverified.
+- Results/limits: current repository text rendered as cards, including the full
+  obstacle-motion limitation; host-Linux provenance shown for numeric results.
+- New narration: offline Kokoro-82M int8 ONNX, af_heart; old narration retained;
+  no music/effects. End card discloses synthetic voice and recorded trace.
+- P reviews the claims and accepts these substitutions before merge and upload.
