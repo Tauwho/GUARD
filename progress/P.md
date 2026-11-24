@@ -300,3 +300,5 @@ commit passed `make check` and `tools/fresh_clone_demo.sh`.
 - New Kokoro af_heart voice, existing narration retained; no music/effects. Matching 33-cue SRT; no subtitle extends beyond the exported video.
 - #222 explicitly requests dngvmnh claims review before merge: keep PR draft pending that review, including approval of the replay/card substitutions. Old public video URL stays unchanged; upload/README/Devpost update belongs to P.
 - Validation results recorded in the PR; raw sources and local export stay in ignored out/video222/.
+
+- #222 validation: `python tools/check_package.py` -> `package-check: PASS`; `python tools/check_policy.py all` -> core-portable/no-qnx-files/claims-lint/schemas/evidence PASS. Full MP4 decode exits 0; audio peak below clipping. Fresh-context media/docs review: 0 blockers; required-reason wording corrected, no outstanding should findings.

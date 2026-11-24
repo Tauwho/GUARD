@@ -132,7 +132,9 @@ python eval/target_runner.py --target ssh:guard-target --bridge 127.0.0.1:7700 -
 Expected: planner C8 route events show REJECTED / REJ_MAP_VERSION after the map
 changes, and later USABLE / ROUTE_USABLE. Live inference is nondeterministic;
 never fabricate or retime output. Remote mode ends GOAL rather than static F6's
-READY; no C1 REJ_MAP_VERSION is required because rejection occurs in the planner.
+READY. The runner still expects C1 REJ_MAP_VERSION, which is absent because
+rejection occurs in the planner. Both documented mismatches are expected in
+remote mode.
 The local #222 cut uses B take2 recorded telemetry at original pacing, labelled
 Recorded target trace replay (the supplied dashboard footage froze). Hide every
 target numeric readout. Motion still needs supervisor and gate authorisation.
